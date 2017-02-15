@@ -15,22 +15,6 @@ function Graph(graphInfo = undefined, nodes = undefined, edges = undefined)
     this.graphInfo = graphInfo;
     this.nodes = nodes;
     this.edges = edges;
-
-    /**
-     * Getter
-     */
-    this.get = function()
-    {
-        return this;
-    }
-
-    /**
-     * Setter
-    this.set = function(graph)
-    {
-        this = graph;
-    }
-    */
 }
 
 /**
@@ -38,7 +22,7 @@ function Graph(graphInfo = undefined, nodes = undefined, edges = undefined)
  */
 Graph.prototype.getNodes = function()
 {
-    return graph.nodes;
+    return this.nodes;
 }
 
 /**
@@ -46,7 +30,7 @@ Graph.prototype.getNodes = function()
  */
 Graph.prototype.getNumberOfNodes = function()
 {
-    return graph.nodes.length;
+    return this.nodes.length;
 }
 
 /**
@@ -54,7 +38,7 @@ Graph.prototype.getNumberOfNodes = function()
  */
 Graph.prototype.getEdges = function()
 {
-    return graph.edges;
+    return this.edges;
 }
 
 /**
@@ -62,5 +46,5 @@ Graph.prototype.getEdges = function()
  */
 Graph.prototype.getNumberOfEdges = function()
 {
-    return graph.edges.length;
+    return this.edges.length;
 }
