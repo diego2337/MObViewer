@@ -6,13 +6,24 @@
 /**
  * Constructor
  * params: 
- *    - graphInfo: array of strings;
+ *    - graphInfo: object containing information such as:
+ *          1) if the graph is directed;
+ *          2) which multilevel is;
+ *          3) the number of layers;
+ *          4) n integers, each containing the number of nodes in a layer.
  *    - nodes: array of Node type;
  *    - edges: array of Edge type.
  */
 function Graph(graphInfo = undefined, nodes = undefined, edges = undefined)
 {
-    this.graphInfo = graphInfo;
+    this.graphInfo = graphInfo[0];
+    if(nodes instanceof Array)
+    {
+        this.nodes = [];
+        nodes.forEach(function(d, i){
+            this.nodes[i] = new Node(d);
+        });
+    }
     this.nodes = nodes;
     this.edges = edges;
 }

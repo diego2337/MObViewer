@@ -5,11 +5,24 @@
 
 /**
  * Constructor
- */
+ * params: 
+ *    - circleGeometry: a geometry of type circle (from three.js);
+ *    - meshStandardMaterial: material for the geometry (from three.js).
+ *
 function Node(circleGeometry, meshStandardMaterial)
 {
     this.circleGeometry = circleGeometry;
     this.meshStandardMaterial = meshStandardMaterial;
+}*/
+
+/**
+ * Constructor
+ * params:
+ *    - nodeObject: the node object taken from the JSON file
+ */
+function Node(nodeObject)
+{
+    
 }
 
 /**

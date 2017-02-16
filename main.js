@@ -7,3 +7,10 @@ requirejs(['../threeJs/build/three'], function(){
         });
     });
 });
+
+function main()
+{
+    /* Converting passed textarea input to JSON */
+    var jason = JSON.parse($.trim($("textarea").val()));
+    // console.log(jason);
+}
