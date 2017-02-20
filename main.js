@@ -57,7 +57,7 @@ function main()
     scene = new THREE.Scene();
 
     /* Create the camera and associate it with the scene */
-    camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 1, 100);
+    camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 500);
     /* Setting Z value so that every element will have the same depth */
     // Depth.setZ(10);
     camera.position.set(0, 0, 10);
@@ -69,9 +69,9 @@ function main()
 	lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
 	lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
 
-	lights[ 0 ].position.set( 0, 200, 0 );
-	lights[ 1 ].position.set( 100, 200, 100 );
-	lights[ 2 ].position.set( - 100, - 200, - 100 );
+	lights[ 0 ].position.set( 0, 2, 0 );
+	lights[ 1 ].position.set( 1, 2, 1 );
+	lights[ 2 ].position.set( - 1, - 2, - 1 );
 
 	scene.add( lights[ 0 ] );
 	scene.add( lights[ 1 ] );

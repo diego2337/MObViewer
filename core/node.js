@@ -43,25 +43,24 @@ function Node(nodeObject, circleGeometry = undefined, meshBasicMaterial = undefi
     finally
     {
         // CHANGED - FROM this.weight TO this.nodeObject.weight
-        if(this.nodeObject.weight != undefined)
+        if(this.nodeObject.weight == undefined)
         {
-            // CHANGED - FROM this.weight TO this.nodeObject.weight
-            this.circleGeometry = new THREE.CircleGeometry(this.nodeObject.weight, 100);
+            this.nodeObject.weight = 1;
         }
-        else
-        {
-            this.circleGeometry = new THREE.CircleGeometry(1, 100);
-        }
+
+        this.nodeObject.weight = 1;
+        
+        this.circleGeometry = new THREE.CircleGeometry(this.nodeObject.weight, 100);
 
         if(meshBasicMaterial == undefined)
         {
-            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: "rgb(255, 255, 255)" });
+            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide, depthFunc: THREE.AlwaysDepth });
         }
         else
         {
             this.meshBasicMaterial = meshBasicMaterial;
         }
-        this.circle = new THREE.Mesh(circleGeometry, meshBasicMaterial);
+        this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
     }
 }
 
@@ -133,11 +132,7 @@ Node.prototype.buildNode = function(theta, layout)
             buildForceDirected();
             break;
         case 2: // Radial layout
-            //buildRadial(theta);
-            var x = this.nodeObject.weight * Math.sin(theta);
-            var y = this.nodeObject.weight * Math.cos(theta);
-
-            this.circle.position.set(x, y, 0);
+            this.buildRadial(theta);
             break;
         case 3: // Bipartite layout
             buildBipartite();
@@ -163,10 +158,9 @@ Node.prototype.buildForceDirected = function()
 Node.prototype.buildRadial = function(theta)
 {
     /* Parametric equation of a circle */
-    var x = this.nodeObject.weight * Math.sin(theta);
-    var y = this.nodeObject.weight * Math.cos(theta);
-
-    this.circle.position.set(x, y, 10);
+    var x = 15 * Math.sin(theta);
+    var y = 15 * Math.cos(theta);
+    this.circle.position.set(x, y, 0);
 }
 
 /**

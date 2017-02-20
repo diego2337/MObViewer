@@ -15,6 +15,8 @@ function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
     try
     {
         this.edgeObject = edgeObject;
+        /* Defining edge id by concatenation of source and target nodes' id */
+        this.edgeObject.id = edgeObject.source.toString() + edgeObject.target.toString();
     }
     catch(err)
     {
@@ -30,7 +32,7 @@ function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
         if(geometry != undefined && lineBasicMaterial == undefined)
         {
             this.geometry = geometry;
-            this.lineBasicMaterial = new THREE.LineBasicMaterial();
+            this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
         }
         else if(geometry == undefined && lineBasicMaterial != undefined)
         {
@@ -42,6 +44,12 @@ function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
             this.geometry = geometry;
             this.lineBasicMaterial = lineBasicMaterial;
         }
+        else
+        {
+            this.geometry = new THREE.Geometry();
+            this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
+        }
+        this.geometry.computeLineDistances();
     }
 }
 
@@ -78,11 +86,35 @@ Edge.prototype.setlineBasicMaterial = function(lineBasicMaterial)
 }
 
 /**
- * Build the edge into the scene
- * param:
- *    - layout: the graph layout.
+ * Getter for line
  */
-Edge.prototype.buildEdge = function(layout)
+Edge.prototype.getLine = function()
 {
-    
+    return this.line;
+}
+
+/**
+ * Setter for line
+ */
+Edge.prototype.setLine = function(line)
+{
+    this.line = line;
+}
+
+/**
+ * Build the edge into the scene
+ * params:
+ *    - source: the source node from which the edge starts (if directed);
+ *    - target: the target node from which the edge starts (if directed).
+ */
+Edge.prototype.buildEdge = function(source, target)
+{
+    var sourcePos = source.getCircle().position;
+    var targetPos = target.getCircle().position;
+    this.geometry.vertices.push(
+        new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z),
+        new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)
+    );
+    this.line = new THREE.Line(this.geometry, this.lineBasicMaterial);
+    console.log(this.line);
 }
