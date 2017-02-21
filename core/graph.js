@@ -18,8 +18,10 @@
  *      - 1) Force-directed;
  *      - 2) Radial;
  *      - 3) Bipartite.
+ *    - min: the minimal value for feature scaling, applied to nodes and edges. Default is 0
+ *    - max: the maximum value for feature scaling, applied to nodes and edges. Default is 10
  */
-function Graph(graph, layout = 2)
+function Graph(graph, layout = 2, min = 0, max = 10)
 {
     try
     {
@@ -196,12 +198,6 @@ Graph.prototype.buildGraph = function(scene, layout = 2)
             this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target));
             scene.add(this.edges[i].getLine());
         }
-
-        /* Add nodes to scene */
-        // for(var i = 0; i < this.nodes.length; i++)
-        // {
-            
-        // }
     }
     catch(err)
     {

@@ -17,7 +17,7 @@ requirejs(['../d3/d3'], function(){
 function main()
 {
     var scene, renderer;
-
+    
     /* Converting passed textarea input to JSON */
     var jason = JSON.parse($.trim($("textarea").val()));
 
