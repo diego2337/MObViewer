@@ -17,12 +17,12 @@ requirejs(['../d3/d3'], function(){
 function main()
 {
     var scene, renderer;
-    
+
     /* Converting passed textarea input to JSON */
     var jason = JSON.parse($.trim($("textarea").val()));
 
     /* Instantiating Graph */
-    var graph = new Graph(jason);
+    var graph = new Graph(jason, 2, 10, 70);
     // console.log(graph);
 
     /* Checking for WebGL compatibility */

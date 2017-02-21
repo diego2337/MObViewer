@@ -27,12 +27,14 @@ function Graph(graph, layout = 2, min = 0, max = 10)
     {
         this.layout = layout;
         this.graphInfo = graph.graphInfo[0];
+        this.graphInfo.min = min;
+        this.graphInfo.max = max;
         if(graph.nodes instanceof Array)
         {
             this.nodes = [];
             for(var i = 0; i < graph.nodes.length; i++)
             {
-                this.nodes[i] = new Node(graph.nodes[i]);
+                this.nodes[i] = new Node(graph.nodes[i], min, max);
             }
             // graph.nodes.forEach(function(d, i){
             //     this.nodes[i] = new Node(d);
@@ -188,14 +190,14 @@ Graph.prototype.buildGraph = function(scene, layout = 2)
         for(var i = 0; i < this.nodes.length; i++)
         {
             theta = scale(i);
-            this.nodes[i].buildNode(theta, layout);
+            this.nodes[i].buildNode(theta, layout, this.graphInfo.min, this.graphInfo.max);
             scene.add(this.nodes[i].getCircle());
         }
 
         /* Build edges' meshes and add to scene */
         for(var i = 0; i < this.edges.length; i++)
         {
-            this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target));
+            this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target, this.graphInfo.min, this.graphInfo.max));
             scene.add(this.edges[i].getLine());
         }
     }

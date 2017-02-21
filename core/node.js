@@ -20,9 +20,11 @@ function Node(circleGeometry, meshBasicMaterial)
  * params:
  *    - nodeObject: the node object taken from the JSON file;
  *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for the geometry (from three.js).
+ *    - meshBasicMaterial: material for the geometry (from three.js);
+ *    - min: min value to be used in feature scaling;
+ *    - max: max value to be used in feature scaling.
  */
-function Node(nodeObject, circleGeometry = undefined, meshBasicMaterial = undefined)
+function Node(nodeObject, min = 0, max = 10, circleGeometry = undefined, meshBasicMaterial = undefined)
 {
     try
     {
@@ -48,9 +50,9 @@ function Node(nodeObject, circleGeometry = undefined, meshBasicMaterial = undefi
             this.nodeObject.weight = 1;
         }
 
-        this.nodeObject.weight = 1;
-        
-        this.circleGeometry = new THREE.CircleGeometry(this.nodeObject.weight, 100);
+        /* Use feature scaling to fit nodes */
+        var x = (this.nodeObject.weight - min )/(max-min); 
+        this.circleGeometry = new THREE.CircleGeometry(x, 100);
 
         if(meshBasicMaterial == undefined)
         {
