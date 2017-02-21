@@ -61,6 +61,7 @@ function Node(nodeObject, circleGeometry = undefined, meshBasicMaterial = undefi
             this.meshBasicMaterial = meshBasicMaterial;
         }
         this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
+        this.circle.renderOrder = 1;
     }
 }
 

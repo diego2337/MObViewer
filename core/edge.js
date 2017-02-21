@@ -116,5 +116,5 @@ Edge.prototype.buildEdge = function(source, target)
         new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)
     );
     this.line = new THREE.Line(this.geometry, this.lineBasicMaterial);
-    console.log(this.line);
+    this.line.renderOrder = 0;
 }

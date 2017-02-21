@@ -50,6 +50,8 @@ function main()
     /* Set the renderers size to the content areas size */
     renderer.setSize(canvasWidth, canvasHeight);
 
+    // renderer.sortObjects = false;
+
     /* Get the DIV element from the HTML document by its ID and append the renderers DOM object to it */
     document.getElementById("WebGL").appendChild(renderer.domElement);
 

@@ -187,6 +187,7 @@ Graph.prototype.buildGraph = function(scene, layout = 2)
         {
             theta = scale(i);
             this.nodes[i].buildNode(theta, layout);
+            scene.add(this.nodes[i].getCircle());
         }
 
         /* Build edges' meshes and add to scene */
@@ -197,10 +198,10 @@ Graph.prototype.buildGraph = function(scene, layout = 2)
         }
 
         /* Add nodes to scene */
-        for(var i = 0; i < this.nodes.length; i++)
-        {
-            scene.add(this.nodes[i].getCircle());
-        }
+        // for(var i = 0; i < this.nodes.length; i++)
+        // {
+            
+        // }
     }
     catch(err)
     {
