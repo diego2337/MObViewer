@@ -81,5 +81,8 @@ function main()
 
     graph.buildGraph(scene);
 
+    /* Tell the browser to call this function when page is visible */
+    requestAnimationFrame(animateScene);
+
     renderer.render(scene, camera);
 }
