@@ -1,11 +1,13 @@
 requirejs(['../d3/d3'], function(){
     requirejs(['../threeJs/build/three'], function(){
         requirejs(['../threeJs/examples/js/Detector'], function(){
-            requirejs(['core/depth'], function(){
-                requirejs(['core/edge'], function(){
-                    requirejs(['core/node'], function(){
-                        requirejs(['core/graph'], function(){
-                            console.log("All functions loaded.");
+            requirejs(['core/eventHandler'], function(){
+                requirejs(['core/depth'], function(){
+                    requirejs(['core/edge'], function(){
+                        requirejs(['core/node'], function(){
+                            requirejs(['core/graph'], function(){
+                                console.log("All functions loaded.");
+                            });
                         });
                     });
                 });
@@ -82,7 +84,13 @@ function main()
     graph.buildGraph(scene);
 
     /* Tell the browser to call this function when page is visible */
-    requestAnimationFrame(animateScene);
+    // requestAnimationFrame(animateScene);
+
+    /* Create event listener */
+    var eventHandler = new EventHandler();
+
+    /* Adding event listeners */
+    document.addEventListener('click', function(evt){console.log(evt); eventHandler.clickEvent(evt, scene);}, false);
 
     renderer.render(scene, camera);
 }
