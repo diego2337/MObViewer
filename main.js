@@ -27,6 +27,9 @@ function main()
     var graph = new Graph(jason, 2, 10, 70);
     // console.log(graph);
 
+    /* Creating event listener */
+    var eventHandler = new EventHandler();
+
     /* Checking for WebGL compatibility */
     if(Detector.webgl)
     {
@@ -66,6 +69,7 @@ function main()
     // Depth.setZ(10);
     camera.position.set(0, 0, 10);
     camera.lookAt(scene.position);
+    camera.name = "camera";
     scene.add(camera);
 
     var lights = [];
@@ -86,11 +90,25 @@ function main()
     /* Tell the browser to call this function when page is visible */
     // requestAnimationFrame(animateScene);
 
-    /* Create event listener */
-    var eventHandler = new EventHandler();
+    eventHandler.setScene(scene);
 
     /* Adding event listeners */
-    document.addEventListener('click', function(evt){console.log(evt); eventHandler.clickEvent(evt, scene);}, false);
+    document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, renderer, graph);}, false);
+    document.addEventListener('mouseover', function(evt){eventHandler.mouseOverEvent(evt, renderer, graph);}, false);
+    document.addEventListener('mouseout', function(evt){eventHandler.mouseOutEvent(graph);}, false);
 
-    renderer.render(scene, camera);
+    /* NOT WORKING */
+    // var node = graph.getNodeByIndex(1);
+    // node.highlight();
+    // graph.setNodeById(node.nodeObject.id, node);
+    // console.log(graph.getNodeByIndex(1));
+
+    animate();
+
+    function animate()
+    {
+        requestAnimationFrame(animate);
+        /* Render scene */
+        renderer.render(scene, camera);
+    }
 }

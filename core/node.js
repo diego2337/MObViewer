@@ -63,6 +63,9 @@ function Node(nodeObject, min = 0, max = 10, circleGeometry = undefined, meshBas
             this.meshBasicMaterial = meshBasicMaterial;
         }
         this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
+        this.circle.name = "" + this.nodeObject.id;
+        this.circle.geometry.computeFaceNormals();
+        this.circle.geometry.verticesNeedUpdate = true;
         this.circle.renderOrder = 1;
     }
 }
@@ -72,6 +75,30 @@ function Node(nodeObject, min = 0, max = 10, circleGeometry = undefined, meshBas
  
 Node.prototype.constructor = Node;
 */
+
+/**
+ * Getter for node - COPY, NOT REFERENCE
+ */
+Node.prototype.getNode = function()
+{
+    var node = new Node();
+    node.setCircleGeometry(this.circleGeometry);
+    node.setMeshBasicMaterial(this.meshBasicMaterial);
+    node.setCircle(this.circle);
+    return node;
+}
+
+/**
+ * Sets the current node with new node attributes
+ * param:
+ *    - node: node for copying.
+ */
+Node.prototype.setNode = function(node)
+{
+    this.setCircleGeometry(node.circleGeometry);
+    this.setMeshBasicMaterial(node.meshBasicMaterial);
+    this.setCircle(node.circle);
+}
 
 /**
  * Getter for circleGeometry
@@ -172,4 +199,20 @@ Node.prototype.buildRadial = function(theta)
 Node.prototype.buildBipartite = function()
 {
     console.log("To be implemented");
+}
+
+/**
+ * Highlight node
+ */
+Node.prototype.highlight = function()
+{
+    this.circle.material.color.setHex(0xFF0000);
+}
+
+/**
+ * Unhighlight node
+ */
+Node.prototype.unhighlight = function()
+{
+    this.circle.material.color.setHex(0xFF0000);
 }

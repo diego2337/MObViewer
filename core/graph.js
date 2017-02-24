@@ -59,6 +59,24 @@ function Graph(graph, layout = 2, min = 0, max = 10)
 }
 
 /**
+ * Get element by id
+ * param:
+ *    - id: element id.
+ */
+Graph.prototype.getElementById = function(id)
+{
+    var identification = id.slice(0,1);
+    if(identification == "e") // edge
+    {
+        return this.getEdgeById(id);
+    }
+    else // node
+    {
+        return this.getNodeById(id);
+    }
+}
+
+/**
  * Get nodes from graph
  */
 Graph.prototype.getNodes = function()
@@ -67,9 +85,22 @@ Graph.prototype.getNodes = function()
 }
 
 /**
+ * Get nodes meshes
+ */
+Graph.prototype.getNodesMeshes = function()
+{
+    var meshes = [];
+    for(var i = 0; i < this.nodes.length; i++)
+    {
+        meshes.push(this.nodes[i].getCircle());
+    }
+    return meshes;
+}
+
+/**
  * Get specific node from graph by id
  * param:
- *    - id: id node.
+ *    - id: node id.
  */
 Graph.prototype.getNodeById = function(id)
 {
@@ -79,7 +110,7 @@ Graph.prototype.getNodeById = function(id)
 /**
  * Find node by id
  * param:
- *    - id: id node.
+ *    - id: node id.
  */
 Graph.prototype.findNode = function(id)
 {
@@ -112,6 +143,18 @@ Graph.prototype.getNumberOfNodes = function()
 }
 
 /**
+ * Set node by id
+ * param:
+ *    - id: node id;
+ *    - node: object to be assigned.
+ */
+Graph.prototype.setNodeById = function(id, node)
+{
+    var index = this.findNode(id);
+    this.nodes[index].setNode(node);
+}
+
+/**
  * Get edges from graph
  */
 Graph.prototype.getEdges = function()
@@ -120,7 +163,22 @@ Graph.prototype.getEdges = function()
 }
 
 /**
+ * Get edges meshes
+ */
+Graph.prototype.getEdgesMeshes = function()
+{
+    var meshes = [];
+    for(var i = 0; i < this.edges.length; i++)
+    {
+        meshes.push(this.edges[i].getLine());
+    }
+    return meshes;
+}
+
+/**
  * Get specific edge from graph by id
+ * params:
+ *    - id: edge id.
  */
 Graph.prototype.getEdgeById = function(id)
 {
@@ -130,7 +188,7 @@ Graph.prototype.getEdgeById = function(id)
 /**
  * Find edge by id
  * param:
- *    - id: id of edge.
+ *    - id: edge id.
  */
 Graph.prototype.findEdge = function(id)
 {
@@ -170,6 +228,18 @@ Graph.prototype.getEdgeByIndex = function(i)
 Graph.prototype.getNumberOfEdges = function()
 {
     return this.edges.length;
+}
+
+/**
+ * Set edge by id
+ * param:
+ *    - id: edge id;
+ *    - edge: object to be assigned.
+ */
+Graph.prototype.setEdgeById = function(id, edge)
+{
+    var index = this.findEdge(id);
+    this.edges[index].setEdge(edge);
 }
 
 /**

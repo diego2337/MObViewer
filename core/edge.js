@@ -16,7 +16,7 @@ function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
     {
         this.edgeObject = edgeObject;
         /* Defining edge id by concatenation of source and target nodes' id */
-        this.edgeObject.id = edgeObject.source.toString() + edgeObject.target.toString();
+        this.edgeObject.id = "e" + edgeObject.source.toString() + edgeObject.target.toString();
     }
     catch(err)
     {
@@ -51,6 +51,30 @@ function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
         }
         this.geometry.computeLineDistances();
     }
+}
+
+/**
+ * Getter for edge - COPY, NOT REFERENCE
+ */
+Edge.prototype.getEdge = function()
+{
+    var edge = new Edge();
+    edge.setGeometry(this.circleGeometry);
+    edge.setLineBasicMaterial(this.lineBasicMaterial);
+    edge.setLine(this.line);
+    return edge;
+}
+
+/**
+ * Sets the current edge with new edge attributes
+ * param:
+ *    - Edge: edge for copying.
+ */
+Edge.prototype.setEdge = function(edge)
+{
+    this.setGeometry(edge.geometry);
+    this.setlineBasicMaterial(edge.setlineBasicMaterial);
+    this.setLine(edge.line);
 }
 
 /**
@@ -116,5 +140,24 @@ Edge.prototype.buildEdge = function(source, target)
         new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)
     );
     this.line = new THREE.Line(this.geometry, this.lineBasicMaterial);
+    this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
+    this.line.geometry.computeFaceNormals();
+    this.line.geometry.verticesNeedUpdate = true;
     this.line.renderOrder = 0;
+}
+
+/**
+ * Highlight edge
+ */
+Edge.prototype.highlight = function()
+{
+    this.line.material.color.setHex(0xFF0000);
+}
+
+/**
+ * Unhighlight edge
+ */
+Edge.prototype.unhighlight = function()
+{
+    this.line.material.color.setHex(0x8D9091);
 }
