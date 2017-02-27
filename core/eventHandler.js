@@ -77,7 +77,6 @@ EventHandler.prototype.clickEvent = function(evt, renderer, graph)
 {
     /* Variable to store all the objects in the scene */
     var objects = [];
-
     /* Adjusting mouse coordinates to NDC [-1, 1] */
     var mouseX = (evt.clientX / renderer.domElement.clientWidth) * 2 - 1;
     var mouseY = -(evt.clientY / renderer.domElement.clientHeight) * 2 + 1;
@@ -108,6 +107,61 @@ EventHandler.prototype.clickEvent = function(evt, renderer, graph)
             graph.setEdgeById(intersects[i].object.name, element);
         }
         this.highlightedElements.push(intersects[i].object.name);
+    }
+}
+
+/**
+ * Handles mouse move. If mouse hovers over element, invoke highlighting
+ * params:
+ *    - evt: event dispatcher;
+ *    - renderer: WebGL renderer, containing DOM element's offsets;
+ *    - graph: graph, containing objects to be intersected.
+ */
+EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
+{
+    /* Adjusting mouse coordinates to NDC [-1, 1] */
+    var mouseX = ((evt.clientX-renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1;
+    var mouseY = -((evt.clientY-renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1;
+
+    var mouse = new THREE.Vector2(mouseX, mouseY);
+    var camera = this.scene.getObjectByName("camera", true);
+
+    /* Setting raycaster starting from camera */
+    this.raycaster.setFromCamera(mouse, camera);
+
+    /* Execute ray tracing */
+    var intersects = this.raycaster.intersectObjects(this.scene.children, true);
+
+    /* Highlight elements (if any is intersected) */
+    for(var i = 0; i < intersects.length; i++)
+    {
+        var element = graph.getElementById(intersects[i].object.name);
+        element.highlight();
+        if(element instanceof Node)
+        {
+            graph.setNodeById(intersects[i].object.name, element);
+        }
+        else
+        {
+            graph.setEdgeById(intersects[i].object.name, element);
+        }
+        this.highlightedElements.push(intersects[i].object.name);
+    }
+
+    /* Set normal color for unhighlighted elements */
+    for(var i = 0; i < this.highlightedElements.length; i++)
+    {
+        var element = graph.getElementById(this.highlightedElements[i]);
+        element.unhighlight();
+        if(element instanceof Node)
+        {
+            graph.setNodeById(this.highlightedElements[i], element);
+        }
+        else
+        {
+            graph.setEdgeById(this.highlightedElements[i], element);
+        }
+        this.highlightedElements.splice(i, 1);
     }
 }
 

@@ -94,8 +94,9 @@ function main()
 
     /* Adding event listeners */
     document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, renderer, graph);}, false);
-    document.addEventListener('mouseover', function(evt){eventHandler.mouseOverEvent(evt, renderer, graph);}, false);
-    document.addEventListener('mouseout', function(evt){eventHandler.mouseOutEvent(graph);}, false);
+    // document.addEventListener('mouseover', function(evt){eventHandler.mouseOverEvent(evt, renderer, graph);}, false);
+    // document.addEventListener('mouseout', function(evt){eventHandler.mouseOutEvent(graph);}, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
 
     /* NOT WORKING */
     // var node = graph.getNodeByIndex(1);

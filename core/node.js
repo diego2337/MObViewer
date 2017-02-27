@@ -214,5 +214,5 @@ Node.prototype.highlight = function()
  */
 Node.prototype.unhighlight = function()
 {
-    this.circle.material.color.setHex(0xFF0000);
+    this.circle.material.color.setHex(0x000000);
 }
