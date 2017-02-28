@@ -65,6 +65,8 @@ function Node(nodeObject, min = 0, max = 10, circleGeometry = undefined, meshBas
         this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
+        this.circle.geometry.computeBoundingSphere();
+        this.circle.geometry.boundingBox = null;
         this.circle.geometry.verticesNeedUpdate = true;
         this.circle.renderOrder = 1;
     }

@@ -142,7 +142,9 @@ Edge.prototype.buildEdge = function(source, target)
     this.line = new THREE.Line(this.geometry, this.lineBasicMaterial);
     this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
     this.line.geometry.computeFaceNormals();
+    this.line.geometry.computeBoundingSphere();
     this.line.geometry.verticesNeedUpdate = true;
+    this.line.boundingBox = null;
     this.line.renderOrder = 0;
 }
 
