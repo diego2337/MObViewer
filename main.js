@@ -1,20 +1,30 @@
 requirejs(['../d3/d3'], function(){
     requirejs(['../threeJs/build/three'], function(){
-        requirejs(['../threeJs/examples/js/Detector'], function(){
-            requirejs(['utils/tracker'], function(){
-                requirejs(['utils/eventHandler'], function(){
-                    requirejs(['core/depth'], function(){
-                        requirejs(['core/edge'], function(){
-                            requirejs(['core/node'], function(){
-                                requirejs(['core/graph'], function(){
-                                    console.log("All functions loaded.");
+        //requirejs(['node_modules/three.meshline/src/THREE.MeshLine'], function(){
+            requirejs(['../threeJs/examples/js/Detector'], function(){
+                requirejs(['utils/tracker'], function(){
+                    requirejs(['utils/eventHandler'], function(){
+                        requirejs(['core/depth'], function(){
+                            requirejs(['core/edge'], function(){
+                                requirejs(['core/softEdge'], function(){
+                                    requirejs(['core/node'], function(){
+                                        requirejs(['core/graph'], function(){
+                                            console.log("All functions loaded.");
+                                            /* Defining 'inheritance' */
+                                            // function inheritsFrom(child, parent)
+                                            // {
+                                            //     child.prototype = Object.create(parent.prototype);
+                                            // }
+                                            // Object.prototype.inheritsFrom = inheritsFrom;
+                                        });
+                                    });
                                 });
                             });
                         });
                     });
                 });
             });
-        });
+        //});
     });
 });
 

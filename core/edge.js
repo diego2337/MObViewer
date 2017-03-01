@@ -49,7 +49,18 @@ function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
             this.geometry = new THREE.Geometry();
             this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
         }
-        this.geometry.computeLineDistances();
+
+        /* TODO - eliminates ray tracing completely */
+        this.geometry.computeBoundingSphere();
+        this.geometry.computeFaceNormals();
+        this.geometry.boundingBox = null;
+        this.geometry.verticesNeedUpdate = true;
+        // this.geometry.computeLineDistances();
+        // this.geometry.computeBoundingBox();
+        // this.geometry.computeFlatVertexNormals();
+        // this.geometry.computeLineDistances();
+        // this.geometry.computeMorphNormals();
+        // this.geometry.verticesNeedUpdate = true;
     }
 }
 
@@ -59,7 +70,7 @@ function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
 Edge.prototype.getEdge = function()
 {
     var edge = new Edge();
-    edge.setGeometry(this.circleGeometry);
+    edge.setGeometry(this.geometry);
     edge.setLineBasicMaterial(this.lineBasicMaterial);
     edge.setLine(this.line);
     return edge;
@@ -141,10 +152,6 @@ Edge.prototype.buildEdge = function(source, target)
     );
     this.line = new THREE.Line(this.geometry, this.lineBasicMaterial);
     this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
-    this.line.geometry.computeFaceNormals();
-    this.line.geometry.computeBoundingSphere();
-    this.line.geometry.verticesNeedUpdate = true;
-    this.line.boundingBox = null;
     this.line.renderOrder = 0;
 }
 
