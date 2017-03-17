@@ -260,14 +260,16 @@ Graph.prototype.buildGraph = function(scene, layout = 2)
         for(var i = 0; i < this.nodes.length; i++)
         {
             theta = scale(i);
-            this.nodes[i].buildNode(theta, layout, this.graphInfo.min, this.graphInfo.max);
+            this.nodes[i].buildNode(theta, layout);
             scene.add(this.nodes[i].getCircle());
         }
 
         /* Build edges' meshes and add to scene */
         for(var i = 0; i < this.edges.length; i++)
         {
-            this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target, this.graphInfo.min, this.graphInfo.max));
+            this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
+            // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
+            // scene.add(helper);
             scene.add(this.edges[i].getLine());
         }
     }

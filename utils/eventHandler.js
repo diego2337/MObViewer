@@ -160,10 +160,10 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     // var mouseX = ((evt.clientX-renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1;
     // var mouseY = -((evt.clientY-renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1;
 
-    console.log("mouseX:");
-    console.log(mouseX);
-    console.log("mouseY:");
-    console.log(mouseY);
+    // console.log("mouseX:");
+    // console.log(mouseX);
+    // console.log("mouseY:");
+    // console.log(mouseY);
 
     var mouse = new THREE.Vector2(mouseX, mouseY);
     var camera = this.scene.getObjectByName("camera", true);
@@ -198,6 +198,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
+        console.log("Element:");
+        console.log(intersection.object.name);
         var element = graph.getElementById(intersection.object.name);
         element.highlight();
         if(element instanceof Node)

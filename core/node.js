@@ -51,7 +51,7 @@ function Node(nodeObject, min = 0, max = 10, circleGeometry = undefined, meshBas
         }
 
         /* Use feature scaling to fit nodes */
-        var x = (this.nodeObject.weight - min)/(max-min); 
+        var x = (this.nodeObject.weight - min)/(max-min);
         this.circleGeometry = new THREE.CircleGeometry(x, 100);
 
         if(meshBasicMaterial == undefined)

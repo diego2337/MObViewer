@@ -7,10 +7,10 @@
  * Constructor
  * params:
  *    - edgeObject: the edge object taken from the JSON file;
- *    - geometry: a generic geometry (from three.js);
+ *    - tubeGeometry: a generic tubeGeometry (from three.js);
  *    - lineBasicMaterial: line material for the object (from three.js).
  */
-function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
+function Edge(edgeObject, min = 0, max = 10, tubeGeometry = undefined, lineBasicMaterial = undefined)
 {
     try
     {
@@ -24,32 +24,41 @@ function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
         " Constructor " +
             " params: " +
             "    - edgeObject: the edge object taken from the JSON file; " +
-            "    - geometry: a generic geometry (from three.js); " +
+            "    - tubeGeometry: a generic tubeGeometry (from three.js); " +
             "    - lineBasicMaterial: line material for the object (from three.js)."; 
     }
     finally
     {
-        if(geometry != undefined && lineBasicMaterial == undefined)
+        if(this.edgeWeight.weight == undefined)
         {
-            this.geometry = geometry;
+            this.edgeWeight.weight = 1;
+        }
+        /* Instantiates simple curve */
+        this.edgeLineCurve = new LineCurve();
+
+        /* Use feature scaling to fit edges */
+        var x = (this.edgeWeight.weight - min)/(max-min);
+        if(tubeGeometry != undefined && lineBasicMaterial == undefined)
+        {
+            this.tubeGeometry = tubeGeometry;
             this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
         }
-        else if(geometry == undefined && lineBasicMaterial != undefined)
+        else if(tubeGeometry == undefined && lineBasicMaterial != undefined)
         {
-            this.geometry = new THREE.Geometry();
+            this.tubeGeometry = new THREE.TubeGeometry(curve, 64, x, 8, true);
             this.lineBasicMaterial = lineBasicMaterial;
         }
-        else if(geometry != undefined && lineBasicMaterial != undefined)
+        else if(tubeGeometry != undefined && lineBasicMaterial != undefined)
         {
-            this.geometry = geometry;
+            this.tubeGeometry = tubeGeometry;
             this.lineBasicMaterial = lineBasicMaterial;
         }
         else
         {
-            this.geometry = new THREE.Geometry();
+            this.tubeGeometry = new THREE.TubeGeometry(this.edgeLineCurve, 64, x, 8, true);
             this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
         }
-        this.geometry.computeLineDistances();
+        this.tubeGeometry.computeLineDistances();
     }
 }
 
@@ -59,7 +68,7 @@ function Edge(edgeObject, geometry = undefined, lineBasicMaterial = undefined)
 Edge.prototype.getEdge = function()
 {
     var edge = new Edge();
-    edge.setGeometry(this.circleGeometry);
+    edge.settubeGeometry(this.circletubeGeometry);
     edge.setLineBasicMaterial(this.lineBasicMaterial);
     edge.setLine(this.line);
     return edge;
@@ -72,25 +81,25 @@ Edge.prototype.getEdge = function()
  */
 Edge.prototype.setEdge = function(edge)
 {
-    this.setGeometry(edge.geometry);
+    this.settubeGeometry(edge.tubeGeometry);
     this.setlineBasicMaterial(edge.setlineBasicMaterial);
     this.setLine(edge.line);
 }
 
 /**
- * Getter for geometry
+ * Getter for tubeGeometry
  */
-Edge.prototype.getGeometry = function()
+Edge.prototype.getTubeGeometry = function()
 {
-    return this.geometry;
+    return this.tubeGeometry;
 }
 
 /**
- * Setter for geometry
+ * Setter for tubeGeometry
  */
-Edge.prototype.setGeometry = function(geometry)
+Edge.prototype.setTubeGeometry = function(tubeGeometry)
 {
-    this.geometry = geometry;
+    this.tubeGeometry = tubeGeometry;
 }
 
 /**
@@ -135,15 +144,18 @@ Edge.prototype.buildEdge = function(source, target)
 {
     var sourcePos = source.getCircle().position;
     var targetPos = target.getCircle().position;
-    this.geometry.vertices.push(
+    this.tubeGeometry.vertices.push(
         new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z),
         new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)
     );
-    this.line = new THREE.Line(this.geometry, this.lineBasicMaterial);
+    this.tubeGeometry.computeFaceNormals();
+    this.tubeGeometry.computeVertexNormals();
+    this.line.tubeGeometry.computeBoundingSphere();
+    this.line = new THREE.Line(this.tubeGeometry, this.lineBasicMaterial);
     this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
-    this.line.geometry.computeFaceNormals();
-    this.line.geometry.computeBoundingSphere();
-    this.line.geometry.verticesNeedUpdate = true;
+    // this.line.tubeGeometry.verticesNeedUpdate = true;
+    // this.line.tubeGeometry.elementsNeedUpdate = true;
+    // this.line.tubeGeometry.normalsNeedUpdate = true;
     this.line.boundingBox = null;
     this.line.renderOrder = 0;
 }
