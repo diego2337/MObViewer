@@ -160,11 +160,14 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     // var mouseX = ((evt.clientX-renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1;
     // var mouseY = -((evt.clientY-renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1;
 
+<<<<<<< HEAD
     // console.log("mouseX:");
     // console.log(mouseX);
     // console.log("mouseY:");
     // console.log(mouseY);
 
+=======
+>>>>>>> 6e2bd42c0327adeb86debf35b33adfd25e16ecf2
     var mouse = new THREE.Vector2(mouseX, mouseY);
     var camera = this.scene.getObjectByName("camera", true);
 
@@ -179,6 +182,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     /* Execute ray tracing */
     var intersects = this.raycaster.intersectObjects(this.scene.children, true);
     var intersection = intersects[0];
+
+    console.log("intersection:");
+    console.log(intersection);
 
     /* Unhighlight any already highlighted element */
     for(var i = 0; i < this.highlightedElements.length; i++)
