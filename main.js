@@ -6,7 +6,6 @@ requirejs(['../d3/d3'], function(){
                     requirejs(['utils/eventHandler'], function(){
                         requirejs(['core/depth'], function(){
                             requirejs(['core/edge'], function(){
-                                requirejs(['core/softEdge'], function(){
                                     requirejs(['core/node'], function(){
                                         requirejs(['core/graph'], function(){
                                             console.log("All functions loaded.");
@@ -18,7 +17,6 @@ requirejs(['../d3/d3'], function(){
                                             // Object.prototype.inheritsFrom = inheritsFrom;
                                         });
                                     });
-                                });
                             });
                         });
                     });

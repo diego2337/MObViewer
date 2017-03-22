@@ -29,15 +29,15 @@ function Edge(edgeObject, min = 0, max = 10, tubeGeometry = undefined, lineBasic
     }
     finally
     {
-        if(this.edgeWeight.weight == undefined)
+        if(this.edgeObject.weight == undefined)
         {
-            this.edgeWeight.weight = 1;
+            this.edgeObject.weight = 1;
         }
         /* Instantiates simple curve */
-        this.edgeLineCurve = new LineCurve();
+        this.edgeLineCurve = new THREE.LineCurve3(new THREE.Vector3(), new THREE.Vector3());
 
         /* Use feature scaling to fit edges */
-        var x = (this.edgeWeight.weight - min)/(max-min);
+        this.edgeRadius = (this.edgeObject.weight - min)/(max-min);
         if(tubeGeometry != undefined && lineBasicMaterial == undefined)
         {
             this.tubeGeometry = tubeGeometry;
@@ -45,7 +45,7 @@ function Edge(edgeObject, min = 0, max = 10, tubeGeometry = undefined, lineBasic
         }
         else if(tubeGeometry == undefined && lineBasicMaterial != undefined)
         {
-            this.tubeGeometry = new THREE.TubeGeometry(curve, 64, x, 8, true);
+            this.tubeGeometry = new THREE.TubeGeometry(curve, 64, edgeRadius, 8, true);
             this.lineBasicMaterial = lineBasicMaterial;
         }
         else if(tubeGeometry != undefined && lineBasicMaterial != undefined)
@@ -55,25 +55,22 @@ function Edge(edgeObject, min = 0, max = 10, tubeGeometry = undefined, lineBasic
         }
         else
         {
-            this.tubeGeometry = new THREE.TubeGeometry(this.edgeLineCurve, 64, x, 8, true);
+            this.tubeGeometry = new THREE.TubeGeometry(this.edgeLineCurve, 64, this.edgeRadius, 8, true);
             this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
         }
-<<<<<<< HEAD
         this.tubeGeometry.computeLineDistances();
-=======
 
         /* TODO - eliminates ray tracing completely */
-        this.geometry.computeBoundingSphere();
-        this.geometry.computeFaceNormals();
-        this.geometry.boundingBox = null;
-        this.geometry.verticesNeedUpdate = true;
+        // this.geometry.computeBoundingSphere();
+        // this.geometry.computeFaceNormals();
+        // this.geometry.boundingBox = null;
+        // this.geometry.verticesNeedUpdate = true;
         // this.geometry.computeLineDistances();
         // this.geometry.computeBoundingBox();
         // this.geometry.computeFlatVertexNormals();
         // this.geometry.computeLineDistances();
         // this.geometry.computeMorphNormals();
         // this.geometry.verticesNeedUpdate = true;
->>>>>>> 6e2bd42c0327adeb86debf35b33adfd25e16ecf2
     }
 }
 
@@ -83,11 +80,7 @@ function Edge(edgeObject, min = 0, max = 10, tubeGeometry = undefined, lineBasic
 Edge.prototype.getEdge = function()
 {
     var edge = new Edge();
-<<<<<<< HEAD
-    edge.settubeGeometry(this.circletubeGeometry);
-=======
-    edge.setGeometry(this.geometry);
->>>>>>> 6e2bd42c0327adeb86debf35b33adfd25e16ecf2
+    edge.setTubeGeometry(this.circletubeGeometry);
     edge.setLineBasicMaterial(this.lineBasicMaterial);
     edge.setLine(this.line);
     return edge;
@@ -156,29 +149,27 @@ Edge.prototype.setLine = function(line)
 /**
  * Build the edge into the scene
  * params:
- *    - source: the source node from which the edge starts (if directed);
- *    - target: the target node from which the edge starts (if directed).
+ *    - source: source node from which the edge starts (if directed);
+ *    - target: target node from which the edge ends (if dirceted).
  */
 Edge.prototype.buildEdge = function(source, target)
 {
     var sourcePos = source.getCircle().position;
     var targetPos = target.getCircle().position;
-    this.tubeGeometry.vertices.push(
-        new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z),
-        new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)
-    );
+    // this.tubeGeometry.vertices.push(
+    //     new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z),
+    //     new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)
+    // );
+    this.edgeLineCurve = new THREE.LineCurve3(new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z), new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z));
+    var geometry = new THREE.TubeGeometry(this.edgeLineCurve, 64, this.edgeRadius, 8, true)
+    this.line
     this.tubeGeometry.computeFaceNormals();
     this.tubeGeometry.computeVertexNormals();
-    this.line.tubeGeometry.computeBoundingSphere();
-    this.line = new THREE.Line(this.tubeGeometry, this.lineBasicMaterial);
+    this.tubeGeometry.computeBoundingSphere();
+    this.line = new THREE.Mesh(this.tubeGeometry, this.lineBasicMaterial);
+    console.log(this.line);
     this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
-<<<<<<< HEAD
-    // this.line.tubeGeometry.verticesNeedUpdate = true;
-    // this.line.tubeGeometry.elementsNeedUpdate = true;
-    // this.line.tubeGeometry.normalsNeedUpdate = true;
     this.line.boundingBox = null;
-=======
->>>>>>> 6e2bd42c0327adeb86debf35b33adfd25e16ecf2
     this.line.renderOrder = 0;
 }
 
