@@ -193,8 +193,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
-        console.log("Element:");
-        console.log(intersection.object.name);
         var element = graph.getElementById(intersection.object.name);
         element.highlight();
         if(element instanceof Node)

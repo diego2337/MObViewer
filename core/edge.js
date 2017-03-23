@@ -10,7 +10,7 @@
  *    - tubeGeometry: a generic tubeGeometry (from three.js);
  *    - lineBasicMaterial: line material for the object (from three.js).
  */
-function Edge(edgeObject, min = 0, max = 10, tubeGeometry = undefined, lineBasicMaterial = undefined)
+function Edge(edgeObject, min = 0, max = 50, tubeGeometry = undefined, lineBasicMaterial = undefined)
 {
     try
     {
@@ -34,7 +34,7 @@ function Edge(edgeObject, min = 0, max = 10, tubeGeometry = undefined, lineBasic
             this.edgeObject.weight = 1;
         }
         /* Instantiates simple curve */
-        this.edgeLineCurve = new THREE.LineCurve3(new THREE.Vector3(), new THREE.Vector3());
+        this.edgeLineCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3()]);
 
         /* Use feature scaling to fit edges */
         this.edgeRadius = (this.edgeObject.weight - min)/(max-min);
@@ -45,7 +45,7 @@ function Edge(edgeObject, min = 0, max = 10, tubeGeometry = undefined, lineBasic
         }
         else if(tubeGeometry == undefined && lineBasicMaterial != undefined)
         {
-            this.tubeGeometry = new THREE.TubeGeometry(curve, 64, edgeRadius, 8, true);
+            this.tubeGeometry = new THREE.TubeGeometry(this.edgeLineCurve, 64, edgeRadius, 8, true);
             this.lineBasicMaterial = lineBasicMaterial;
         }
         else if(tubeGeometry != undefined && lineBasicMaterial != undefined)
@@ -93,7 +93,7 @@ Edge.prototype.getEdge = function()
  */
 Edge.prototype.setEdge = function(edge)
 {
-    this.settubeGeometry(edge.tubeGeometry);
+    this.setTubeGeometry(edge.tubeGeometry);
     this.setlineBasicMaterial(edge.setlineBasicMaterial);
     this.setLine(edge.line);
 }
@@ -160,17 +160,16 @@ Edge.prototype.buildEdge = function(source, target)
     //     new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z),
     //     new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)
     // );
-    this.edgeLineCurve = new THREE.LineCurve3(new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z), new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z));
-    var geometry = new THREE.TubeGeometry(this.edgeLineCurve, 64, this.edgeRadius, 8, true)
-    this.line
+    this.edgeLineCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z), new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)]);
+    this.tubeGeometry = new THREE.TubeGeometry(this.edgeLineCurve, 64, this.edgeRadius, 8, true);
     this.tubeGeometry.computeFaceNormals();
     this.tubeGeometry.computeVertexNormals();
     this.tubeGeometry.computeBoundingSphere();
     this.line = new THREE.Mesh(this.tubeGeometry, this.lineBasicMaterial);
-    console.log(this.line);
     this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
     this.line.boundingBox = null;
     this.line.renderOrder = 0;
+    console.log(this.line);
 }
 
 /**
