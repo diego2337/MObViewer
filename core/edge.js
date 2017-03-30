@@ -156,11 +156,16 @@ Edge.prototype.buildEdge = function(source, target)
 {
     var sourcePos = source.getCircle().position;
     var targetPos = target.getCircle().position;
-    // this.tubeGeometry.vertices.push(
-    //     new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z),
-    //     new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)
-    // );
+    var vector = new THREE.Vector3();
+    vector.addVectors(target.getCircleGeometry().boundingBox.min, target.getCircleGeometry().boundingBox.max);
+    vector.divideScalar(2);
+    var vector2 = new THREE.Vector3();
+    vector2.addVectors(source.getCircleGeometry().boundingBox.min, source.getCircleGeometry().boundingBox.max);
+    vector2.divideScalar(2);
+    console.log(vector2);
+    console.log(vector);
     this.edgeLineCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z), new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)]);
+    // this.edgeLineCurve = new THREE.LineCurve3(new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z), new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z));
     this.tubeGeometry = new THREE.TubeGeometry(this.edgeLineCurve, 64, this.edgeRadius, 8, true);
     this.tubeGeometry.computeFaceNormals();
     this.tubeGeometry.computeVertexNormals();
@@ -169,7 +174,6 @@ Edge.prototype.buildEdge = function(source, target)
     this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
     this.line.boundingBox = null;
     this.line.renderOrder = 0;
-    console.log(this.line);
 }
 
 /**
