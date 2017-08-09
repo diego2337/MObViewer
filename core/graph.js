@@ -5,7 +5,7 @@
 
 /**
  * Constructor
- * params: 
+ * params:
  *    - graph: object containing JSON graph file, with:
  *      - graphInfo: object containing information such as:
  *              1) if the graph is directed;
