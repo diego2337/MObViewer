@@ -204,6 +204,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
             graph.setEdgeById(intersection.object.name, element);
         }
         this.highlightedElements.push(intersection.object.name);
+        console.log("Highlighted element");
+        console.log(element);
     }
 
     /* Highlight elements (if any is intersected) */

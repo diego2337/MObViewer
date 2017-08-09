@@ -19,10 +19,10 @@ function Node(circleGeometry, meshBasicMaterial)
  * Constructor
  * params:
  *    - nodeObject: the node object taken from the JSON file;
- *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for the geometry (from three.js);
  *    - min: min value to be used in feature scaling;
- *    - max: max value to be used in feature scaling.
+ *    - max: max value to be used in feature scaling;
+ *    - circleGeometry: a geometry of type circle (from three.js);
+ *    - meshBasicMaterial: material for the geometry (from three.js).
  */
 function Node(nodeObject, min = 0, max = 10, circleGeometry = undefined, meshBasicMaterial = undefined)
 {

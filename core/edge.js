@@ -34,7 +34,7 @@ function Edge(edgeObject, min = 0, max = 50, tubeGeometry = undefined, lineBasic
             this.edgeObject.weight = 1;
         }
         /* Instantiates simple curve */
-        this.edgeLineCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3()]);
+        this.edgeLineCurve = new THREE.CatmullRom3([new THREE.Vector3(), new THREE.Vector3()]);
 
         /* Use feature scaling to fit edges */
         this.edgeRadius = (this.edgeObject.weight - min)/(max-min);
@@ -156,17 +156,15 @@ Edge.prototype.buildEdge = function(source, target)
 {
     var sourcePos = source.getCircle().position;
     var targetPos = target.getCircle().position;
-    var vector = new THREE.Vector3();
+    /*var vector = new THREE.Vector3();
     vector.addVectors(target.getCircleGeometry().boundingBox.min, target.getCircleGeometry().boundingBox.max);
     vector.divideScalar(2);
     var vector2 = new THREE.Vector3();
     vector2.addVectors(source.getCircleGeometry().boundingBox.min, source.getCircleGeometry().boundingBox.max);
-    vector2.divideScalar(2);
-    console.log(vector2);
-    console.log(vector);
-    this.edgeLineCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z), new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)]);
-    // this.edgeLineCurve = new THREE.LineCurve3(new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z), new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z));
-    this.tubeGeometry = new THREE.TubeGeometry(this.edgeLineCurve, 64, this.edgeRadius, 8, true);
+    vector2.divideScalar(2);*/
+    // this.edgeLineCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z), new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z)]);
+    this.edgeLineCurve = new THREE.LineCurve3(new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z), new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z));
+    this.tubeGeometry = new THREE.TubeGeometry(this.edgeLineCurve, 24, this.edgeRadius, 2, true);
     this.tubeGeometry.computeFaceNormals();
     this.tubeGeometry.computeVertexNormals();
     this.tubeGeometry.computeBoundingSphere();
