@@ -34,7 +34,7 @@ function Edge(edgeObject, min = 0, max = 50, tubeGeometry = undefined, lineBasic
             this.edgeObject.weight = 1;
         }
         /* Instantiates simple curve */
-        this.edgeLineCurve = new THREE.CatmullRom3([new THREE.Vector3(), new THREE.Vector3()]);
+        this.edgeLineCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3()]);
 
         /* Use feature scaling to fit edges */
         this.edgeRadius = (this.edgeObject.weight - min)/(max-min);

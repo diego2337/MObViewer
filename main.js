@@ -1,7 +1,7 @@
-requirejs(['../d3/d3'], function(){
-    requirejs(['../threeJs/build/three'], function(){
+requirejs(['dependencies/d3/d3'], function(){
+    requirejs(['dependencies/three.js/build/three'], function(){
         //requirejs(['node_modules/three.meshline/src/THREE.MeshLine'], function(){
-            requirejs(['../threeJs/examples/js/Detector'], function(){
+            requirejs(['dependencies/three.js/examples/js/Detector'], function(){
                 requirejs(['utils/tracker'], function(){
                     requirejs(['utils/eventHandler'], function(){
                         requirejs(['core/depth'], function(){

@@ -54,7 +54,7 @@ function Graph(graph, layout = 2, min = 0, max = 10)
     }
     catch(err)
     {
-        throw "Unexpected error ocurred at line " + err.lineNumber + ". " + err;
+        throw "Unexpected error ocurred at line " + err.lineNumber + " in Graph. " + err;
     }
 }
 
@@ -275,6 +275,6 @@ Graph.prototype.buildGraph = function(scene, layout = 2)
     }
     catch(err)
     {
-        throw "Unexpected error ocurred at line " + err.line + ". " + err;
+        throw "Unexpected error ocurred at line " + err.line + " in 'buildGraph' function. " + err;
     }
 }
