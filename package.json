@@ -1,0 +1,33 @@
+{
+  "name": "threegraph",
+  "version": "1.0.0",
+  "description": "Information Visualization system for large bipartite graph exploration, using multilevel paradigm to aid in such proccess.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://diego_2337@bitbucket.org/diego_2337/threegraph.git"
+  },
+  "keywords": [
+    "Information",
+    "Visualization",
+    "InfoVis",
+    "Graph",
+    "Bipartite",
+    "Multilevel",
+    "paradigm"
+  ],
+  "author": "Diego Cintra",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/diego_2337/threegraph#readme",
+  "dependencies": {
+    "d3": "^4.10.0",
+    "express": "^4.15.4",
+    "formidable": "^1.1.1",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7",
+    "three": "^0.86.0"
+  }
+}

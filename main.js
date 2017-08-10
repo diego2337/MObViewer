@@ -1,125 +1,63 @@
-requirejs(['../d3/d3'], function(){
-    requirejs(['../threeJs/build/three'], function(){
-        //requirejs(['node_modules/three.meshline/src/THREE.MeshLine'], function(){
-            requirejs(['../threeJs/examples/js/Detector'], function(){
-                requirejs(['utils/tracker'], function(){
-                    requirejs(['utils/eventHandler'], function(){
-                        requirejs(['core/depth'], function(){
-                            requirejs(['core/edge'], function(){
-                                    requirejs(['core/node'], function(){
-                                        requirejs(['core/graph'], function(){
-                                            console.log("All functions loaded.");
-                                            /* Defining 'inheritance' */
-                                            // function inheritsFrom(child, parent)
-                                            // {
-                                            //     child.prototype = Object.create(parent.prototype);
-                                            // }
-                                            // Object.prototype.inheritsFrom = inheritsFrom;
-                                        });
-                                    });
-                            });
-                        });
-                    });
-                });
-            });
-        //});
-    });
+var d3 = require('d3');
+var express = require('express');
+var app = express();
+var path = require('path');
+var formidable = require('formidable');
+var fs = require('fs');
+var threeGraph = require('./public/threeGraph/threeGraph.js');
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+/* Main route */
+app.get('/', function(req, res){
+  res.sendFile(path.join(__dirname, 'public/views/index.html'));
 });
 
-function main()
-{
-    var scene, renderer;
+/* '.json' upload route */
+app.post('/upload', function(req, res){
 
-    /* Converting passed textarea input to JSON */
-    var jason = JSON.parse($.trim($("textarea").val()));
+  // create an incoming form object
+  var form = new formidable.IncomingForm();
 
-    /* Instantiating Graph */
-    var graph = new Graph(jason, 2, 10, 70);
-    // console.log(graph);
+  // specify that we want to allow the user to upload multiple files in a single request
+  form.multiples = true;
 
-    /* Creating event listener */
-    var eventHandler = new EventHandler();
+  // store all uploads in the /uploads directory
+  form.uploadDir = path.join(__dirname, '/uploads');
 
-    /* Checking for WebGL compatibility */
-    if(Detector.webgl)
-    {
-        console.log("WebGL supported");
-        renderer = new THREE.WebGLRenderer({antialias:true});
+  // every time a file has been uploaded successfully,
+  // rename it to it's orignal name
+  form.on('file', function(field, file) {
+    fs.rename(file.path, path.join(form.uploadDir, file.name));
+    fs.readFile(form.uploadDir + '/' + file.name, 'utf8', function(err, data){
+      if(err)
+      {
+        return console.log(err);
+      }
+      else
+      {
+        /* Invoke threeGraph to read and render graph */
+        threeGraph.main(data);
+      }
+    });
+  });
 
-        // If its not supported, instantiate the canvas renderer to support all non WebGL
-        // browsers
-    }
-    else
-    {
-        console.log("WebGL not supported");
-        renderer = new THREE.CanvasRenderer();
-    }
+  // log any errors that occur
+  form.on('error', function(err) {
+    console.log('An error has occured: \n' + err);
+  });
 
-    /* Set the background color of the renderer to black, with full opacity */
-    renderer.setClearColor("rgb(255, 255, 255)", 1);
+  // once all the files have been uploaded, send a response to the client
+  form.on('end', function() {
+    res.end('success');
+  });
 
-    /* Get the size of the inner window (content area) to create a full size renderer */
-    canvasWidth = window.innerWidth;
-    canvasHeight = window.innerHeight;
+  // parse the incoming request containing the form data
+  form.parse(req, function(err, fields, files){
+  });
+});
 
-    /* Set the renderers size to the content areas size */
-    renderer.setSize(canvasWidth, canvasHeight);
-
-    // renderer.sortObjects = false;
-
-    /* Get the DIV element from the HTML document by its ID and append the renderers DOM object to it */
-    document.getElementById("WebGL").appendChild(renderer.domElement);
-
-    /* Create the scene */
-    scene = new THREE.Scene();
-
-    /* Create the camera and associate it with the scene */
-    camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 500);
-    /* Setting Z value so that every element will have the same depth */
-    // Depth.setZ(10);
-    camera.position.set(0, 0, 10);
-    camera.lookAt(scene.position);
-    camera.name = "camera";
-    scene.add(camera);
-
-    var lights = [];
-	lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-	lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-	lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-
-	lights[ 0 ].position.set( 0, 2, 0 );
-	lights[ 1 ].position.set( 1, 2, 1 );
-	lights[ 2 ].position.set( - 1, - 2, - 1 );
-
-	scene.add( lights[ 0 ] );
-	scene.add( lights[ 1 ] );
-	scene.add( lights[ 2 ] );
-
-    graph.buildGraph(scene);
-
-    /* Tell the browser to call this function when page is visible */
-    // requestAnimationFrame(animateScene);
-
-    eventHandler.setScene(scene);
-
-    /* Adding event listeners */
-    document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, renderer, graph);}, false);
-    // document.addEventListener('mouseover', function(evt){eventHandler.mouseOverEvent(evt, renderer, graph);}, false);
-    // document.addEventListener('mouseout', function(evt){eventHandler.mouseOutEvent(graph);}, false);
-    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-
-    /* NOT WORKING */
-    // var node = graph.getNodeByIndex(1);
-    // node.highlight();
-    // graph.setNodeById(node.nodeObject.id, node);
-    // console.log(graph.getNodeByIndex(1));
-
-    animate();
-
-    function animate()
-    {
-        requestAnimationFrame(animate);
-        /* Render scene */
-        renderer.render(scene, camera);
-    }
-}
+/* Main function to trigger server */
+var server = app.listen(3030, function(){
+  console.log('Server listening on port 3030');
+});
