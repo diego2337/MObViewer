@@ -3,6 +3,7 @@ var EventHandler = require('./utils/eventHandler.js');
 var Graph = require('./src/graph.js');
 var Node = require('./src/node.js');
 var Tracker = require('./utils/tracker.js');
+var THREE = require('../../node_modules/three/build/three.js');
 
 module.exports = {
   main : function(data)
@@ -23,19 +24,21 @@ module.exports = {
     var eventHandler = new EventHandler();
 
     /* Checking for WebGL compatibility */
-    if(Detector.webgl)
-    {
-        console.log("WebGL supported");
-        renderer = new THREE.WebGLRenderer({antialias:true});
-
-        // If its not supported, instantiate the canvas renderer to support all non WebGL
-        // browsers
-    }
-    else
-    {
-        console.log("WebGL not supported");
-        renderer = new THREE.CanvasRenderer();
-    }
+    // if(Detector.webgl)
+    // {
+    //     console.log("WebGL supported");
+    //     renderer = new THREE.WebGLRenderer({antialias:true});
+    // 
+    //     // If its not supported, instantiate the canvas renderer to support all non WebGL
+    //     // browsers
+    // }
+    // else
+    // {
+    //     console.log("WebGL not supported");
+    //     renderer = new THREE.CanvasRenderer();
+    // }
+    
+    renderer = new THREE.WebGLRenderer({antialias:true});
 
     /* Set the background color of the renderer to black, with full opacity */
     renderer.setClearColor("rgb(255, 255, 255)", 1);

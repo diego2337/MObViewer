@@ -2,6 +2,7 @@
  * Base class for a Event handler, implementing Event interface.
  * Author: Diego S. Cintra
  */
+ var THREE = require('../../../node_modules/three/build/three.js');
 
 /**
  * Constructor
