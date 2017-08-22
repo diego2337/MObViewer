@@ -75,6 +75,8 @@ function main()
 
     /* Create the camera and associate it with the scene */
     camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 500);
+    // var aspect = window.innerWidth / window.innerHeight;
+    // camera = new THREE.OrthographicCamera(1000 * aspect / -2, 1000 * aspect / 2, 1000 / 2, 1000 / -2, 1, 1000);
     /* Setting Z value so that every element will have the same depth */
     // Depth.setZ(10);
     camera.position.set(0, 0, 10);
