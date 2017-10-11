@@ -12,13 +12,13 @@ module.exports = {
 
     /* Converting passed textarea input to JSON */
     // var jason = JSON.parse($.trim($("textarea").val()));
-    
+
     /* Converting text string to JSON */
     var jason = JSON.parse(data);
 
     /* Instantiating Graph */
     var graph = new Graph(jason, 2, 10, 70);
-    // console.log(graph);
+    //console.log(graph);
 
     /* Creating event listener */
     var eventHandler = new EventHandler();
@@ -28,7 +28,7 @@ module.exports = {
     // {
     //     console.log("WebGL supported");
     //     renderer = new THREE.WebGLRenderer({antialias:true});
-    // 
+    //
     //     // If its not supported, instantiate the canvas renderer to support all non WebGL
     //     // browsers
     // }
@@ -37,7 +37,7 @@ module.exports = {
     //     console.log("WebGL not supported");
     //     renderer = new THREE.CanvasRenderer();
     // }
-    
+
     renderer = new THREE.WebGLRenderer({antialias:true});
 
     /* Set the background color of the renderer to black, with full opacity */
@@ -67,18 +67,19 @@ module.exports = {
     camera.name = "camera";
     scene.add(camera);
 
+    /* Create lights to associate with scene */
     var lights = [];
-  lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+    lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+    lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+    lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
 
-  lights[ 0 ].position.set( 0, 2, 0 );
-  lights[ 1 ].position.set( 1, 2, 1 );
-  lights[ 2 ].position.set( - 1, - 2, - 1 );
+    lights[ 0 ].position.set( 0, 2, 0 );
+    lights[ 1 ].position.set( 1, 2, 1 );
+    lights[ 2 ].position.set( - 1, - 2, - 1 );
 
-  scene.add( lights[ 0 ] );
-  scene.add( lights[ 1 ] );
-  scene.add( lights[ 2 ] );
+    scene.add( lights[ 0 ] );
+    scene.add( lights[ 1 ] );
+    scene.add( lights[ 2 ] );
 
     graph.buildGraph(scene);
 

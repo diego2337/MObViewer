@@ -2,7 +2,9 @@
  * Base class for a Event handler, implementing Event interface.
  * Author: Diego S. Cintra
  */
- var THREE = require('../../../node_modules/three/build/three.js');
+
+var THREE = require('../../../node_modules/three/build/three.js');
+var ecmaStandard = require('../utils/ecmaStandard.js');
 
 /**
  * Constructor
@@ -10,8 +12,13 @@
  *    - raycaster: defined raycaster, defaults to creating a new one;
  *    - scene: scene in which the events will be manipulated.
  */
-var EventHandler = function(raycaster = new THREE.Raycaster(), scene = new THREE.Scene())
+var EventHandler = function(raycaster, scene)
 {
+    /* Pre ECMAScript 2015 standardization */
+    // raycaster = typeof raycaster !== 'undefined' ? raycaster : new THREE.Raycaster();
+    // scene = typeof scene !== 'undefined' ? scene : new THREE.Scene();
+    raycaster = ecmaStandard(raycaster, undefined);
+    scene = ecmaStandard(scene, undefined);
     this.raycaster = new THREE.Raycaster();
     this.scene = scene;
     this.highlightedElements = [];

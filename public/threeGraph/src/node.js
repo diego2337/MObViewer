@@ -2,7 +2,9 @@
  * Base class for a node in the graph.
  * Author: Diego S. Cintra
  */
- var THREE = require('../../../node_modules/three/build/three.js');
+
+var THREE = require('../../../node_modules/three/build/three.js');
+var ecmaStandard = require('../utils/ecmaStandard.js');
 
 /**
  * Constructor
@@ -25,8 +27,12 @@ function Node(circleGeometry, meshBasicMaterial)
  *    - circleGeometry: a geometry of type circle (from three.js);
  *    - meshBasicMaterial: material for the geometry (from three.js).
  */
-var Node = function(nodeObject, min = 0, max = 10, circleGeometry = undefined, meshBasicMaterial = undefined)
+var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
 {
+    min = ecmaStandard(min, 0);
+    max = ecmaStandard(max, 10);
+    circleGeometry = ecmaStandard(circleGeometry, undefined);
+    meshBasicMaterial = ecmaStandard(meshBasicMaterial, undefined);
     try
     {
         // CHANGED - INCLUDED this.nodeObject; REMOVED this.id, this.weight

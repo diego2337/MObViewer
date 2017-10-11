@@ -3,6 +3,7 @@
  * Author: Diego S. Cintra
  */
  var THREE = require('../../../node_modules/three/build/three.js');
+ var ecmaStandard = require('../utils/ecmaStandard.js');
 
 /**
  * Constructor
@@ -11,8 +12,15 @@
  *    - tubeGeometry: a generic tubeGeometry (from three.js);
  *    - lineBasicMaterial: line material for the object (from three.js).
  */
-var Edge = function(edgeObject, min = 0, max = 50, tubeGeometry = undefined, lineBasicMaterial = undefined)
+var Edge = function(edgeObject, min, max, tubeGeometry, lineBasicMaterial)
 {
+    /* Pre ECMAScript 2015 standardization */
+    // min = typeof min !== 'undefined' ? min : 0;
+    // max = typeof max !== 'undefined' ? max : 50;
+    min = ecmaStandard(min, 0);
+    max = ecmaStandard(max, 50);
+    tubeGeometry = typeof tubeGeometry !== 'undefined' ? tubeGeometry : undefined;
+    lineBasicMaterial = typeof lineBasicMaterial !== 'undefined' ? lineBasicMaterial : undefined;
     try
     {
         this.edgeObject = edgeObject;

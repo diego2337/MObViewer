@@ -2,10 +2,12 @@
  * Base class for a graph.
  * Author: Diego S. Cintra
  */
- 
+
+var d3 = require('d3');
 var Node = require('./node.js');
 var Edge = require('./edge.js');
 var THREE = require('../../../node_modules/three/build/three.js');
+var ecmaStandard = require('../utils/ecmaStandard.js');
 
 /**
  * Constructor
@@ -25,8 +27,15 @@ var THREE = require('../../../node_modules/three/build/three.js');
  *    - min: the minimal value for feature scaling, applied to nodes and edges. Default is 0
  *    - max: the maximum value for feature scaling, applied to nodes and edges. Default is 10
  */
-var Graph = function(graph, layout = 2, min = 0, max = 10)
+var Graph = function(graph, layout, min, max)
 {
+    /* Pre ECMAScript2015 standardization */
+    // layout = typeof layout !== 'undefined' ? layout : 2;
+    // min = typeof min !== 'undefined' ? min : 0;
+    // max = typeof max !== 'undefined' ? max : 10;
+    layout = ecmaStandard(layout);
+    min = ecmaStandard(min);
+    max = ecmaStandard(max);
     try
     {
         this.layout = layout;
@@ -252,20 +261,22 @@ Graph.prototype.setEdgeById = function(id, edge)
  *    - scene: the scene in which the graph will be built;
  *    - layout: graph layout. Default is 2 = radial.
  */
-Graph.prototype.buildGraph = function(scene, layout = 2)
+Graph.prototype.buildGraph = function(scene, layout)
 {
+    layout = ecmaStandard(layout, 2);
+    scene = ecmaStandard(scene, undefined);
     try
     {
         var scale, theta;
         /* From D3, use a scaling function for placement */
-        scale = d3.scale.linear().domain([0, this.getNumberOfNodes()]).range([0, 2 * Math.PI]);
+        scale = d3.scaleLinear().domain([0, this.getNumberOfNodes()]).range([0, 2 * Math.PI]);
 
         /* Build nodes' meshes */
         for(var i = 0; i < this.nodes.length; i++)
         {
             theta = scale(i);
             this.nodes[i].buildNode(theta, layout);
-            scene.add(this.nodes[i].getCircle());
+            if(scene !== undefined) scene.add(this.nodes[i].getCircle());
         }
 
         /* Build edges' meshes and add to scene */
@@ -274,11 +285,12 @@ Graph.prototype.buildGraph = function(scene, layout = 2)
             this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
             // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
             // scene.add(helper);
-            scene.add(this.edges[i].getLine());
+            if(scene !== undefined) scene.add(this.edges[i].getLine());
         }
     }
     catch(err)
     {
+
         throw "Unexpected error ocurred at line " + err.line + ". " + err;
     }
 }

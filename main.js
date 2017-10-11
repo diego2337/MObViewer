@@ -5,8 +5,13 @@ var path = require('path');
 var formidable = require('formidable');
 var fs = require('fs');
 var threeGraph = require('./public/threeGraph/threeGraph.js');
+var SceneBuilder = require('./public/threeGraph/utils/sceneBuilder.js');
+
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.engine('html', require('ejs').renderFile);
+app.set('view engine', 'html');
 
 /* Main route */
 app.get('/', function(req, res){
@@ -16,45 +21,52 @@ app.get('/', function(req, res){
 /* '.json' upload route */
 app.post('/upload', function(req, res){
 
-  // create an incoming form object
-  var form = new formidable.IncomingForm();
+  // // create an incoming form object
+  // var form = new formidable.IncomingForm();
 
-  // specify that we want to allow the user to upload multiple files in a single request
-  form.multiples = true;
+  // // specify that we want to allow the user to upload multiple files in a single request
+  // form.multiples = true;
 
-  // store all uploads in the /uploads directory
-  form.uploadDir = path.join(__dirname, '/uploads');
+  // // store all uploads in the /uploads directory
+  // form.uploadDir = path.join(__dirname, '/uploads');
 
-  // every time a file has been uploaded successfully,
-  // rename it to it's orignal name
-  form.on('file', function(field, file) {
-    fs.rename(file.path, path.join(form.uploadDir, file.name));
-    fs.readFile(form.uploadDir + '/' + file.name, 'utf8', function(err, data){
-      if(err)
-      {
-        return console.log(err);
-      }
-      else
-      {
-        /* Invoke threeGraph to read and render graph */
-        threeGraph.main(data);
-      }
-    });
-  });
+  // // every time a file has been uploaded successfully,
+  // // rename it to it's orignal name
+  // form.on('file', function(field, file) {
+  //   fs.rename(file.path, path.join(form.uploadDir, file.name));
+  //   fs.readFile(form.uploadDir + '/' + file.name, 'utf8', function(err, data){
+  //     if(err)
+  //     {
+  //       return console.log(err);
+  //     }
+  //     else
+  //     {
+  //       //  Invoke threeGraph to read and render graph 
+  //       // threeGraph.main(data);
+  //       /* Build graph, scene, camera and perform any preprocessing */
+  //       sceneBuilder = new SceneBuilder(data);
+  //       sceneBuilder.build();
+  //       // res.send({sceneBuilder});
+  //     }
+  //   });
+  // });
 
-  // log any errors that occur
-  form.on('error', function(err) {
-    console.log('An error has occured: \n' + err);
-  });
+  // // log any errors that occur
+  // form.on('error', function(err) {
+  //   console.log('An error has occured: \n' + err);
+  // });
 
-  // once all the files have been uploaded, send a response to the client
-  form.on('end', function() {
-    res.end('success');
-  });
+  // // once all the files have been uploaded, send a response to the client
+  // form.on('end', function() {
+  //   res.end('success');
+  // });
 
-  // parse the incoming request containing the form data
-  form.parse(req, function(err, fields, files){
-  });
+  // // parse the incoming request containing the form data
+  // form.parse(req, function(err, fields, files){
+  // });
+
+  // res.render(path.join(__dirname, './public/views/visualization.html')){function(err, html){if(err) console.log("error"); console.log(err);}};
+  res.redirect(path.join(__dirname, 'public/views/visualization.html'));
 });
 
 /* Main function to trigger server */
