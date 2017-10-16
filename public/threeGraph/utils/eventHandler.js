@@ -3,8 +3,8 @@
  * Author: Diego S. Cintra
  */
 
-var THREE = require('../../../node_modules/three/build/three.js');
-var ecmaStandard = require('../utils/ecmaStandard.js');
+// var THREE = require('../../../node_modules/three/build/three.js');
+// var ecmaStandard = require('../utils/ecmaStandard.js');
 
 /**
  * Constructor

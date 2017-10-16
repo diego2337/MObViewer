@@ -23,6 +23,7 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/diego_2337/threegraph#readme",
   "dependencies": {
+    "browserify": "^14.4.0",
     "consolidate": "^0.14.5",
     "d3": "^4.10.0",
     "ejs": "^2.5.7",

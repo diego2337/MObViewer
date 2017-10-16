@@ -47,7 +47,7 @@ app.post('/upload', function(req, res){
         /* Build graph, scene, camera and perform any preprocessing */
         var sceneBuilder = new SceneBuilder(data);
         sceneBuilder.build();
-        res.send('scene', {data: sceneBuilder});
+        // res.send('scene', {data: sceneBuilder});
       }
     });
   });
@@ -67,6 +67,10 @@ app.post('/upload', function(req, res){
   });
 
   // res.sendFile(path.join(__dirname, 'public/views/visualization.html'));
+});
+
+app.get('/visualization', function(req, res){
+  res.sendFile(path.join(__dirname, 'public/views/visualization.html'));
 });
 
 /* Main function to trigger server */
