@@ -1,17 +1,15 @@
-var d3 = require('d3');
 var express = require('express');
 var app = express();
 var path = require('path');
 var formidable = require('formidable');
 var fs = require('fs');
-var threeGraph = require('./public/threeGraph/threeGraph.js');
-var SceneBuilder = require('./public/threeGraph/utils/sceneBuilder.js');
 
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'build')));
 
 app.set('views', __dirname+'/public/views');
-app.engine('html', require('ejs').renderFile);
+// app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
 /* Main route */
@@ -21,20 +19,22 @@ app.get('/', function(req, res){
 
 /* '.json' upload route */
 app.post('/upload', function(req, res){
-
   /* create an incoming form object */
   var form = new formidable.IncomingForm();
 
   // specify that we want to allow the user to upload multiple files in a single request
-  form.multiples = true;
+  // form.multiples = true;
+  form.multiples = false;
 
   // store all uploads in the /uploads directory
   form.uploadDir = path.join(__dirname, '/uploads');
 
   // every time a file has been uploaded successfully,
   // rename it to it's orignal name
+  var fileName = "cococzao";
   form.on('file', function(field, file) {
-    fs.rename(file.path, path.join(form.uploadDir, file.name));
+    fs.rename(file.path, path.join(form.uploadDir, file.name), function(){return;});
+    fileName = file.path + path.join(form.uploadDir, file.name);
     fs.readFile(form.uploadDir + '/' + file.name, 'utf8', function(err, data){
       if(err)
       {
@@ -42,12 +42,7 @@ app.post('/upload', function(req, res){
       }
       else
       {
-        //  Invoke threeGraph to read and render graph
-        // threeGraph.main(data);
-        /* Build graph, scene, camera and perform any preprocessing */
-        var sceneBuilder = new SceneBuilder(data);
-        sceneBuilder.build();
-        // res.send('scene', {data: sceneBuilder});
+        res.end(data);
       }
     });
   });
@@ -58,15 +53,26 @@ app.post('/upload', function(req, res){
   });
 
   // once all the files have been uploaded, send a response to the client
-  form.on('end', function() {
-    res.end('success');
-  });
+  // form.on('end', function() {
+  //   function waitForFile() {
+  //     if(typeof form.openedFiles[0] !== undefined) {
+  //       // console.log("form: ");
+  //       // console.log(form);
+  //       // console.log("file name: " + form.openedFiles[0].name);
+  //       res.end(form.uploadDir + "/" + form.openedFiles[0].name);
+  //     }
+  //     else {
+  //       setTimeout(waitForFile, 500);
+  //     }
+  //   }
+  //   waitForFile();
+  //   // res.end('success');
+  // });
 
   // parse the incoming request containing the form data
   form.parse(req, function(err, fields, files){
+    /* Send .json file as response */
   });
-
-  // res.sendFile(path.join(__dirname, 'public/views/visualization.html'));
 });
 
 app.get('/visualization', function(req, res){

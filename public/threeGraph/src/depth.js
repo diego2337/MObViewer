@@ -3,18 +3,18 @@
  * Author: Diego S. Cintra
  */
 var Depth = (function (){
- 
+
         // Instance stores a reference to the Singleton
         var instance;
-        
+
         // Singleton
-        function init(z2) 
+        function init(z2)
         {
             // Private methods and variables
             var z = z2;
 
             return{
-            
+
                 // Public methods and variables
                 /**
                  * Getter of z
@@ -31,26 +31,26 @@ var Depth = (function (){
                 {
                     this.z = z;
                 }
-            
+
             };
-            
+
         };
-        
+
         return{
-        
+
             // Get the Singleton instance if one exists
             // or create one if it doesn't
-            getInstance: function (z2 = 0) 
+            getInstance: function (z2) 
             {
                 if ( !instance ) {
                     instance = init(z2);
                 }
-            
+
                 return instance;
             }
-        
+
         };
- 
+
 })();
 
 /**

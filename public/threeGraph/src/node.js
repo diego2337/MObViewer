@@ -1,12 +1,4 @@
 /**
- * Base class for a node in the graph.
- * Author: Diego S. Cintra
- */
-
-var THREE = require('../../../node_modules/three/build/three.js');
-var ecmaStandard = require('../utils/ecmaStandard.js');
-
-/**
  * Constructor
  * params:
  *    - circleGeometry: a geometry of type circle (from three.js);
@@ -58,8 +50,10 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
         }
 
         /* Use feature scaling to fit nodes */
-        var x = (this.nodeObject.weight - min)/(max-min);
+        var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
         this.circleGeometry = new THREE.CircleGeometry(x, 100);
+
+        /* Store number of nodes from each layer */
 
         if(meshBasicMaterial == undefined)
         {
@@ -161,21 +155,26 @@ Node.prototype.setCircle = function(circle)
 /**
  * Build the node into the scene
  * params:
+ *    - index: index of current node;
+ *    - lastIndex: index of second (or last) layer;
+ *    - firstLayer: number of nodes in first layer of bipartite graph;
+ *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
+ *    - alpha: value used in bipartite layout;
  *    - layout: the graph layout;
  *    - theta: used in the parametric equation of radial layout.
  */
-Node.prototype.buildNode = function(theta, layout)
+Node.prototype.buildNode = function(index, lastIndex, firstLayer, lastLayer, alpha, theta, layout)
 {
     switch(layout)
     {
         case 1: // Force-directed layout
-            buildForceDirected();
+            this.buildForceDirected();
             break;
         case 2: // Radial layout
             this.buildRadial(theta);
             break;
         case 3: // Bipartite layout
-            buildBipartite();
+            this.buildBipartite(index, lastIndex, firstLayer, lastLayer, alpha, theta);
             break;
         default:
             break;
@@ -198,17 +197,41 @@ Node.prototype.buildForceDirected = function()
 Node.prototype.buildRadial = function(theta)
 {
     /* Parametric equation of a circle */
-    var x = 15 * Math.sin(theta);
-    var y = 15 * Math.cos(theta);
+    var x = 15.00000 * Math.sin(theta);
+    var y = 15.00000 * Math.cos(theta);
+    // console.log("x: " + x);
+    // console.log("y: " + y);
     this.circle.position.set(x, y, 0);
 }
 
 /**
  * Build a node into the scene, using a bipartite layout
+ * params:
+ *    - index: index of node being positioned;
+ *    - lastIndex: index of second (or last) layer;
+ *    - firstLayer: number of nodes in first layer of bipartite graph;
+ *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
+ *    - alpha: value for spacing of parallel lines;
+ *    - theta: used for bipartite layout.
  */
-Node.prototype.buildBipartite = function()
+Node.prototype.buildBipartite = function(index, lastIndex, firstLayer, lastLayer, alpha, theta)
 {
-    console.log("To be implemented");
+    /* Separate vertical lines between .json info regarding number of layers */
+    if(index >= firstLayer)
+    {
+        var x = alpha;
+        index = Math.round(index / lastLayer) + lastIndex;
+        lastIndex = lastIndex + 1;
+        // console.log("firstLayer: " + firstLayer);
+        // console.log("lastLayer: " + lastLayer);
+        // console.log("index: " + index);
+    }
+    else
+    {
+        var x = alpha * (-1);
+    }
+    y = index * theta;
+    this.circle.position.set(x, y, 0);
 }
 
 /**
@@ -226,5 +249,3 @@ Node.prototype.unhighlight = function()
 {
     this.circle.material.color.setHex(0x000000);
 }
-
-module.exports = Node;

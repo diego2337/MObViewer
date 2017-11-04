@@ -4,7 +4,5 @@
  */
 var ecmaStandard = function(variable, defaultValue)
 {
-  return variable !== 'undefined' ? variable : defaultValue;
+  return variable !== undefined ? variable : defaultValue;
 }
-
-module.exports = ecmaStandard;

@@ -23,14 +23,19 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/diego_2337/threegraph#readme",
   "dependencies": {
-    "browserify": "^14.4.0",
-    "consolidate": "^0.14.5",
-    "d3": "^4.10.0",
-    "ejs": "^2.5.7",
     "express": "^4.15.4",
     "formidable": "^1.1.1",
     "fs": "0.0.1-security",
-    "path": "^0.12.7",
-    "three": "^0.86.0"
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-cli": "^1.2.0",
+    "grunt-concurrent": "^2.3.1",
+    "grunt-contrib-clean": "^1.1.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-uglify": "^3.1.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-supervisor": "^0.2.4"
   }
 }

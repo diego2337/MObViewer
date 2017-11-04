@@ -78,65 +78,102 @@ EventHandler.prototype.setHighlightedElements = function(highlighted)
  * Handles clicking in scene
  * params:
  *    - evt: event dispatcher;
- *    - renderer: the WebGL renderer, containing DOM element's offsets;
- *    - graph: graph, containing objects to be intersected.
+ *    - camera: camera used in three.js scene visualization.
  */
-EventHandler.prototype.clickEvent = function(evt, renderer, graph)
+// EventHandler.prototype.clickEvent = function(evt, camera)
+// {
+//     console.log(camera);
+// }
+
+/**
+ * Handles dragging, which triggers panning
+ * params:
+ *    - evt: event dispatcher;
+ *    - camera: camera used in three.js scene visualization.
+ */
+EventHandler.prototype.dragEvent = function(evt, camera)
 {
-    /* Variable to store all the objects in the scene */
-    var objects = [];
-    /* Adjusting mouse coordinates to NDC [-1, 1] */
-    var mouseX = (evt.clientX / renderer.domElement.clientWidth) * 2 - 1;
-    var mouseY = -(evt.clientY / renderer.domElement.clientHeight) * 2 + 1;
+    console.log("dragging");
+}
 
-    /* Merging objects arrays */
-    objects = graph.getNodesMeshes().concat(graph.getEdgesMeshes());
-
-    var mouse = new THREE.Vector2(mouseX, mouseY);
-    var camera = this.scene.getObjectByName("camera", true);
-
-    /* Setting raycaster starting from camera */
-    this.raycaster.setFromCamera(mouse, camera);
-
-    /* Execute ray tracing */
-    var intersects = this.raycaster.intersectObjects(objects, true);
-
-    /* Highlight elements */
-    for(var i = 0; i < intersects.length; i++)
+/**
+ * Handles mouse wheel. If mouse is scrolled up, zoom in; otherwise zoom out
+ * params:
+ *    - evt: event dispatcher;
+ *    - camera: camera used in three.js scene visualization.
+ */
+EventHandler.prototype.wheelEvent = function (evt, camera)
+{
+    /* Check either scroll up or scroll down */
+    if(evt.deltaY > 0)
     {
-        var element = graph.getElementById(intersects[i].object.name);
-        element.highlight();
-        if(element instanceof Node)
+        /* Down scroll - decrease zoom */
+        // console.log("Down scroll");
+        if(camera.zoom - 4 > 0)
         {
-            graph.setNodeById(intersects[i].object.name, element);
+            camera.zoom = camera.zoom - 4;
+            camera.updateProjectionMatrix();
         }
-        else
-        {
-            graph.setEdgeById(intersects[i].object.name, element);
-        }
-        this.highlightedElements.push(intersects[i].object.name);
+    }
+    else
+    {
+        /* Up scroll - increase zoom */
+        // console.log("Up scroll");
+        camera.zoom = camera.zoom + 4;
+        camera.updateProjectionMatrix();
     }
 }
 
-// function relMouseCoords(event){
-//     var totalOffsetX = 0;
-//     var totalOffsetY = 0;
-//     var canvasX = 0;
-//     var canvasY = 0;
-//     var currentElement = this;
-
-//     do{
-//         totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
-//         totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
-//     }
-//     while(currentElement = currentElement.offsetParent)
-
-//     canvasX = event.pageX - totalOffsetX;
-//     canvasY = event.pageY - totalOffsetY;
-
-//     return {x:canvasX, y:canvasY}
-// }
-// HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords;
+/**
+ * Handles mouse down. Initial function for dragging and camera panning
+ * params:
+ *    - evt: event dispatcher;
+ *    - camera: camera used in three.js scene visualization.
+ */
+EventHandler.prototype.mouseDownEvent = function (evt, camera)
+{
+    /* Adapted from https://stackoverflow.com/questions/9047600/how-to-determine-the-direction-on-onmousemove-event */
+    /* Object to store last position of cursor */
+    var lastPosition = {};
+    var cam = camera;
+    document.onmouseup = function(evt){ document.onmousemove = null; document.onmouseup = null; }
+    document.onmousemove = function(evt)
+    {
+        /* Compare with lastPosition */
+        if(typeof(lastPosition.x) != undefined)
+        {
+            /* Get delta */
+            var deltaX = lastPosition.x - evt.clientX;
+            var deltaY = lastPosition.y - evt.clientY;
+            /* Check direction */
+            if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX > 0)
+            {
+                /* Left */
+                cam.position.x = cam.position.x + 2.5;
+            }
+            else if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX < 0)
+            {
+                /* Right */
+                cam.position.x = cam.position.x - 2.5;
+            }
+            else if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY > 0)
+            {
+                /* Up */
+                cam.position.y = cam.position.y - 2.5;
+            }
+            else if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY < 0)
+            {
+                /* Down */
+                cam.position.y = cam.position.y + 2.5;
+            }
+        }
+        /* Update last position */
+        lastPosition = {
+            x : evt.clientX,
+            y : evt.clientY
+        };
+    }
+}
 
 /**
  * Handles mouse move. If mouse hovers over element, invoke highlighting
@@ -191,6 +228,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         if(element instanceof Node)
         {
             graph.setNodeById(this.highlightedElements[i], element);
+            d3.select("#name")
+                .style("display", "none");
         }
         else
         {
@@ -202,96 +241,30 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     if(intersection != undefined)
     {
         var element = graph.getElementById(intersection.object.name);
+        console.log(element);
         element.highlight();
         if(element instanceof Node)
         {
             graph.setNodeById(intersection.object.name, element);
+            /* Get name of node to display onscreen */
+            d3.select("#name")
+                .text(element.circle.name)
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "20px")
+                .style("display", "inline")
+                .style("position", "absolute")
+                .style("z-index", "1")
+                .style("top", y)
+                .style("left", x)
+                .attr("fill", "green");
         }
         else
         {
             graph.setEdgeById(intersection.object.name, element);
         }
         this.highlightedElements.push(intersection.object.name);
-        console.log("Highlighted element");
-        console.log(element);
     }
 
-    /* Highlight elements (if any is intersected) */
-    // for(var i = 0; i < intersects.length; i++)
-    // {
-    //     var element = graph.getElementById(intersects[i].object.name);
-    //     element.highlight();
-    //     if(element instanceof Node)
-    //     {
-    //         graph.setNodeById(intersects[i].object.name, element);
-    //     }
-    //     else
-    //     {
-    //         graph.setEdgeById(intersects[i].object.name, element);
-    //     }
-    //     this.highlightedElements.push(intersects[i].object.name);
-    // }
-
-    /* Set normal color for unhighlighted elements */
-    // for(var i = 0; i < this.highlightedElements.length; i++)
-    // {
-    //     var element = graph.getElementById(this.highlightedElements[i]);
-    //     element.unhighlight();
-    //     if(element instanceof Node)
-    //     {
-    //         graph.setNodeById(this.highlightedElements[i], element);
-    //     }
-    //     else
-    //     {
-    //         graph.setEdgeById(this.highlightedElements[i], element);
-    //     }
-    //     this.highlightedElements.splice(i, 1);
-    // }
-}
-
-/**
- * Handles hovering in an element
- * params:
- *    - evt: event dispatcher;
- *    - renderer: the WebGL renderer, containing DOM element's offsets;
- *    - graph: graph, containing objects to be intersected.
- */
-EventHandler.prototype.mouseOverEvent = function(evt, renderer, graph)
-{
-    /* Variable to store all the objects in the scene */
-    var objects = [];
-
-    /* Adjusting mouse coordinates to NDC [-1, 1] */
-    var mouseX = (evt.clientX / renderer.domElement.clientWidth) * 2 - 1;
-    var mouseY = -(evt.clientY / renderer.domElement.clientHeight) * 2 + 1;
-
-    /* Merging objects arrays */
-    objects = graph.getNodesMeshes().concat(graph.getEdgesMeshes());
-
-    var mouse = new THREE.Vector2(mouseX, mouseY);
-    var camera = this.scene.getObjectByName("camera", true);
-
-    /* Setting raycaster starting from camera */
-    this.raycaster.setFromCamera(mouse, camera);
-
-    /* Execute ray tracing */
-    var intersects = this.raycaster.intersectObjects(objects, true);
-
-    /* Highlight elements */
-    for(var i = 0; i < intersects.length; i++)
-    {
-        var element = graph.getElementById(intersects[i].object.name);
-        element.highlight();
-        if(element instanceof Node)
-        {
-            graph.setNodeById(intersects[i].object.name, element);
-        }
-        else
-        {
-            graph.setEdgeById(intersects[i].object.name, element);
-        }
-        this.highlightedElements.push(intersects[i].object.name);
-    }
 }
 
 /**
@@ -318,5 +291,3 @@ EventHandler.prototype.mouseOutEvent = function(graph)
     /* Clearing array of highlighted elements */
     this.highlightedElements = [];
 }
-
-module.exports = EventHandler;
