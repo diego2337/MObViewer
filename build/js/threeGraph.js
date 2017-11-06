@@ -525,14 +525,24 @@ Graph.prototype.buildGraph = function(scene, layout)
        /* From D3, use a scaling function for placement */
        scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
+       /* Set which type of bipartite graph to be built */
+       if(layout == 2) theta = scale(i);
+       /* TODO - fix theta size; Must be according to size of nodes */
+       else if(layout == 3)
+       {
+         theta = 3;
+       }
+
        /* Build nodes' meshes */
        var j = this.lastLayer;
        for(var i = 0; i < this.nodes.length; i++)
        {
-           if(layout == 2) theta = scale(i);
-           else if(layout == 3) theta = 3;
-           this.nodes[i].buildNode(i, 0, this.firstLayer, j, 10, theta, layout);
+           this.nodes[i].buildNode(i, this.firstLayer, this.lastLayer, 10, theta, layout);
            if(scene !== undefined) scene.add(this.nodes[i].getCircle());
+           if(i >= this.nodes.length)
+           {
+             theta = (this.firstLayer / theta);
+           }
            j = parseInt(j) + parseInt(theta);
        }
 
@@ -709,14 +719,13 @@ Node.prototype.setCircle = function(circle)
  * Build the node into the scene
  * params:
  *    - index: index of current node;
- *    - lastIndex: index of second (or last) layer;
  *    - firstLayer: number of nodes in first layer of bipartite graph;
  *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
  *    - alpha: value used in bipartite layout;
  *    - layout: the graph layout;
  *    - theta: used in the parametric equation of radial layout.
  */
-Node.prototype.buildNode = function(index, lastIndex, firstLayer, lastLayer, alpha, theta, layout)
+Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, layout)
 {
     switch(layout)
     {
@@ -727,7 +736,7 @@ Node.prototype.buildNode = function(index, lastIndex, firstLayer, lastLayer, alp
             this.buildRadial(theta);
             break;
         case 3: // Bipartite layout
-            this.buildBipartite(index, lastIndex, firstLayer, lastLayer, alpha, theta);
+            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta);
             break;
         default:
             break;
@@ -761,24 +770,18 @@ Node.prototype.buildRadial = function(theta)
  * Build a node into the scene, using a bipartite layout
  * params:
  *    - index: index of node being positioned;
- *    - lastIndex: index of second (or last) layer;
  *    - firstLayer: number of nodes in first layer of bipartite graph;
  *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
  *    - alpha: value for spacing of parallel lines;
  *    - theta: used for bipartite layout.
  */
-Node.prototype.buildBipartite = function(index, lastIndex, firstLayer, lastLayer, alpha, theta)
+Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta)
 {
     /* Separate vertical lines according to number of layers */
     if(index >= firstLayer)
     {
         var x = alpha;
-        index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-        // console.log("------------------------------------");
-        // console.log("firstLayer: " + firstLayer);
-        // console.log("index: " + index);
-        // console.log("lastLayer: " + lastLayer);
-        // console.log("------------------------------------");
+        index = (Math.abs( firstLayer - lastLayer ) / 2);
         // index = Math.round(index / lastLayer) + lastIndex;
     }
     else
@@ -786,9 +789,6 @@ Node.prototype.buildBipartite = function(index, lastIndex, firstLayer, lastLayer
         var x = alpha * (-1);
     }
     y = index * theta;
-    console.log("------------------------------------");
-    console.log("y: " + y);
-    console.log("------------------------------------");
     this.circle.position.set(x, y, 0);
 }
 

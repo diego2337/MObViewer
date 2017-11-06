@@ -271,14 +271,25 @@ Graph.prototype.buildGraph = function(scene, layout)
        /* From D3, use a scaling function for placement */
        scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
+       /* Set which type of bipartite graph to be built */
+       if(layout == 2) theta = scale(i);
+       /* TODO - fix theta size; Must be according to size of nodes */
+       else if(layout == 3)
+       {
+         theta = 3;
+       }
+
        /* Build nodes' meshes */
        var j = this.lastLayer;
        for(var i = 0; i < this.nodes.length; i++)
        {
-           if(layout == 2) theta = scale(i);
-           else if(layout == 3) theta = 3;
-           this.nodes[i].buildNode(i, 0, this.firstLayer, j, 10, theta, layout);
+           this.nodes[i].buildNode(i, this.firstLayer, this.lastLayer, 10, theta, layout);
            if(scene !== undefined) scene.add(this.nodes[i].getCircle());
+           if(i >= this.nodes.length)
+           {
+             theta = (this.firstLayer / theta);
+             console.log("new theta: ") + theta;
+           }
            j = parseInt(j) + parseInt(theta);
        }
 
