@@ -526,12 +526,14 @@ Graph.prototype.buildGraph = function(scene, layout)
        scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
        /* Build nodes' meshes */
+       var j = this.lastLayer;
        for(var i = 0; i < this.nodes.length; i++)
        {
            if(layout == 2) theta = scale(i);
            else if(layout == 3) theta = 3;
-           this.nodes[i].buildNode(i, 0, this.firstLayer, this.lastLayer, 5, theta, layout);
+           this.nodes[i].buildNode(i, 0, this.firstLayer, j, 10, theta, layout);
            if(scene !== undefined) scene.add(this.nodes[i].getCircle());
+           j = parseInt(j) + parseInt(theta);
        }
 
        /* Build edges' meshes and add to scene */
@@ -767,21 +769,26 @@ Node.prototype.buildRadial = function(theta)
  */
 Node.prototype.buildBipartite = function(index, lastIndex, firstLayer, lastLayer, alpha, theta)
 {
-    /* Separate vertical lines between .json info regarding number of layers */
+    /* Separate vertical lines according to number of layers */
     if(index >= firstLayer)
     {
         var x = alpha;
-        index = Math.round(index / lastLayer) + lastIndex;
-        lastIndex = lastIndex + 1;
+        index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+        // console.log("------------------------------------");
         // console.log("firstLayer: " + firstLayer);
-        // console.log("lastLayer: " + lastLayer);
         // console.log("index: " + index);
+        // console.log("lastLayer: " + lastLayer);
+        // console.log("------------------------------------");
+        // index = Math.round(index / lastLayer) + lastIndex;
     }
     else
     {
         var x = alpha * (-1);
     }
     y = index * theta;
+    console.log("------------------------------------");
+    console.log("y: " + y);
+    console.log("------------------------------------");
     this.circle.position.set(x, y, 0);
 }
 

@@ -30,6 +30,7 @@ $('#upload-input').on('change', function(){
           console.log('Upload successful!\n');
           /* Build the graph after loading .json file */
           build(data);
+          /* Below won't work - AJAX call works for same page only! */
           // location.href = '/visualization';
       },
       xhr: function() {
