@@ -31,10 +31,8 @@ app.post('/upload', function(req, res){
 
   // every time a file has been uploaded successfully,
   // rename it to it's orignal name
-  var fileName = "cococzao";
   form.on('file', function(field, file) {
     fs.rename(file.path, path.join(form.uploadDir, file.name), function(){return;});
-    fileName = file.path + path.join(form.uploadDir, file.name);
     fs.readFile(form.uploadDir + '/' + file.name, 'utf8', function(err, data){
       if(err)
       {
@@ -42,6 +40,9 @@ app.post('/upload', function(req, res){
       }
       else
       {
+        /* TODO - Generate coarsened files */
+        
+        /* Send data to client */
         res.end(data);
       }
     });
@@ -70,9 +71,8 @@ app.post('/upload', function(req, res){
   // });
 
   // parse the incoming request containing the form data
-  form.parse(req, function(err, fields, files){
-    /* Send .json file as response */
-  });
+  // form.parse(req, function(err, fields, files){
+  // });
 });
 
 app.get('/visualization', function(req, res){

@@ -49,7 +49,7 @@ function build(data)
 
   /* Create the camera and associate it with the scene */
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 500);
-  /* Setting Z value so that every element will have the same depth */
+  /* TODO - Setting Z value so that every element will have the same depth */
   //  setZ(10);
   camera.position.set(0, 0, 40);
   camera.lookAt(scene.position);
@@ -70,8 +70,17 @@ function build(data)
   scene.add( lights[ 1 ] );
   scene.add( lights[ 2 ] );
 
-  /* Tell the browser to call this function when page is visible */
-  // requestAnimationFrame(animateScene);
+  /* Using orbitControls for moving */
+  var controls = new THREE.OrbitControls(camera, renderer.domElement);
+  /* Setting up params */
+  controls.minDistance = 1;
+  controls.maxDistance = 500;
+  controls.zoomSpeed = 1.5;
+  controls.target.set(0, 0, 0);
+  controls.noRotate = true;
+
+  controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
+
 
   /* Creating event listener */
   var eventHandler = new EventHandler(undefined, scene);
@@ -79,15 +88,17 @@ function build(data)
   // eventHandler.setScene(scene);
 
   /* Adding event listeners */
-  // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
-  document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-  document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
+  /* Deprecated listeners - orbitControls taking care of zooming and panning */
+  // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
+  // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
+  // document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
 
   animate();
 
   function animate()
   {
+      /* Tell the browser to call this function when page is visible */
       requestAnimationFrame(animate);
       /* Render scene */
       renderer.render(scene, camera);
