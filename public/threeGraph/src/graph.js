@@ -8,26 +8,20 @@
 *              3) the number of layers;
 *              4) n integers, each containing the number of nodes in a layer.
 *      - nodes: array of Node type;
-*      - edges: array of Edge type.
-*    - layout: enum containing layout of graph. Can be:
-*      - 1) Force-directed;
-*      - 2) Radial;
-*      - 3) Bipartite.
+*      - edges: array of Edge type;
 *    - min: the minimal value for feature scaling, applied to nodes and edges. Default is 0
 *    - max: the maximum value for feature scaling, applied to nodes and edges. Default is 10
 */
-var Graph = function(graph, layout, min, max)
+var Graph = function(graph, min, max)
 {
    /* Pre ECMAScript2015 standardization */
    // layout = typeof layout !== 'undefined' ? layout : 2;
    // min = typeof min !== 'undefined' ? min : 0;
-   // max = typeof max !== 'undefined' ? max : 10;
-   layout = ecmaStandard(layout);
+   // max = typeof max !== 'undefined' ? max : 10
    min = ecmaStandard(min);
    max = ecmaStandard(max);
    try
    {
-       this.layout = layout;
        this.graphInfo = graph.graphInfo[0];
        if(this.graphInfo.vlayer != undefined)
        {
@@ -280,17 +274,22 @@ Graph.prototype.buildGraph = function(scene, layout)
        }
 
        /* Build nodes' meshes */
-       var j = this.lastLayer;
+      //  var j = this.lastLayer;
+       var j = 0;
        for(var i = 0; i < this.nodes.length; i++)
        {
-           this.nodes[i].buildNode(i, this.firstLayer, this.lastLayer, 10, theta, layout);
-           if(scene !== undefined) scene.add(this.nodes[i].getCircle());
-           if(i >= this.nodes.length)
+           if(i == this.firstLayer)
            {
-             theta = (this.firstLayer / theta);
-             console.log("new theta: ") + theta;
+             theta = ((this.firstLayer / this.lastLayer)  * theta);
+              console.log("new theta: " + theta);
+             j = parseInt(j) + parseInt(1);
            }
-           j = parseInt(j) + parseInt(theta);
+           else if(i > this.firstLayer)
+           {
+             j = parseInt(j) + parseInt(1);
+           }
+           this.nodes[i].buildNode(i, this.firstLayer, j, 10, theta, layout);
+           if(scene !== undefined) scene.add(this.nodes[i].getCircle());
        }
 
        /* Build edges' meshes and add to scene */

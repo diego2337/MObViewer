@@ -28,6 +28,8 @@ $('#upload-input').on('change', function(){
       contentType: false,
       success: function(data){
           console.log('Upload successful!\n');
+          /* Hide upload box */
+          $('#uploadBox').css('display', 'none');
           /* Build the graph after loading .json file */
           build(data);
           /* Below won't work - AJAX call works for same page only! */

@@ -218,7 +218,9 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
     if(index >= firstLayer)
     {
         var x = alpha;
-        index = (Math.abs( firstLayer - lastLayer ) / 2);
+        // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+        index = lastLayer;
+        console.log("new index: " + index);
         // index = Math.round(index / lastLayer) + lastIndex;
     }
     else

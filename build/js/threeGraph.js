@@ -262,26 +262,20 @@ Edge.prototype.unhighlight = function()
 *              3) the number of layers;
 *              4) n integers, each containing the number of nodes in a layer.
 *      - nodes: array of Node type;
-*      - edges: array of Edge type.
-*    - layout: enum containing layout of graph. Can be:
-*      - 1) Force-directed;
-*      - 2) Radial;
-*      - 3) Bipartite.
+*      - edges: array of Edge type;
 *    - min: the minimal value for feature scaling, applied to nodes and edges. Default is 0
 *    - max: the maximum value for feature scaling, applied to nodes and edges. Default is 10
 */
-var Graph = function(graph, layout, min, max)
+var Graph = function(graph, min, max)
 {
    /* Pre ECMAScript2015 standardization */
    // layout = typeof layout !== 'undefined' ? layout : 2;
    // min = typeof min !== 'undefined' ? min : 0;
-   // max = typeof max !== 'undefined' ? max : 10;
-   layout = ecmaStandard(layout);
+   // max = typeof max !== 'undefined' ? max : 10
    min = ecmaStandard(min);
    max = ecmaStandard(max);
    try
    {
-       this.layout = layout;
        this.graphInfo = graph.graphInfo[0];
        if(this.graphInfo.vlayer != undefined)
        {
@@ -534,16 +528,22 @@ Graph.prototype.buildGraph = function(scene, layout)
        }
 
        /* Build nodes' meshes */
-       var j = this.lastLayer;
+      //  var j = this.lastLayer;
+       var j = 0;
        for(var i = 0; i < this.nodes.length; i++)
        {
-           this.nodes[i].buildNode(i, this.firstLayer, this.lastLayer, 10, theta, layout);
-           if(scene !== undefined) scene.add(this.nodes[i].getCircle());
-           if(i >= this.nodes.length)
+           if(i == this.firstLayer)
            {
-             theta = (this.firstLayer / theta);
+             theta = ((this.firstLayer / this.lastLayer)  * theta);
+              console.log("new theta: " + theta);
+             j = parseInt(j) + parseInt(1);
            }
-           j = parseInt(j) + parseInt(theta);
+           else if(i > this.firstLayer)
+           {
+             j = parseInt(j) + parseInt(1);
+           }
+           this.nodes[i].buildNode(i, this.firstLayer, j, 10, theta, layout);
+           if(scene !== undefined) scene.add(this.nodes[i].getCircle());
        }
 
        /* Build edges' meshes and add to scene */
@@ -781,7 +781,9 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
     if(index >= firstLayer)
     {
         var x = alpha;
-        index = (Math.abs( firstLayer - lastLayer ) / 2);
+        // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+        index = lastLayer;
+        console.log("new index: " + index);
         // index = Math.round(index / lastLayer) + lastIndex;
     }
     else
@@ -815,7 +817,8 @@ function build(data)
   var jason = JSON.parse(data);
 
   /* Instantiating Graph */
-  var graph = new Graph(jason, 2, 10, 70);
+  var graph = new Graph(jason, 10, 70);
+
   //console.log(graph);
 
   /* Checking for WebGL compatibility */
@@ -850,8 +853,11 @@ function build(data)
   /* Get the DIV element from the HTML document by its ID and append the renderers DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
 
-  /* Create the scene */
+  /* Create scene */
   scene = new THREE.Scene();
+
+  /* Build graph */
+  graph.buildGraph(scene, 3);
 
   /* Create the camera and associate it with the scene */
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 500);
@@ -876,8 +882,6 @@ function build(data)
   scene.add( lights[ 1 ] );
   scene.add( lights[ 2 ] );
 
-  graph.buildGraph(scene, 3);
-
   /* Tell the browser to call this function when page is visible */
   // requestAnimationFrame(animateScene);
 
@@ -888,9 +892,9 @@ function build(data)
 
   /* Adding event listeners */
   // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
-    document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
+  document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-    document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
+  document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
 
   animate();
 

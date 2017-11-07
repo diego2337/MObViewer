@@ -5,7 +5,8 @@ function build(data)
   var jason = JSON.parse(data);
 
   /* Instantiating Graph */
-  var graph = new Graph(jason, 2, 10, 70);
+  var graph = new Graph(jason, 10, 70);
+
   //console.log(graph);
 
   /* Checking for WebGL compatibility */
@@ -40,8 +41,11 @@ function build(data)
   /* Get the DIV element from the HTML document by its ID and append the renderers DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
 
-  /* Create the scene */
+  /* Create scene */
   scene = new THREE.Scene();
+
+  /* Build graph */
+  graph.buildGraph(scene, 3);
 
   /* Create the camera and associate it with the scene */
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 500);
@@ -66,8 +70,6 @@ function build(data)
   scene.add( lights[ 1 ] );
   scene.add( lights[ 2 ] );
 
-  graph.buildGraph(scene, 3);
-
   /* Tell the browser to call this function when page is visible */
   // requestAnimationFrame(animateScene);
 
@@ -78,9 +80,9 @@ function build(data)
 
   /* Adding event listeners */
   // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
-    document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
+  document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-    document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
+  document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
 
   animate();
 
