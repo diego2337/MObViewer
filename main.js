@@ -23,8 +23,8 @@ app.post('/upload', function(req, res){
   var form = new formidable.IncomingForm();
 
   // specify that we want to allow the user to upload multiple files in a single request
-  // form.multiples = true;
-  form.multiples = false;
+  form.multiples = true;
+  // form.multiples = false;
 
   // store all uploads in the /uploads directory
   form.uploadDir = path.join(__dirname, '/uploads');
@@ -71,8 +71,10 @@ app.post('/upload', function(req, res){
   // });
 
   // parse the incoming request containing the form data
-  // form.parse(req, function(err, fields, files){
-  // });
+  form.parse(req, function(err, fields, files){
+    // console.log("files: ");
+    // console.log(files);
+  });
 });
 
 app.get('/visualization', function(req, res){
@@ -80,6 +82,6 @@ app.get('/visualization', function(req, res){
 });
 
 /* Main function to trigger server */
-var server = app.listen(3030, function(){
+var server = app.listen(3031, function(){
   console.log('Server listening on port 3030');
 });

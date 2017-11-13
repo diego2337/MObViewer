@@ -889,7 +889,7 @@ function build(data)
   controls.maxDistance = 500;
   controls.zoomSpeed = 1.5;
   controls.target.set(0, 0, 0);
-  controls.noRotate = true;
+  controls.enableRotate = false;
 
   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
 
