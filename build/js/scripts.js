@@ -5,12 +5,12 @@ $('.upload-btn').on('click', function (){
 });
 
 $('#upload-input').on('change', function(){
-
   var files = $(this).get(0).files;
   if (files.length > 0){
     // create a FormData object which will be sent as the data payload in the
     // AJAX request
     var formData = new FormData();
+    console.log("files.length > 0");
 
     // loop through all the selected files and add them to the formData object
     for (var i = 0; i < files.length; i++) {

@@ -41,7 +41,7 @@ app.post('/upload', function(req, res){
       else
       {
         /* TODO - Generate coarsened files */
-        
+
         /* Send data to client */
         res.end(data);
       }
