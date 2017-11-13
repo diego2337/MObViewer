@@ -220,7 +220,6 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
         var x = alpha;
         // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
         index = lastLayer;
-        console.log("new index: " + index);
         // index = Math.round(index / lastLayer) + lastIndex;
     }
     else

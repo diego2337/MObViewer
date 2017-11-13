@@ -11,7 +11,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
     // min = typeof min !== 'undefined' ? min : 0;
     // max = typeof max !== 'undefined' ? max : 50;
     min = ecmaStandard(min, 0);
-    max = ecmaStandard(max, 50);
+    max = ecmaStandard(max, 100);
     bufferGeometry = typeof bufferGeometry !== 'undefined' ? bufferGeometry : undefined;
     lineBasicMaterial = typeof lineBasicMaterial !== 'undefined' ? lineBasicMaterial : undefined;
     try
@@ -41,7 +41,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
         if(bufferGeometry != undefined && lineBasicMaterial == undefined)
         {
             this.bufferGeometry = bufferGeometry;
-            this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
+            this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
         }
         else if(bufferGeometry == undefined && lineBasicMaterial != undefined)
         {
@@ -56,7 +56,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
         else
         {
             this.bufferGeometry = new THREE.BufferGeometry();
-            this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
+            this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
         }
 
         /* TODO - eliminates ray tracing completely */

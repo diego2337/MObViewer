@@ -76,7 +76,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
     // min = typeof min !== 'undefined' ? min : 0;
     // max = typeof max !== 'undefined' ? max : 50;
     min = ecmaStandard(min, 0);
-    max = ecmaStandard(max, 50);
+    max = ecmaStandard(max, 100);
     bufferGeometry = typeof bufferGeometry !== 'undefined' ? bufferGeometry : undefined;
     lineBasicMaterial = typeof lineBasicMaterial !== 'undefined' ? lineBasicMaterial : undefined;
     try
@@ -106,7 +106,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
         if(bufferGeometry != undefined && lineBasicMaterial == undefined)
         {
             this.bufferGeometry = bufferGeometry;
-            this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
+            this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
         }
         else if(bufferGeometry == undefined && lineBasicMaterial != undefined)
         {
@@ -121,7 +121,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
         else
         {
             this.bufferGeometry = new THREE.BufferGeometry();
-            this.lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x8D9091, side: THREE.DoubleSide});
+            this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
         }
 
         /* TODO - eliminates ray tracing completely */
@@ -528,21 +528,20 @@ Graph.prototype.buildGraph = function(scene, layout)
        }
 
        /* Build nodes' meshes */
-      //  var j = this.lastLayer;
+       //  var j = this.lastLayer;
        var j = 0;
        for(var i = 0; i < this.nodes.length; i++)
        {
            if(i == this.firstLayer)
            {
              theta = ((this.firstLayer / this.lastLayer)  * theta);
-              console.log("new theta: " + theta);
              j = parseInt(j) + parseInt(1);
            }
            else if(i > this.firstLayer)
            {
              j = parseInt(j) + parseInt(1);
            }
-           this.nodes[i].buildNode(i, this.firstLayer, j, 10, theta, layout);
+           this.nodes[i].buildNode(i, this.firstLayer, j, 20, theta, layout);
            if(scene !== undefined) scene.add(this.nodes[i].getCircle());
        }
 
@@ -783,7 +782,6 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
         var x = alpha;
         // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
         index = lastLayer;
-        console.log("new index: " + index);
         // index = Math.round(index / lastLayer) + lastIndex;
     }
     else

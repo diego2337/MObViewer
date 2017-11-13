@@ -274,21 +274,20 @@ Graph.prototype.buildGraph = function(scene, layout)
        }
 
        /* Build nodes' meshes */
-      //  var j = this.lastLayer;
+       //  var j = this.lastLayer;
        var j = 0;
        for(var i = 0; i < this.nodes.length; i++)
        {
            if(i == this.firstLayer)
            {
              theta = ((this.firstLayer / this.lastLayer)  * theta);
-              console.log("new theta: " + theta);
              j = parseInt(j) + parseInt(1);
            }
            else if(i > this.firstLayer)
            {
              j = parseInt(j) + parseInt(1);
            }
-           this.nodes[i].buildNode(i, this.firstLayer, j, 10, theta, layout);
+           this.nodes[i].buildNode(i, this.firstLayer, j, 20, theta, layout);
            if(scene !== undefined) scene.add(this.nodes[i].getCircle());
        }
 
