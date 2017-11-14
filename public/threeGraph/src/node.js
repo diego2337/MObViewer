@@ -57,7 +57,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
 
         if(meshBasicMaterial == undefined)
         {
-            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide, depthFunc: THREE.AlwaysDepth });
+            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
         }
         else
         {

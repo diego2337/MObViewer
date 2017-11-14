@@ -276,6 +276,7 @@ Graph.prototype.buildGraph = function(scene, layout)
        /* Build nodes' meshes */
        //  var j = this.lastLayer;
        var j = 0;
+      //  var singleGeometry = new THREE.Geometry();
        for(var i = 0; i < this.nodes.length; i++)
        {
            if(i == this.firstLayer)
@@ -288,17 +289,34 @@ Graph.prototype.buildGraph = function(scene, layout)
              j = parseInt(j) + parseInt(1);
            }
            this.nodes[i].buildNode(i, this.firstLayer, j, 20, theta, layout);
+          //  this.nodes[i].getCircle().updateMatrix();
+          //  singleGeometry.merge(this.nodes[i].getCircle().geometry, this.nodes[i].getCircle().matrix);
            if(scene !== undefined) scene.add(this.nodes[i].getCircle());
        }
+      //  if(scene !== undefined)
+      //  {
+      //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
+      //      var mesh = new THREE.Mesh(singleGeometry, material);
+      //      scene.add(mesh);
+      //  }
 
        /* Build edges' meshes and add to scene */
-       for(var i = 0; i < this.edges.length; i++)
-       {
-           this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
-           // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
-           // scene.add(helper);
-           if(scene !== undefined) scene.add(this.edges[i].getLine());
-       }
+      //  var singleGeometry2 = new THREE.Geometry();
+      //  for(var i = 0; i < this.edges.length; i++)
+      //  {
+      //      this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
+      //      // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
+      //      // scene.add(helper);
+      //     // this.edges[i].getLine().updateMatrix();
+      //     // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
+      //     if(scene !== undefined) scene.add(this.edges[i].getLine());
+      //  }
+      //  if(scene !== undefined)
+      //  {
+      //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
+      //      var mesh = new THREE.Mesh(singleGeometry2, material);
+      //      scene.add(mesh);
+      //  }
    }
    catch(err)
    {

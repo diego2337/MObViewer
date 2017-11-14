@@ -82,6 +82,6 @@ app.get('/visualization', function(req, res){
 });
 
 /* Main function to trigger server */
-var server = app.listen(3031, function(){
+var server = app.listen(3030, function(){
   console.log('Server listening on port 3030');
 });
