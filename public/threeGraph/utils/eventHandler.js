@@ -291,3 +291,15 @@ EventHandler.prototype.mouseOutEvent = function(graph)
     /* Clearing array of highlighted elements */
     this.highlightedElements = [];
 }
+
+/**
+  * Handles key pressing, for either coarsening or uncoarsening of graph
+  * params:
+  *    - evt: event dispatcher;
+  *    - renderer: WebGL renderer, containing DOM element's offsets.
+  */
+EventHandler.prototype.keyDownEvent = function(evt, renderer)
+{
+  /* Handle graph coarsening */
+  console.log(evt.which);
+}

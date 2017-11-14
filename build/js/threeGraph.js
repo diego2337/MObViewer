@@ -917,6 +917,7 @@ function build(data)
 
   /* Adding event listeners */
   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
+  document.addEventListener('keydown', function(evt){eventHandler.keyDownEvent(evt, renderer, graph);}, false);
   /* Deprecated listeners - orbitControls taking care of zooming and panning */
   // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
   // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
@@ -1239,6 +1240,18 @@ EventHandler.prototype.mouseOutEvent = function(graph)
 
     /* Clearing array of highlighted elements */
     this.highlightedElements = [];
+}
+
+/**
+  * Handles key pressing, for either coarsening or uncoarsening of graph
+  * params:
+  *    - evt: event dispatcher;
+  *    - renderer: WebGL renderer, containing DOM element's offsets.
+  */
+EventHandler.prototype.keyDownEvent = function(evt, renderer)
+{
+  /* Handle graph coarsening */
+  console.log(evt.which);
 }
 
 /**
