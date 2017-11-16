@@ -72,9 +72,13 @@ app.post('/upload', function(req, res){
 
   // parse the incoming request containing the form data
   form.parse(req, function(err, fields, files){
-    // console.log("files: ");
-    // console.log(files);
   });
+});
+
+/* Sliders' change route */
+app.post('/slide', function(req, res){
+  console.log(req);
+  /*  */
 });
 
 app.get('/visualization', function(req, res){
@@ -82,6 +86,6 @@ app.get('/visualization', function(req, res){
 });
 
 /* Main function to trigger server */
-var server = app.listen(3032, function(){
+var server = app.listen(3030, function(){
   console.log('Server listening on port 3030');
 });

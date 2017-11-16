@@ -1,3 +1,15 @@
+.float-left {
+  float: left;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
 .marg {
     margin : 0;
 }

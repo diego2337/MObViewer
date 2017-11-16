@@ -30,8 +30,10 @@ function build(data)
   renderer.setClearColor("rgb(255, 255, 255)", 1);
 
   /* Get the size of the inner window (content area) to create a full size renderer */
-  canvasWidth = window.innerWidth;
-  canvasHeight = window.innerHeight;
+  canvasWidth = (window.innerWidth) / 1.5;
+  canvasHeight = (window.innerHeight) / 1.5;
+  // canvasWidth = document.getElementById("WebGLID").clientWidth;
+  // canvasHeight = document.getElementById("WebGLID").clientHeight;
 
   /* Set the renderers size to the content areas size */
   renderer.setSize(canvasWidth, canvasHeight);
@@ -78,6 +80,7 @@ function build(data)
   controls.zoomSpeed = 1.5;
   controls.target.set(0, 0, 0);
   controls.enableRotate = false;
+  controls.enableKeys = false;
 
   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
 
@@ -89,7 +92,6 @@ function build(data)
 
   /* Adding event listeners */
   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-  document.addEventListener('keydown', function(evt){eventHandler.keyDownEvent(evt, renderer, graph);}, false);
   /* Deprecated listeners - orbitControls taking care of zooming and panning */
   // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
   // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);

@@ -33,7 +33,31 @@
       </div>
     </div>
     <input id="upload-input" type="file" name="uploads[]" multiple="multiple"></br>
-    <div class="panel panel-default" id="WebGL"></div>
+    <div class="container-fluid panel panel-default">
+      <div class="panel-heading"><h1 class="h1">Bipartite graph visualization</h1></div>
+      <div class="container-fluid panel-body">
+        <div id="WebGLID" class="col-lg-9 panel panel-default">
+          <div id="WebGL" class="panel panel-body"></div>
+        </div>
+        <div class="col-3 options-padding">
+          <div class="col float-left panel panel-default">
+            <p class="panel panel-heading">Slider for first set</p>
+            <div class="panel panel-body">
+              <input type="range" min="1" max="80" id="multilevelCoarsener" value="10" name="multilevelCoarsenerSlider">
+              <span id="output1"></span>
+            </div>
+          </div>
+          <div class="col float-left panel panel-default">
+            <p class="panel panel-heading">Slider for second set</p>
+            <!-- <input class="panel panel-body" type="range" min="1" max="80" id="multilevelCoarsener2" value="10" name="multilevelCoarsenerSlider"> -->
+            <div class="panel panel-body">
+              <input type="range" min="1" max="80" id="multilevelCoarsener2" value="10">
+              <span id="output2"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="build/js/scripts.min.js"></script>
     <script src="build/js/threeGraph.min.js"></script>
   </body>
