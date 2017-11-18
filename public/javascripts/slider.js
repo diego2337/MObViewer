@@ -27,17 +27,19 @@ function changeMinAndMaxValues(data)
   document.getElementById("output2").innerHTML = numberOfNodes1[1];
 }
 
+function graphUpdate(data){
+  console.log("Graph update successful");
+}
+
 /* Apply changes for first layer coarsening */
 $('#multilevelCoarsener').on('change', function(){
-  document.getElementById("output1").innerHTML = $('#multilevelCoarsener')[0].value;
+  document.getElementById("output1").innerHTML = parseInt($('#multilevelCoarsener')[0].value);
   /* Perform an AJAX request to server */
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')},
-    success: function(data){
-      console.log("Graph update successful");
-    }
+    data: {coarsening: $('#multilevelCoarsener')[0].value},
+    success: graphUpdate
   });
 });
 
