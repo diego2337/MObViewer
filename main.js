@@ -40,9 +40,23 @@ app.post('/upload', function(req, res){
   form.on('file', function(field, file) {
     fs.rename(file.path, path.join(form.uploadDir, file.name), function(){return;});
     /* Creates directory for uploaded graph */
-    nodeCmd.run('mkdir uploads/' + file.name);
+    // nodeCmd.run('mkdir uploads/' + file.name);
+    nodeCmd.get('mkdir -p uploads/' + file.name.split(".")[0], function(data, err, stderr) {
+                      if (!err) {
+                        console.log("data from python script " + data);
+                      } else {
+                        console.log("python script cmd error: " + err);
+                        }
+                  });
     /* Transforms .gml file into .json extension file */
-    nodeCmd.run('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name + '/' + file.name + '.gml');
+    // nodeCmd.run('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name + '/' + file.name + '.gml');
+    nodeCmd.get('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json', function(data, err, stderr) {
+                      if (!err) {
+                        console.log("data from python script " + data);
+                      } else {
+                        console.log("python script cmd error: " + err);
+                        }
+                  });
     /* Assign variable with file name for later coarsening */
     fileName = file.name;
     fs.readFile(form.uploadDir + '/' + file.name, 'utf8', function(err, data){
