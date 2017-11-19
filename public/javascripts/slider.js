@@ -1,13 +1,14 @@
-/*
- * File to watch for changes in slider used for multilevel paradigm.
- * Author: Diego Cintra
- * Date: 15/11/2017
- */
+/**
+  * File to watch for changes in slider used for multilevel paradigm.
+  * Author: Diego Cintra
+  * Date: 15/11/2017
+  */
 
-/* Change min and max values for input type range element in HTML page
- * Param:
- *    - data: .json graph uploaded to server-side
- */
+/**
+  * Change min and max values for input type range element in HTML page
+  * Param:
+  *    - data: .json graph uploaded to server-side
+  */
 function changeMinAndMaxValues(data)
 {
   // console.log("changeMinAndMaxFunction");
@@ -27,18 +28,28 @@ function changeMinAndMaxValues(data)
   document.getElementById("output2").innerHTML = numberOfNodes1[1];
 }
 
+/**
+  * Outputs current slider value
+  */
+function showValue()
+{
+  document.getElementById("output1").innerHTML = document.getElementById("multilevelCoarsener").value;
+  document.getElementById("output2").innerHTML = document.getElementById("multilevelCoarsener2").value;
+}
+
 function graphUpdate(data){
   console.log("Graph update successful");
 }
 
 /* Apply changes for first layer coarsening */
 $('#multilevelCoarsener').on('change', function(){
-  document.getElementById("output1").innerHTML = parseInt($('#multilevelCoarsener')[0].value);
+  document.getElementById("output1").innerHTML = parseFloat($('#multilevelCoarsener')[0].value);
   /* Perform an AJAX request to server */
   $.ajax({
     url: '/slide',
     type: 'POST',
     data: {coarsening: $('#multilevelCoarsener')[0].value},
+    // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate
   });
 });

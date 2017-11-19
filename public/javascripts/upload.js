@@ -28,7 +28,9 @@ $('#upload-input').on('change', function(){
       success: function(data){
           console.log('Upload successful!\n');
           /* Change slider min & max values */
-          changeMinAndMaxValues(data);
+          // changeMinAndMaxValues(data);
+          /* Show slider's current value */
+          showValue();
           /* Hide upload box */
           $('#uploadBox').css('display', 'none');
           /* Build the graph after loading .json file */
