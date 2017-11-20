@@ -32,19 +32,19 @@ if __name__ == '__main__':
             linha = linha[:-1]
             jason.write(linha)
             jason.write("\",\n")
-        elif "vertices" in line:
+        elif "vlayer" in line:
             jason.write("\"vlayer\": \"")
             linha = line.split("\"")
             linha = linha[-2]
             jason.write(linha)
             jason.write("\",\n")
-        elif "layers" in line:
-            jason.write("\"nlayers\": \"")
+        elif "nlayers" in line:
+            jason.write("\"nlayers\": ")
             linha = line.split(" ")
             linha = linha[-1]
             linha = linha[:-1]
             jason.write(linha)
-            jason.write("\",\n")
+            jason.write(",\n")
         elif "level" in line:
             jason.write("\"level\": \"")
             linha = line.split("\"")

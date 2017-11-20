@@ -40,7 +40,7 @@ app.post('/upload', function(req, res){
   form.on('file', function(field, file) {
     fs.rename(file.path, path.join(form.uploadDir, file.name), function(){return;});
     /* Creates directory for uploaded graph */
-    // nodeCmd.run('mkdir uploads/' + file.name);
+    // nodeCmd.run('mkdir -p uploads/' + file.name.split(".")[0]);
     nodeCmd.get('mkdir -p uploads/' + file.name.split(".")[0], function(data, err, stderr) {
                       if (!err) {
                         console.log("data from python script " + data);
@@ -49,29 +49,29 @@ app.post('/upload', function(req, res){
                         }
                   });
     /* Transforms .gml file into .json extension file */
-    // nodeCmd.run('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name + '/' + file.name + '.gml');
+    // nodeCmd.run('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json');
     nodeCmd.get('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json', function(data, err, stderr) {
                       if (!err) {
                         console.log("data from python script " + data);
                       } else {
                         console.log("python script cmd error: " + err);
-                        }
+                        /* Assign variable with file name for later coarsening */
+                        fileName = file.name;
+                        fs.readFile(form.uploadDir + '/' + file.name.split(".")[0] + "/" + file.name.split(".")[0] + ".json", 'utf8', function(err, data){
+                          if(err)
+                          {
+                            return console.log(err);
+                          }
+                          else
+                          {
+                            /* Store graph size */
+                            graphSize = JSON.parse(data).graphInfo[0].vlayer.split(" ");
+                            /* Send data to client */
+                            res.end(data);
+                          }
+                        });
+                      }
                   });
-    /* Assign variable with file name for later coarsening */
-    fileName = file.name;
-    fs.readFile(form.uploadDir + '/' + file.name, 'utf8', function(err, data){
-      if(err)
-      {
-        return console.log(err);
-      }
-      else
-      {
-        /* Store graph size */
-        graphSize = JSON.parse(data).graphInfo[0].vlayer.split(" ");
-        /* Send data to client */
-        res.end(data);
-      }
-    });
   });
 
   // log any errors that occur
@@ -109,6 +109,6 @@ app.get('/visualization', function(req, res){
 });
 
 /* Main function to trigger server */
-var server = app.listen(3031, function(){
+var server = app.listen(3030, function(){
   console.log('Server listening on port 3030');
 });
