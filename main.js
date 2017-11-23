@@ -93,7 +93,7 @@ app.post('/slide', function(req, res){
   /* Build python parameters string */
   var pyPath = "mob/";
   var pyProg = "coarsening.py";
-  var pyParams = "-f /uploads/" + fileName + " -d /uploads/ -o " + fileName + "Coarsened -v " + graphSize[0] + " " + graphSize[1] + " -r " + req.body.coarsening + " 0 -e gml" ;
+  var pyParams = "-f uploads/" + fileName + " -d uploads/ -o " + fileName + "Coarsened -v " + graphSize[0] + " " + graphSize[1] + " -r " + req.body.coarsening + " 0 -e gml" ;
   /* Execute python script */
   nodeCmd.get('python ' + pyPath + pyProg + " " + pyParams, function(data, err, stderr) {
                     if (!err) {
