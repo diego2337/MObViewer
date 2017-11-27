@@ -15,12 +15,11 @@ if __name__ == '__main__':
     names = []
     classes = dict()
     nodeBool = False
-    edgeBool = True
+    edgeBool = False
     weightBool = False
-    twice = False
-    two = False
+    twice = True
+    # two = True
     for line in arquivo:
-        two = False
         if "graph" in line and "igraph" not in line:
             jason.write("\"graphInfo\": [\n{\n")
         elif "directed" in line:
@@ -28,6 +27,12 @@ if __name__ == '__main__':
             linha = line.split(" ")
             linha = linha[-1]
             linha = linha[:-1]
+            jason.write(linha)
+            jason.write("\",\n")
+        elif "vlayer" in line:
+            jason.write("\"vlayer\": \"")
+            linha = line.split("\"")
+            linha = linha[-2]
             jason.write(linha)
             jason.write("\",\n")
         elif "vertices" in line:
@@ -43,25 +48,33 @@ if __name__ == '__main__':
             linha = linha[:-1]
             jason.write(linha)
             jason.write(",\n")
-        # elif "level" in line:
-        #     jason.write("\"level\": \"")
-        #     linha = line.split("\"")
-        #     linha = linha[-2]
-        #     jason.write(linha)
-        #     jason.write("\",\n")
+        elif "level" in line:
+            jason.write("\"level\": \"")
+            linha = line.split("\"")
+            linha = linha[-2]
+            if(len(linha.split("[")) != 0):
+                linha = linha[1]
+                linha = linha.split("]")
+                linha = linha[0]
+            jason.write(linha)
+            jason.write("\",\n")
         elif "node" in line:
             if (not nodeBool):
+                twice = False
+                # two = False
                 nodeBool = True
                 jason.seek(-2, os.SEEK_END)
-                if (edgeBool):
-                    edgeBool = False
-                    jason.write("\n],\n")
-                else:
-                    jason.write("\n}\n],\n")
+                # if (edgeBool):
+                #     edgeBool = False
+                #     jason.write("\n],\n")
+                # else:
+                #     jason.write("\n}\n],\n")
+                jason.write("\n}\n],\n")
                 jason.write("\"nodes\": [\n{\n")
             else:
                 if (not weightBool):
-                    jason.write("\"weight\": \"1\",\n")
+                    jason.seek(-4, os.SEEK_END)
+                    jason.write(",\n\"weight\": \"1\"\n},\n")
                 else:
                     weightBool = False
                 jason.write("{\n")
@@ -104,14 +117,14 @@ if __name__ == '__main__':
             jason.write("\",\n")
         elif "]" in line:
             if (not twice):
-                twice = True
-                two = True
+                # twice = True
+                # two = True
                 jason.seek(-2, os.SEEK_END)
                 jason.write("\n},\n")
-        if(not two and twice):
-            twice = False
+        # if(not two and twice):
+        #     twice = False
 
-    jason.seek(-2, os.SEEK_END)
+    jason.seek(-4, os.SEEK_END)
     jason.write("\n]\n}")
 
     jason.close()
