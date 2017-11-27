@@ -2,125 +2,99 @@
 "graphInfo": [
 {
 "directed": "0",
-"vlayer": "16 7",
-"nlayers": "2",
-"level": "13"
-}
+"nlayers": "2"
 ],
 "nodes": [
 {
 "id": "0",
-"weight": "1",
 "weight": "147"
 },
 {
 "id": "1",
-"weight": "1",
 "weight": "17"
 },
 {
 "id": "2",
-"weight": "1",
 "weight": "42"
 },
 {
 "id": "3",
-"weight": "1",
 "weight": "33"
 },
 {
 "id": "4",
-"weight": "1",
 "weight": "61"
 },
 {
 "id": "5",
-"weight": "1",
 "weight": "103"
 },
 {
 "id": "6",
-"weight": "1",
 "weight": "101"
 },
 {
 "id": "7",
-"weight": "1",
 "weight": "21"
 },
 {
 "id": "8",
-"weight": "1",
 "weight": "1"
 },
 {
 "id": "9",
-"weight": "1",
 "weight": "65"
 },
 {
 "id": "10",
-"weight": "1",
 "weight": "1"
 },
 {
 "id": "11",
-"weight": "1",
 "weight": "3"
 },
 {
 "id": "12",
-"weight": "1",
 "weight": "1"
 },
 {
 "id": "13",
-"weight": "1",
 "weight": "2"
 },
 {
 "id": "14",
-"weight": "1",
 "weight": "1"
 },
 {
 "id": "15",
-"weight": "1",
 "weight": "1"
 },
 {
 "id": "16",
-"weight": "1",
 "weight": "64"
 },
 {
 "id": "17",
-"weight": "1",
 "weight": "64"
 },
 {
 "id": "18",
-"weight": "1",
 "weight": "64"
 },
 {
 "id": "19",
-"weight": "1",
 "weight": "64"
 },
 {
 "id": "20",
-"weight": "1",
 "weight": "16"
 },
 {
 "id": "21",
-"weight": "1",
 "weight": "64"
 },
 {
 "id": "22",
-"weight": "1",
 "weight": "64"
 }
 ],

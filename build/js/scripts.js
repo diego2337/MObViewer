@@ -39,6 +39,8 @@ function showValue()
 
 function graphUpdate(data){
   console.log("Graph update successful");
+  /* Render updated graph */
+  build(data);
 }
 
 /* Apply changes for first layer coarsening */
@@ -48,7 +50,7 @@ $('#multilevelCoarsener').on('change', function(){
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')[0].value},
+    data: {coarsening: $('#multilevelCoarsener')[0].value, firstSet: true},
     // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate
   });
@@ -57,6 +59,14 @@ $('#multilevelCoarsener').on('change', function(){
 /* Apply changes for second layer coarsening */
 $('#multilevelCoarsener2').on('change', function(){
   document.getElementById("output2").innerHTML = $('#multilevelCoarsener2')[0].value;
+  /* Perform an AJAX request to server */
+  $.ajax({
+    url: '/slide',
+    type: 'POST',
+    data: {coarsening: $('#multilevelCoarsener')[0].value, firstSet: false},
+    // data: JSON.parse($('#multilevelCoarsener')[0].value),
+    success: graphUpdate
+  });
 });
 
 $('.upload-btn').on('click', function (){

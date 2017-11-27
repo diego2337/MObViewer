@@ -15,15 +15,13 @@ if __name__ == '__main__':
     names = []
     classes = dict()
     nodeBool = False
-    edgeBool = False
+    edgeBool = True
+    weightBool = False
     twice = False
     two = False
     for line in arquivo:
         two = False
-        if "igraph" in line:
-            # Do nothing
-            print "Skipping Line"
-        elif "graph" in line:
+        if "graph" in line and "igraph" not in line:
             jason.write("\"graphInfo\": [\n{\n")
         elif "directed" in line:
             jason.write("\"directed\": \"")
@@ -32,7 +30,7 @@ if __name__ == '__main__':
             linha = linha[:-1]
             jason.write(linha)
             jason.write("\",\n")
-        elif "vlayer" in line:
+        elif "vertices" in line:
             jason.write("\"vlayer\": \"")
             linha = line.split("\"")
             linha = linha[-2]
@@ -45,19 +43,27 @@ if __name__ == '__main__':
             linha = linha[:-1]
             jason.write(linha)
             jason.write(",\n")
-        elif "level" in line:
-            jason.write("\"level\": \"")
-            linha = line.split("\"")
-            linha = linha[-2]
-            jason.write(linha)
-            jason.write("\",\n")
+        # elif "level" in line:
+        #     jason.write("\"level\": \"")
+        #     linha = line.split("\"")
+        #     linha = linha[-2]
+        #     jason.write(linha)
+        #     jason.write("\",\n")
         elif "node" in line:
             if (not nodeBool):
                 nodeBool = True
                 jason.seek(-2, os.SEEK_END)
-                jason.write("\n}\n],\n")
+                if (edgeBool):
+                    edgeBool = False
+                    jason.write("\n],\n")
+                else:
+                    jason.write("\n}\n],\n")
                 jason.write("\"nodes\": [\n{\n")
             else:
+                if (not weightBool):
+                    jason.write("\"weight\": \"1\",\n")
+                else:
+                    weightBool = False
                 jason.write("{\n")
         elif "id" in line:
             jason.write("\"id\": \"")
@@ -66,8 +72,8 @@ if __name__ == '__main__':
             linha = linha[:-1]
             jason.write(linha)
             jason.write("\",\n")
-            jason.write("\"weight\": \"1\",\n")
         elif "weight" in line:
+            weightBool = True
             jason.write("\"weight\": \"")
             linha = line.split(" ")
             linha = linha[-1]

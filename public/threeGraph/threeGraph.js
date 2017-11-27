@@ -1,6 +1,13 @@
+/* Global variables */
+var renderer;
+/**
+  * Render a bipartite graph given a .json file
+  * param:
+  *    - data: .json file to be parsed into JSON notation and rendered
+  */
 function build(data)
 {
-  var scene, renderer;
+  var scene;
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
 
@@ -24,7 +31,8 @@ function build(data)
   //     renderer = new THREE.CanvasRenderer();
   // }
 
-  renderer = new THREE.WebGLRenderer({antialias:true});
+  if(renderer == undefined) renderer = new THREE.WebGLRenderer({antialias:true});
+  else renderer.clear();
 
   /* Set the background color of the renderer to black, with full opacity */
   renderer.setClearColor("rgb(255, 255, 255)", 1);

@@ -555,16 +555,16 @@ Graph.prototype.buildGraph = function(scene, layout)
       //  }
 
        /* Build edges' meshes and add to scene */
-      //  var singleGeometry2 = new THREE.Geometry();
-      //  for(var i = 0; i < this.edges.length; i++)
-      //  {
-      //      this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
-      //      // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
-      //      // scene.add(helper);
-      //     // this.edges[i].getLine().updateMatrix();
-      //     // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
-      //     if(scene !== undefined) scene.add(this.edges[i].getLine());
-      //  }
+       var singleGeometry2 = new THREE.Geometry();
+       for(var i = 0; i < this.edges.length; i++)
+       {
+           this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
+           // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
+           // scene.add(helper);
+          // this.edges[i].getLine().updateMatrix();
+          // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
+          if(scene !== undefined) scene.add(this.edges[i].getLine());
+       }
       //  if(scene !== undefined)
       //  {
       //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
@@ -826,9 +826,16 @@ Node.prototype.unhighlight = function()
     this.circle.material.color.setHex(0x000000);
 }
 
+/* Global variables */
+var renderer;
+/**
+  * Render a bipartite graph given a .json file
+  * param:
+  *    - data: .json file to be parsed into JSON notation and rendered
+  */
 function build(data)
 {
-  var scene, renderer;
+  var scene;
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
 
@@ -852,7 +859,8 @@ function build(data)
   //     renderer = new THREE.CanvasRenderer();
   // }
 
-  renderer = new THREE.WebGLRenderer({antialias:true});
+  if(renderer == undefined) renderer = new THREE.WebGLRenderer({antialias:true});
+  else renderer.clear();
 
   /* Set the background color of the renderer to black, with full opacity */
   renderer.setClearColor("rgb(255, 255, 255)", 1);
