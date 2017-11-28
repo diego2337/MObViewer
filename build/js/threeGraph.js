@@ -554,17 +554,17 @@ Graph.prototype.buildGraph = function(scene, layout)
       //      scene.add(mesh);
       //  }
 
-       /* Build edges' meshes and add to scene */
-       var singleGeometry2 = new THREE.Geometry();
-       for(var i = 0; i < this.edges.length; i++)
-       {
-           this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
-           // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
-           // scene.add(helper);
-          // this.edges[i].getLine().updateMatrix();
-          // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
-          if(scene !== undefined) scene.add(this.edges[i].getLine());
-       }
+      //  /* Build edges' meshes and add to scene */
+      var singleGeometry2 = new THREE.Geometry();
+      for(var i = 0; i < this.edges.length; i++)
+      {
+         this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
+         // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
+         // scene.add(helper);
+         // this.edges[i].getLine().updateMatrix();
+         // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
+        if(scene !== undefined) scene.add(this.edges[i].getLine());
+      }
       //  if(scene !== undefined)
       //  {
       //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
@@ -797,16 +797,16 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
     /* Separate vertical lines according to number of layers */
     if(index >= firstLayer)
     {
-        var x = alpha;
+        var y = alpha;
         // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
         index = lastLayer;
         // index = Math.round(index / lastLayer) + lastIndex;
     }
     else
     {
-        var x = alpha * (-1);
+        var y = alpha * (-1);
     }
-    y = index * theta;
+    x = index * theta;
     this.circle.position.set(x, y, 0);
 }
 
@@ -933,7 +933,7 @@ function build(data)
   // eventHandler.setScene(scene);
 
   /* Adding event listeners */
-  // document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
+  document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
   /* Deprecated listeners - orbitControls taking care of zooming and panning */
   // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
   // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
