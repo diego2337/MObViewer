@@ -18,11 +18,6 @@ app.set('views', __dirname+'/public/views');
 // app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
-/* Main route */
-app.get('/', function(req, res){
-  res.sendFile(path.join(__dirname, 'public/views/index.html'));
-});
-
 /* '.json' upload route */
 app.post('/upload', function(req, res){
   /* create an incoming form object */
@@ -180,6 +175,12 @@ app.post('/slide', function(req, res){
   // console.log(req);
   // console.log("graphSize: ");
   // console.log(graphSize);
+});
+
+/* Main route */
+app.get('/', function(req, res){
+  // res.sendFile(path.join(__dirname, 'public/views/index.html'));
+  res.sendFile(path.join(__dirname, 'public/views/newIndex.html'));
 });
 
 app.get('/visualization', function(req, res){
