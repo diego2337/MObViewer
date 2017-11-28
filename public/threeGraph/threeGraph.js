@@ -31,20 +31,26 @@ function build(data)
   //     renderer = new THREE.CanvasRenderer();
   // }
 
-  if(renderer == undefined) renderer = new THREE.WebGLRenderer({antialias:true});
-  else renderer.clear();
+  if(renderer == undefined)
+  {
+      /* Get the size of the inner window (content area) to create a full size renderer */
+      // canvasWidth = (window.innerWidth) / 1.5;
+      // canvasHeight = (window.innerHeight) / 1.5;
+      canvasWidth = document.getElementById("WebGL").clientWidth;
+      canvasHeight = document.getElementById("WebGL").clientHeight;
 
-  /* Set the background color of the renderer to black, with full opacity */
-  renderer.setClearColor("rgb(255, 255, 255)", 1);
+      /* Create a new WebGL renderer */
+      renderer = new THREE.WebGLRenderer({antialias:true});
+      /* Set the background color of the renderer to black, with full opacity */
+      renderer.setClearColor("rgb(255, 255, 255)", 1);
 
-  /* Get the size of the inner window (content area) to create a full size renderer */
-  canvasWidth = (window.innerWidth) / 1.5;
-  canvasHeight = (window.innerHeight) / 1.5;
-  // canvasWidth = document.getElementById("WebGLID").clientWidth;
-  // canvasHeight = document.getElementById("WebGLID").clientHeight;
-
-  /* Set the renderers size to the content areas size */
-  renderer.setSize(canvasWidth, canvasHeight);
+      /* Set the renderers size to the content areas size */
+      renderer.setSize(canvasWidth, canvasHeight);
+  }
+  else
+  {
+      renderer.clear();
+  }
 
   // renderer.sortObjects = false;
 

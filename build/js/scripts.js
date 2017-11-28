@@ -50,7 +50,7 @@ $('#multilevelCoarsener').on('change', function(){
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')[0].value, firstSet: true},
+    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: true},
     // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate
   });
@@ -63,14 +63,13 @@ $('#multilevelCoarsener2').on('change', function(){
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')[0].value, firstSet: false},
+    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: false},
     // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate
   });
 });
 
 $('.upload-btn').on('click', function (){
-    console.log("look dude you clicked it!");
     $('#upload-input').click();
     $('.progress-bar').text('0%');
     $('.progress-bar').width('0%');
