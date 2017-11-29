@@ -2,6 +2,10 @@
   float: left;
 }
 
+#uploadBtn:hover {
+  
+}
+
 .no-display {
   display: none;
 }

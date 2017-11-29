@@ -36,6 +36,7 @@ var Graph = function(graph, min, max)
        }
        this.graphInfo.min = min;
        this.graphInfo.max = max;
+       this.theta = 0;
        if(graph.nodes instanceof Array)
        {
            this.nodes = [];
@@ -162,6 +163,46 @@ Graph.prototype.setNodeById = function(id, node)
 }
 
 /**
+  * Get leftmost (or downmost) node of graph
+  * returns:
+  *    - world coordinate of leftmost (or downmost) element of graph.
+  */
+Graph.prototype.getMinNode = function()
+{
+  return this.minNode;
+}
+
+/**
+  * Set leftmost (or downmost) node of graph
+  * param:
+  *    - minNode: world coordinate of leftmost (or downmost) element of graph.
+  */
+Graph.prototype.setMinNode = function(minNode)
+{
+  this.minNode = minNode;
+}
+
+/**
+  * Get rightmost (or upmost) node of graph
+  * returns:
+  *    - world coordinate of rightmost (or upmost) element of graph.
+  */
+Graph.prototype.getMaxNode = function()
+{
+  return this.maxNode;
+}
+
+/**
+  * Set rightmost (or upmost) node of graph
+  * param:
+  *    - maxNode: world coordinate of rightmost (or upmost) element of graph.
+  */
+Graph.prototype.setMaxNode = function(maxNode)
+{
+  this.maxNode = maxNode;
+}
+
+/**
 * Get edges from graph
 */
 Graph.prototype.getEdges = function()
@@ -266,11 +307,11 @@ Graph.prototype.buildGraph = function(scene, layout)
        scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
        /* Set which type of bipartite graph to be built */
-       if(layout == 2) theta = scale(i);
+       if(layout == 2) this.theta = scale(i);
        /* TODO - fix theta size; Must be according to size of nodes */
        else if(layout == 3)
        {
-         theta = 3;
+         this.theta = 3;
        }
 
        /* Build nodes' meshes */
@@ -281,14 +322,16 @@ Graph.prototype.buildGraph = function(scene, layout)
        {
            if(i == this.firstLayer)
            {
-             theta = ((this.firstLayer / this.lastLayer)  * theta);
+             this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
              j = parseInt(j) + parseInt(1);
            }
            else if(i > this.firstLayer)
            {
              j = parseInt(j) + parseInt(1);
            }
-           this.nodes[i].buildNode(i, this.firstLayer, j, 20, theta, layout);
+           if(i == 0) this.setMinNode(parseInt(i*this.theta));
+           if(i == this.nodes.length - 1) this.setMaxNode(parseInt(i*this.theta));
+           this.nodes[i].buildNode(i, this.firstLayer, j, 20, this.theta, layout);
           //  this.nodes[i].getCircle().updateMatrix();
           //  singleGeometry.merge(this.nodes[i].getCircle().geometry, this.nodes[i].getCircle().matrix);
            if(scene !== undefined) scene.add(this.nodes[i].getCircle());

@@ -1,57 +1,86 @@
 /**
- * Singleton base class for depth of the scene.
- * Author: Diego S. Cintra
- */
-var Depth = (function (){
+  * Singleton base class for depth of the scene.
+  * Author: Diego S. Cintra
+  */
 
-        // Instance stores a reference to the Singleton
-        var instance;
+/**
+  * Constructor
+  * params:
+  *    - z: Depth to be applied to camera.
+  */
+var Depth = function(z)
+{
+  this.z = z;
+}
 
-        // Singleton
-        function init(z2)
-        {
-            // Private methods and variables
-            var z = z2;
+/**
+  * Getter for depth
+  * - returns: z-coordinate for camera
+  */
+Depth.prototype.getZ = function()
+{
+  return this.z;
+}
 
-            return{
-
-                // Public methods and variables
-                /**
-                 * Getter of z
-                 */
-                getZ : function()
-                {
-                    return z;
-                },
-
-                /**
-                * Setter of z
-                */
-                setZ : function(z)
-                {
-                    this.z = z;
-                }
-
-            };
-
-        };
-
-        return{
-
-            // Get the Singleton instance if one exists
-            // or create one if it doesn't
-            getInstance: function (z2) 
-            {
-                if ( !instance ) {
-                    instance = init(z2);
-                }
-
-                return instance;
-            }
-
-        };
-
-})();
+/**
+  * Setter for depth
+  * param:
+  *    - z: z-coordinate for camera
+  */
+Depth.prototype.setZ = function(z)
+{
+  this.z = z;
+}
+// var Depth = (function (){
+//
+//         // Instance stores a reference to the Singleton
+//         var instance;
+//
+//         // Singleton
+//         function init(z2)
+//         {
+//             // Private methods and variables
+//             var z = z2;
+//
+//             return{
+//
+//                 // Public methods and variables
+//                 /**
+//                  * Getter of z
+//                  */
+//                 getZ : function()
+//                 {
+//                     return z;
+//                 },
+//
+//                 /**
+//                 * Setter of z
+//                 */
+//                 setZ : function(z)
+//                 {
+//                     this.z = z;
+//                 }
+//
+//             };
+//
+//         };
+//
+//         return{
+//
+//             // Get the Singleton instance if one exists
+//             // or create one if it doesn't
+//             getInstance: function (z2)
+//             {
+//                 if ( !instance ) {
+//                     instance = init(z2);
+//                 }
+//
+//                 return instance;
+//             }
+//
+//         };
+//
+// })();
 
 /**
  * Constructor
@@ -290,6 +319,7 @@ var Graph = function(graph, min, max)
        }
        this.graphInfo.min = min;
        this.graphInfo.max = max;
+       this.theta = 0;
        if(graph.nodes instanceof Array)
        {
            this.nodes = [];
@@ -416,6 +446,46 @@ Graph.prototype.setNodeById = function(id, node)
 }
 
 /**
+  * Get leftmost (or downmost) node of graph
+  * returns:
+  *    - world coordinate of leftmost (or downmost) element of graph.
+  */
+Graph.prototype.getMinNode = function()
+{
+  return this.minNode;
+}
+
+/**
+  * Set leftmost (or downmost) node of graph
+  * param:
+  *    - minNode: world coordinate of leftmost (or downmost) element of graph.
+  */
+Graph.prototype.setMinNode = function(minNode)
+{
+  this.minNode = minNode;
+}
+
+/**
+  * Get rightmost (or upmost) node of graph
+  * returns:
+  *    - world coordinate of rightmost (or upmost) element of graph.
+  */
+Graph.prototype.getMaxNode = function()
+{
+  return this.maxNode;
+}
+
+/**
+  * Set rightmost (or upmost) node of graph
+  * param:
+  *    - maxNode: world coordinate of rightmost (or upmost) element of graph.
+  */
+Graph.prototype.setMaxNode = function(maxNode)
+{
+  this.maxNode = maxNode;
+}
+
+/**
 * Get edges from graph
 */
 Graph.prototype.getEdges = function()
@@ -520,11 +590,11 @@ Graph.prototype.buildGraph = function(scene, layout)
        scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
        /* Set which type of bipartite graph to be built */
-       if(layout == 2) theta = scale(i);
+       if(layout == 2) this.theta = scale(i);
        /* TODO - fix theta size; Must be according to size of nodes */
        else if(layout == 3)
        {
-         theta = 3;
+         this.theta = 3;
        }
 
        /* Build nodes' meshes */
@@ -535,14 +605,16 @@ Graph.prototype.buildGraph = function(scene, layout)
        {
            if(i == this.firstLayer)
            {
-             theta = ((this.firstLayer / this.lastLayer)  * theta);
+             this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
              j = parseInt(j) + parseInt(1);
            }
            else if(i > this.firstLayer)
            {
              j = parseInt(j) + parseInt(1);
            }
-           this.nodes[i].buildNode(i, this.firstLayer, j, 20, theta, layout);
+           if(i == 0) this.setMinNode(parseInt(i*this.theta));
+           if(i == this.nodes.length - 1) this.setMaxNode(parseInt(i*this.theta));
+           this.nodes[i].buildNode(i, this.firstLayer, j, 20, this.theta, layout);
           //  this.nodes[i].getCircle().updateMatrix();
           //  singleGeometry.merge(this.nodes[i].getCircle().geometry, this.nodes[i].getCircle().matrix);
            if(scene !== undefined) scene.add(this.nodes[i].getCircle());
@@ -891,11 +963,15 @@ function build(data)
   /* Build graph */
   graph.buildGraph(scene, 3);
 
+  /* Define depth variable to set camera positioning */
+  var depth = new Depth(0);
+  depth.setZ(Math.abs(graph.getMinNode) + Math.abs(graph.getMaxNode));
   /* Create the camera and associate it with the scene */
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 500);
   /* TODO - Setting Z value so that every element will have the same depth */
   //  setZ(10);
-  camera.position.set(0, 0, 40);
+  // camera.position.set(0, 0, 40);
+  camera.position.set(0, 0, depth.getZ());
   camera.lookAt(scene.position);
   camera.name = "camera";
   scene.add(camera);
