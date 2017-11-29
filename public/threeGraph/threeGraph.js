@@ -65,13 +65,14 @@ function build(data)
 
   /* Define depth variable to set camera positioning */
   var depth = new Depth(0);
-  depth.setZ(Math.abs(graph.getMinNode) + Math.abs(graph.getMaxNode));
+  depth.setZ(Math.abs(graph.getMinNode()) + Math.abs(graph.getMaxNode()));
   /* Create the camera and associate it with the scene */
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 500);
   /* TODO - Setting Z value so that every element will have the same depth */
   //  setZ(10);
   // camera.position.set(0, 0, 40);
-  camera.position.set(0, 0, depth.getZ());
+  camera.position.set(0, 0, (depth.getZ()));
+  // console.log("(depth.getZ()): ", (depth.getZ()));
   camera.lookAt(scene.position);
   camera.name = "camera";
   scene.add(camera);
