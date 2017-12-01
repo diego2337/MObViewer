@@ -17,7 +17,7 @@ function Node(circleGeometry, meshBasicMaterial)
  *    - min: min value to be used in feature scaling;
  *    - max: max value to be used in feature scaling;
  *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for the geometry (from three.js).
+ *    - meshBasicMaterial: material for geometry (from three.js).
  */
 var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
 {
@@ -31,18 +31,6 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
         this.nodeObject = nodeObject;
         //this.id = toInt(nodeObject.id);
         //this.weight = toInt(nodeObject.weight);
-    }
-    catch(err)
-    {
-        throw "Constructor must have nodeObject type as first parameter! " +
-        " Constructor " +
-            " params: " +
-            "    - nodeObject: the node object taken from the JSON file; " +
-            "    - circleGeometry: a geometry of type circle (from three.js); " +
-            "    - meshBasicMaterial: material for the geometry (from three.js).";
-    }
-    finally
-    {
         // CHANGED - FROM this.weight TO this.nodeObject.weight
         if(this.nodeObject.weight == undefined)
         {
@@ -51,19 +39,34 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
 
         /* Use feature scaling to fit nodes */
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
-        this.circleGeometry = new THREE.CircleGeometry(x, 100);
+        // circleGeometry.scale(x, x, x);
+        // this.circleGeometry = new THREE.CircleGeometry(x, 100);
 
         /* Store number of nodes from each layer */
 
-        if(meshBasicMaterial == undefined)
-        {
-            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
-        }
-        else
-        {
-            this.meshBasicMaterial = meshBasicMaterial;
-        }
-        this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
+        // if(meshBasicMaterial == undefined)
+        // {
+        //     this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        // }
+        // else
+        // {
+        //     this.meshBasicMaterial = meshBasicMaterial;
+        // }
+    }
+    catch(err)
+    {
+        throw "Constructor must have nodeObject type as first parameter! " +
+        " Constructor " +
+            " params: " +
+            "    - nodeObject: the node object taken from the JSON file; " +
+            "    - min: min value to be used in feature scaling; " +
+            "    - max: max value to be used in feature scaling; " +
+            "    - circleGeometry: a geometry of type circle (from three.js); " +
+            "    - meshBasicMaterial: material for geometry (from three.js).";
+    }
+    finally
+    {
+        this.circle = new THREE.Mesh(circleGeometry, meshBasicMaterial);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
         this.circle.geometry.computeBoundingBox();

@@ -37,23 +37,28 @@ var Graph = function(graph, min, max)
        this.graphInfo.min = min;
        this.graphInfo.max = max;
        this.theta = 0;
+       /* Graph keeps instances of geometries and materials for optimization */
+       this.circleGeometry = new THREE.CircleGeometry(2, 32);
+       this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
        if(graph.nodes instanceof Array)
        {
            this.nodes = [];
            for(var i = 0; i < graph.nodes.length; i++)
            {
-               this.nodes[i] = new Node(graph.nodes[i], min, max);
+               this.nodes[i] = new Node(graph.nodes[i], min, max, this.circleGeometry, this.meshBasicMaterial);
            }
            // graph.nodes.forEach(function(d, i){
            //     this.nodes[i] = new Node(d);
            // });
        }
+       /* Graph keeps instances of geometries and materials for optimization */
+       this.bufferGeometry = new THREE.BufferGeometry();
        if(graph.links instanceof Array)
        {
            this.edges = [];
            for(var i = 0; i < graph.links.length; i++)
            {
-               this.edges[i] = new Edge(graph.links[i]);
+               this.edges[i] = new Edge(graph.links[i], 0, 100, this.lineBasicMaterial);
            }
            // graph.edges.forEach(function(d, i){
            //     this.edges[i] = new Edge(d);

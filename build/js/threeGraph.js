@@ -96,9 +96,12 @@ Depth.prototype.setZ = function(z)
  * Constructor
  * params:
  *    - edgeObject: the edge object taken from the JSON file;
- *    - bufferGeometry: a generic bufferGeometry (from three.js);
- *    - lineBasicMaterial: line material for the object (from three.js).
+ *    - min: min value to be used in feature scaling;
+ *    - max: max value to be used in feature scaling;
+ *    - bufferGeometry: optimized geometry to build line (from three.js);
+ *    - lineBasicMaterial: material for geometry (from three.js).
  */
+// var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
 var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
 {
     /* Pre ECMAScript 2015 standardization */
@@ -106,25 +109,13 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
     // max = typeof max !== 'undefined' ? max : 50;
     min = ecmaStandard(min, 0);
     max = ecmaStandard(max, 100);
-    bufferGeometry = typeof bufferGeometry !== 'undefined' ? bufferGeometry : undefined;
-    lineBasicMaterial = typeof lineBasicMaterial !== 'undefined' ? lineBasicMaterial : undefined;
+    // bufferGeometry = typeof bufferGeometry !== 'undefined' ? bufferGeometry : undefined;
+    // lineBasicMaterial = typeof lineBasicMaterial !== 'undefined' ? lineBasicMaterial : undefined;
     try
     {
         this.edgeObject = edgeObject;
         /* Defining edge id by concatenation of source and target nodes' id */
         this.edgeObject.id = "e" + edgeObject.source.toString() + edgeObject.target.toString();
-    }
-    catch(err)
-    {
-        throw "Constructor must have edgeObject type as first parameter! " +
-        " Constructor " +
-            " params: " +
-            "    - edgeObject: the edge object taken from the JSON file; " +
-            "    - bufferGeometry: a generic bufferGeometry (from three.js); " +
-            "    - lineBasicMaterial: line material for the object (from three.js).";
-    }
-    finally
-    {
         if(this.edgeObject.weight == undefined)
         {
             this.edgeObject.weight = 1;
@@ -132,26 +123,45 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
 
         /* Use feature scaling to fit edges */
         this.edgeRadius = (this.edgeObject.weight - min)/(max-min);
-        if(bufferGeometry != undefined && lineBasicMaterial == undefined)
-        {
-            this.bufferGeometry = bufferGeometry;
-            this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
-        }
-        else if(bufferGeometry == undefined && lineBasicMaterial != undefined)
-        {
-            this.bufferGeometry = new THREE.BufferGeometry();
-            this.lineBasicMaterial = lineBasicMaterial;
-        }
-        else if(bufferGeometry != undefined && lineBasicMaterial != undefined)
-        {
-            this.bufferGeometry = bufferGeometry;
-            this.lineBasicMaterial = lineBasicMaterial;
-        }
-        else
-        {
-            this.bufferGeometry = new THREE.BufferGeometry();
-            this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
-        }
+        lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
+        this.line = new THREE.Line(bufferGeometry, lineBasicMaterial);
+        this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
+        this.line.boundingBox = null;
+        this.line.renderOrder = 0;
+    }
+    catch(err)
+    {
+        throw "Constructor must have edgeObject type as first parameter! " +
+        " Constructor " +
+            " params: " +
+            "    - edgeObject: the edge object taken from the JSON file; " +
+            "    - min: min value to be used in feature scaling; " +
+            "    - max: max value to be used in feature scaling; " +
+            "    - bufferGeometry: a generic bufferGeometry (from three.js); " +
+            "    - lineBasicMaterial: line material for the object (from three.js).";
+    }
+    finally
+    {
+        // if(bufferGeometry != undefined && lineBasicMaterial == undefined)
+        // {
+        //     this.bufferGeometry = bufferGeometry;
+        //     this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
+        // }
+        // else if(bufferGeometry == undefined && lineBasicMaterial != undefined)
+        // {
+        //     this.bufferGeometry = new THREE.BufferGeometry();
+        //     this.lineBasicMaterial = lineBasicMaterial;
+        // }
+        // else if(bufferGeometry != undefined && lineBasicMaterial != undefined)
+        // {
+        //     this.bufferGeometry = bufferGeometry;
+        //     this.lineBasicMaterial = lineBasicMaterial;
+        // }
+        // else
+        // {
+        //     this.bufferGeometry = new THREE.BufferGeometry();
+        //     this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
+        // }
 
         /* TODO - eliminates ray tracing completely */
         // this.geometry.computeBoundingSphere();
@@ -249,20 +259,16 @@ Edge.prototype.buildEdge = function(source, target)
 {
     var sourcePos = source.getCircle().position;
     var targetPos = target.getCircle().position;
-    this.bufferGeometry = new THREE.BufferGeometry();
+    // this.bufferGeometry = new THREE.BufferGeometry();
     var path = new Float32Array([
         sourcePos.x, sourcePos.y, sourcePos.z,
 
         targetPos.x, targetPos.y, targetPos.z
     ]);
-    this.bufferGeometry.addAttribute('position', new THREE.BufferAttribute( path, 3 ));
+    this.line.geometry.addAttribute('position', new THREE.BufferAttribute( path, 3 ));
     // this.bufferGeometry.computeFaceNormals();
     // this.bufferGeometry.computeVertexNormals();
     // this.bufferGeometry.computeBoundingSphere();
-    this.line = new THREE.Line(this.bufferGeometry, this.lineBasicMaterial);
-    this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
-    this.line.boundingBox = null;
-    this.line.renderOrder = 0;
 }
 
 /**
@@ -320,23 +326,28 @@ var Graph = function(graph, min, max)
        this.graphInfo.min = min;
        this.graphInfo.max = max;
        this.theta = 0;
+       /* Graph keeps instances of geometries and materials for optimization */
+       this.circleGeometry = new THREE.CircleGeometry(2, 32);
+       this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
        if(graph.nodes instanceof Array)
        {
            this.nodes = [];
            for(var i = 0; i < graph.nodes.length; i++)
            {
-               this.nodes[i] = new Node(graph.nodes[i], min, max);
+               this.nodes[i] = new Node(graph.nodes[i], min, max, this.circleGeometry, this.meshBasicMaterial);
            }
            // graph.nodes.forEach(function(d, i){
            //     this.nodes[i] = new Node(d);
            // });
        }
+       /* Graph keeps instances of geometries and materials for optimization */
+       this.bufferGeometry = new THREE.BufferGeometry();
        if(graph.links instanceof Array)
        {
            this.edges = [];
            for(var i = 0; i < graph.links.length; i++)
            {
-               this.edges[i] = new Edge(graph.links[i]);
+               this.edges[i] = new Edge(graph.links[i], 0, 100, this.lineBasicMaterial);
            }
            // graph.edges.forEach(function(d, i){
            //     this.edges[i] = new Edge(d);
@@ -669,7 +680,7 @@ function Node(circleGeometry, meshBasicMaterial)
  *    - min: min value to be used in feature scaling;
  *    - max: max value to be used in feature scaling;
  *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for the geometry (from three.js).
+ *    - meshBasicMaterial: material for geometry (from three.js).
  */
 var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
 {
@@ -683,18 +694,6 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
         this.nodeObject = nodeObject;
         //this.id = toInt(nodeObject.id);
         //this.weight = toInt(nodeObject.weight);
-    }
-    catch(err)
-    {
-        throw "Constructor must have nodeObject type as first parameter! " +
-        " Constructor " +
-            " params: " +
-            "    - nodeObject: the node object taken from the JSON file; " +
-            "    - circleGeometry: a geometry of type circle (from three.js); " +
-            "    - meshBasicMaterial: material for the geometry (from three.js).";
-    }
-    finally
-    {
         // CHANGED - FROM this.weight TO this.nodeObject.weight
         if(this.nodeObject.weight == undefined)
         {
@@ -703,19 +702,34 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
 
         /* Use feature scaling to fit nodes */
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
-        this.circleGeometry = new THREE.CircleGeometry(x, 100);
+        // circleGeometry.scale(x, x, x);
+        // this.circleGeometry = new THREE.CircleGeometry(x, 100);
 
         /* Store number of nodes from each layer */
 
-        if(meshBasicMaterial == undefined)
-        {
-            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
-        }
-        else
-        {
-            this.meshBasicMaterial = meshBasicMaterial;
-        }
-        this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
+        // if(meshBasicMaterial == undefined)
+        // {
+        //     this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        // }
+        // else
+        // {
+        //     this.meshBasicMaterial = meshBasicMaterial;
+        // }
+    }
+    catch(err)
+    {
+        throw "Constructor must have nodeObject type as first parameter! " +
+        " Constructor " +
+            " params: " +
+            "    - nodeObject: the node object taken from the JSON file; " +
+            "    - min: min value to be used in feature scaling; " +
+            "    - max: max value to be used in feature scaling; " +
+            "    - circleGeometry: a geometry of type circle (from three.js); " +
+            "    - meshBasicMaterial: material for geometry (from three.js).";
+    }
+    finally
+    {
+        this.circle = new THREE.Mesh(circleGeometry, meshBasicMaterial);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
         this.circle.geometry.computeBoundingBox();
