@@ -38,7 +38,7 @@ var Graph = function(graph, min, max)
        this.graphInfo.max = max;
        this.theta = 0;
        /* Graph keeps instances of geometries and materials for optimization */
-       this.circleGeometry = new THREE.CircleGeometry(2, 32);
+       this.circleGeometry = new THREE.CircleGeometry(1, 32);
        this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
        if(graph.nodes instanceof Array)
        {

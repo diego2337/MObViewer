@@ -67,6 +67,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     finally
     {
         this.circle = new THREE.Mesh(circleGeometry, meshBasicMaterial);
+        this.circle.scale.set(x, x, x);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
         this.circle.geometry.computeBoundingBox();

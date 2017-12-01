@@ -128,6 +128,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
         this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
         this.line.boundingBox = null;
         this.line.renderOrder = 0;
+        this.line.matrixAutoUpdate = false;
     }
     catch(err)
     {
@@ -327,7 +328,7 @@ var Graph = function(graph, min, max)
        this.graphInfo.max = max;
        this.theta = 0;
        /* Graph keeps instances of geometries and materials for optimization */
-       this.circleGeometry = new THREE.CircleGeometry(2, 32);
+       this.circleGeometry = new THREE.CircleGeometry(1, 32);
        this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
        if(graph.nodes instanceof Array)
        {
@@ -730,6 +731,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     finally
     {
         this.circle = new THREE.Mesh(circleGeometry, meshBasicMaterial);
+        this.circle.scale.set(x, x, x);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
         this.circle.geometry.computeBoundingBox();
@@ -992,18 +994,23 @@ function build(data)
   scene.add(camera);
 
   /* Create lights to associate with scene */
-  var lights = [];
-  lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+  // var lights = [];
+  // lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+  // lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+  // lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+  //
+  // lights[ 0 ].position.set( 0, 2, 0 );
+  // lights[ 1 ].position.set( 1, 2, 1 );
+  // lights[ 2 ].position.set( - 1, - 2, - 1 );
+  //
+  // scene.add( lights[ 0 ] );
+  // scene.add( lights[ 1 ] );
+  // scene.add( lights[ 2 ] );
 
-  lights[ 0 ].position.set( 0, 2, 0 );
-  lights[ 1 ].position.set( 1, 2, 1 );
-  lights[ 2 ].position.set( - 1, - 2, - 1 );
-
-  scene.add( lights[ 0 ] );
-  scene.add( lights[ 1 ] );
-  scene.add( lights[ 2 ] );
+  /* Create simple directional light */
+  var light = new THREE.DirectionalLight();
+  light.position.set(0, 0, 10);
+  scene.add(light);
 
   /* Using orbitControls for moving */
   var controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -1024,12 +1031,13 @@ function build(data)
   // eventHandler.setScene(scene);
 
   /* Adding event listeners */
-  document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
+  // document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
   /* Deprecated listeners - orbitControls taking care of zooming and panning */
   // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
   // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
   // document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
 
+  console.log(renderer.info);
   animate();
 
   function animate()
@@ -1037,7 +1045,7 @@ function build(data)
       /* Tell the browser to call this function when page is visible */
       requestAnimationFrame(animate);
       /* Render scene */
-      renderer.render(scene, camera);
+      // renderer.render(scene, camera);
   }
   // var fs = new FileReader();
   /* Converting passed textarea input to JSON */

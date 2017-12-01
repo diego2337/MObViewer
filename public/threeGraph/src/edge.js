@@ -34,6 +34,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
         this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
         this.line.boundingBox = null;
         this.line.renderOrder = 0;
+        this.line.matrixAutoUpdate = false;
     }
     catch(err)
     {
