@@ -98,18 +98,18 @@ Depth.prototype.setZ = function(z)
  *    - edgeObject: the edge object taken from the JSON file;
  *    - min: min value to be used in feature scaling;
  *    - max: max value to be used in feature scaling;
- *    - bufferGeometry: optimized geometry to build line (from three.js);
+ *    - geometry: optimized geometry to build line (from three.js);
  *    - lineBasicMaterial: material for geometry (from three.js).
  */
-// var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
-var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
+// var Edge = function(edgeObject, min, max, geometry, lineBasicMaterial)
+var Edge = function(edgeObject, min, max, geometry, lineBasicMaterial)
 {
     /* Pre ECMAScript 2015 standardization */
     // min = typeof min !== 'undefined' ? min : 0;
     // max = typeof max !== 'undefined' ? max : 50;
     min = ecmaStandard(min, 0);
     max = ecmaStandard(max, 100);
-    // bufferGeometry = typeof bufferGeometry !== 'undefined' ? bufferGeometry : undefined;
+    // geometry = typeof geometry !== 'undefined' ? geometry : undefined;
     // lineBasicMaterial = typeof lineBasicMaterial !== 'undefined' ? lineBasicMaterial : undefined;
     try
     {
@@ -124,7 +124,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
         /* Use feature scaling to fit edges */
         this.edgeRadius = (this.edgeObject.weight - min)/(max-min);
         lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
-        this.line = new THREE.Line(bufferGeometry, lineBasicMaterial);
+        this.line = new THREE.LineSegments(geometry, lineBasicMaterial);
         this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
         this.line.boundingBox = null;
         this.line.renderOrder = 0;
@@ -138,29 +138,29 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
             "    - edgeObject: the edge object taken from the JSON file; " +
             "    - min: min value to be used in feature scaling; " +
             "    - max: max value to be used in feature scaling; " +
-            "    - bufferGeometry: a generic bufferGeometry (from three.js); " +
+            "    - geometry: a generic geometry (from three.js); " +
             "    - lineBasicMaterial: line material for the object (from three.js).";
     }
     finally
     {
-        // if(bufferGeometry != undefined && lineBasicMaterial == undefined)
+        // if(geometry != undefined && lineBasicMaterial == undefined)
         // {
-        //     this.bufferGeometry = bufferGeometry;
+        //     this.geometry = geometry;
         //     this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
         // }
-        // else if(bufferGeometry == undefined && lineBasicMaterial != undefined)
+        // else if(geometry == undefined && lineBasicMaterial != undefined)
         // {
-        //     this.bufferGeometry = new THREE.BufferGeometry();
+        //     this.geometry = new THREE.Geometry();
         //     this.lineBasicMaterial = lineBasicMaterial;
         // }
-        // else if(bufferGeometry != undefined && lineBasicMaterial != undefined)
+        // else if(geometry != undefined && lineBasicMaterial != undefined)
         // {
-        //     this.bufferGeometry = bufferGeometry;
+        //     this.geometry = geometry;
         //     this.lineBasicMaterial = lineBasicMaterial;
         // }
         // else
         // {
-        //     this.bufferGeometry = new THREE.BufferGeometry();
+        //     this.geometry = new THREE.Geometry();
         //     this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
         // }
 
@@ -184,7 +184,7 @@ var Edge = function(edgeObject, min, max, bufferGeometry, lineBasicMaterial)
 Edge.prototype.getEdge = function()
 {
     var edge = new Edge();
-    edge.setBufferGeometry(this.circleBufferGeometry);
+    edge.setGeometry(this.circleGeometry);
     edge.setLineBasicMaterial(this.lineBasicMaterial);
     edge.setLine(this.line);
     return edge;
@@ -197,25 +197,25 @@ Edge.prototype.getEdge = function()
  */
 Edge.prototype.setEdge = function(edge)
 {
-    this.setBufferGeometry(edge.bufferGeometry);
+    this.setGeometry(edge.geometry);
     this.setlineBasicMaterial(edge.setlineBasicMaterial);
     this.setLine(edge.line);
 }
 
 /**
- * Getter for bufferGeometry
+ * Getter for Geometry
  */
-Edge.prototype.getBufferGeometry = function()
+Edge.prototype.getGeometry = function()
 {
-    return this.bufferGeometry;
+    return this.geometry;
 }
 
 /**
- * Setter for bufferGeometry
+ * Setter for Geometry
  */
-Edge.prototype.setBufferGeometry = function(bufferGeometry)
+Edge.prototype.setGeometry = function(geometry)
 {
-    this.bufferGeometry = bufferGeometry;
+    this.geometry = geometry;
 }
 
 /**
@@ -253,23 +253,29 @@ Edge.prototype.setLine = function(line)
 /**
  * Build the edge into the scene
  * params:
+ *    - geometry: geometry for edges;
  *    - source: source node from which the edge starts (if directed);
  *    - target: target node from which the edge ends (if dirceted).
  */
-Edge.prototype.buildEdge = function(source, target)
+Edge.prototype.buildEdge = function(geometry, source, target)
 {
     var sourcePos = source.getCircle().position;
     var targetPos = target.getCircle().position;
-    // this.bufferGeometry = new THREE.BufferGeometry();
-    var path = new Float32Array([
-        sourcePos.x, sourcePos.y, sourcePos.z,
-
-        targetPos.x, targetPos.y, targetPos.z
-    ]);
-    this.line.geometry.addAttribute('position', new THREE.BufferAttribute( path, 3 ));
-    // this.bufferGeometry.computeFaceNormals();
-    // this.bufferGeometry.computeVertexNormals();
-    // this.bufferGeometry.computeBoundingSphere();
+    var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+    var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+    geometry.vertices.push(v1);
+    geometry.vertices.push(v2);
+    // this.geometry = new THREE.Geometry();
+    // var path = new Float32Array([
+    //     sourcePos.x, sourcePos.y, sourcePos.z,
+    //
+    //     targetPos.x, targetPos.y, targetPos.z
+    // ]);
+    // geometry.addAttribute('position', new THREE.BufferAttribute( path, 3 ));
+    // this.line.geometry.addAttribute('position', new THREE.BufferAttribute( path, 3 ));
+    // this.geometry.computeFaceNormals();
+    // this.geometry.computeVertexNormals();
+    // this.geometry.computeBoundingSphere();
 }
 
 /**
@@ -342,7 +348,7 @@ var Graph = function(graph, min, max)
            // });
        }
        /* Graph keeps instances of geometries and materials for optimization */
-       this.bufferGeometry = new THREE.BufferGeometry();
+       this.geometry = new THREE.Geometry();
        if(graph.links instanceof Array)
        {
            this.edges = [];
@@ -639,15 +645,27 @@ Graph.prototype.buildGraph = function(scene, layout)
       //  }
 
       //  /* Build edges' meshes and add to scene */
-      var singleGeometry2 = new THREE.Geometry();
+      // var singleGeometry2 = new THREE.Geometry();
       for(var i = 0; i < this.edges.length; i++)
       {
-         this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
+         this.edges[i].buildEdge(this.geometry, this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
          // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
          // scene.add(helper);
          // this.edges[i].getLine().updateMatrix();
          // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
-        if(scene !== undefined) scene.add(this.edges[i].getLine());
+        // if(scene !== undefined) scene.add(this.edges[i].getLine());
+      }
+      if(scene !== undefined)
+      {
+        // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+        // scene.add(lineSegment);
+        var line = new MeshLine();
+        line.setGeometry(this.geometry, function(p){
+          return 2;
+        });
+        var material = new MeshLineMaterial({color: 0x8D9091});
+        var lineMesh = new THREE.Mesh(line.geometry, material);
+        scene.add(lineMesh);
       }
       //  if(scene !== undefined)
       //  {
@@ -1045,7 +1063,7 @@ function build(data)
       /* Tell the browser to call this function when page is visible */
       requestAnimationFrame(animate);
       /* Render scene */
-      // renderer.render(scene, camera);
+      renderer.render(scene, camera);
   }
   // var fs = new FileReader();
   /* Converting passed textarea input to JSON */

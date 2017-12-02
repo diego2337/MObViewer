@@ -52,7 +52,7 @@ var Graph = function(graph, min, max)
            // });
        }
        /* Graph keeps instances of geometries and materials for optimization */
-       this.bufferGeometry = new THREE.BufferGeometry();
+       this.geometry = new THREE.Geometry();
        if(graph.links instanceof Array)
        {
            this.edges = [];
@@ -349,15 +349,27 @@ Graph.prototype.buildGraph = function(scene, layout)
       //  }
 
       //  /* Build edges' meshes and add to scene */
-      var singleGeometry2 = new THREE.Geometry();
+      // var singleGeometry2 = new THREE.Geometry();
       for(var i = 0; i < this.edges.length; i++)
       {
-         this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
+         this.edges[i].buildEdge(this.geometry, this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
          // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
          // scene.add(helper);
          // this.edges[i].getLine().updateMatrix();
          // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
-        if(scene !== undefined) scene.add(this.edges[i].getLine());
+        // if(scene !== undefined) scene.add(this.edges[i].getLine());
+      }
+      if(scene !== undefined)
+      {
+        // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+        // scene.add(lineSegment);
+        var line = new MeshLine();
+        line.setGeometry(this.geometry, function(p){
+          return 2;
+        });
+        var material = new MeshLineMaterial({color: 0x8D9091});
+        var lineMesh = new THREE.Mesh(line.geometry, material);
+        scene.add(lineMesh);
       }
       //  if(scene !== undefined)
       //  {

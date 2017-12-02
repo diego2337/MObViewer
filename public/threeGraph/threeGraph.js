@@ -129,7 +129,7 @@ function build(data)
       /* Tell the browser to call this function when page is visible */
       requestAnimationFrame(animate);
       /* Render scene */
-      // renderer.render(scene, camera);
+      renderer.render(scene, camera);
   }
   // var fs = new FileReader();
   /* Converting passed textarea input to JSON */
