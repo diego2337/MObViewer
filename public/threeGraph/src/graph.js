@@ -364,10 +364,11 @@ Graph.prototype.buildGraph = function(scene, layout)
         // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
         // scene.add(lineSegment);
         var line = new MeshLine();
+        // line.setGeometry(this.geometry);
         line.setGeometry(this.geometry, function(p){
-          return 2;
+          return 0.3;
         });
-        var material = new MeshLineMaterial({color: 0x8D9091});
+        var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
         var lineMesh = new THREE.Mesh(line.geometry, material);
         scene.add(lineMesh);
       }

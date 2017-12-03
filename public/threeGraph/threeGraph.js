@@ -115,7 +115,7 @@ function build(data)
   // eventHandler.setScene(scene);
 
   /* Adding event listeners */
-  // document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
+  document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
   /* Deprecated listeners - orbitControls taking care of zooming and panning */
   // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
   // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
