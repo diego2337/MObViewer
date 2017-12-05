@@ -41,6 +41,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
         // circleGeometry.scale(x, x, x);
         // this.circleGeometry = new THREE.CircleGeometry(x, 100);
+        this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
 
         /* Store number of nodes from each layer */
 
@@ -66,7 +67,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     }
     finally
     {
-        this.circle = new THREE.Mesh(circleGeometry, meshBasicMaterial);
+        this.circle = new THREE.Mesh(circleGeometry, this.meshBasicMaterial);
         this.circle.scale.set(x, x, x);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();

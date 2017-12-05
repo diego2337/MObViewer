@@ -151,8 +151,26 @@
               <text x="0.5" y="0.5" font-family="Roboto" font-size="0.3" fill="#888" text-anchor="middle" dy="0.1">82<tspan dy="-0.07" font-size="0.2">%</tspan></text>
             </svg>
           </div> -->
-          <div id="WebGL" class="demo-cards mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col">
+          <div id="WebGL" class="demo-cards mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col relative-div">
             <h4 class="mdl-card__title">Graph</h4>
+            <!-- <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div>
+            <div class="mdl-grid"></div> -->
+            <div class="mdl-grid" style="visibility: hidden;">
+              <div class="mdl-layout-spacer"></div>
+              <div id="progressBar" class="mdl-progress mdl-js-progress mdl-progress__indeterminate">
+                <h6 >Loading graph...</h6>
+              </div>
+              <div class="mdl-layout-spacer"></div>
+            </div>
           </div>
           <div class="demo-cards mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-grid mdl-grid--no-spacing">
             <!-- <div class="demo-updates mdl-card mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--4-col-tablet mdl-cell--12-col-desktop">
@@ -168,14 +186,14 @@
             </div> -->
             <div class="demo-options mdl-card mdl-color--deep-purple-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop">
               <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">
-                <h4>Graph info:</h4>
+                <h4>Graph info</h4>
                 <ul class="mdl-list">
-                  <li class="mdl-list__item">
+                  <!-- <li class="mdl-list__item">
                     <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
                       Graph name:
                     </span>
                     <span id="graphName" class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content"></span>
-                  </li>
+                  </li> -->
                   <li class="mdl-list__item">
                     <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
                       Nº of total vertices:
@@ -237,13 +255,13 @@
                   <h7>Slider for first set:</h7>
                   <span id="output1"></span>
                   <div><br></div>
-                  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="1" step="0.1" id="multilevelCoarsener" value="0" name="multilevelCoarsenerSlider" tabindex="0">
+                  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener" value="0" name="multilevelCoarsenerSlider" tabindex="0">
                 </div>
                 <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">
                   <h7>Slider for second set:</h7>
                   <span id="output2"></span>
                   <div><br></div>
-                  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="1" step="0.1" id="multilevelCoarsener2" value="0"  tabindex="0">
+                  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener2" value="0"  tabindex="0">
                 </div>
               </div>
             </div>

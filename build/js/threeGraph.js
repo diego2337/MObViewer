@@ -724,6 +724,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
         // circleGeometry.scale(x, x, x);
         // this.circleGeometry = new THREE.CircleGeometry(x, 100);
+        this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
 
         /* Store number of nodes from each layer */
 
@@ -749,7 +750,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     }
     finally
     {
-        this.circle = new THREE.Mesh(circleGeometry, meshBasicMaterial);
+        this.circle = new THREE.Mesh(circleGeometry, this.meshBasicMaterial);
         this.circle.scale.set(x, x, x);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
@@ -935,16 +936,36 @@ Node.prototype.unhighlight = function()
 
 /* Global variables */
 var renderer;
+
+/**
+ * Display graph info to HTML page
+ * param:
+ *    - jason: .json file representing graph
+ */
+function displayGraphInfo(jason)
+{
+  console.log(jason);
+  /* Display number of vertices */
+  document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  /* Display number of vertices in first set */
+  document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
+  /* Display number of vertices in second set */
+  document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+}
+
 /**
   * Render a bipartite graph given a .json file
   * param:
-  *    - data: .json file to be parsed into JSON notation and rendered
+  *    - data: string graph to be parsed into JSON notation and rendered
   */
 function build(data)
 {
   var scene;
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
+
+  /* Display graph info */
+  displayGraphInfo(jason);
 
   /* Instantiating Graph */
   var graph = new Graph(jason, 10, 70);
@@ -971,8 +992,8 @@ function build(data)
       /* Get the size of the inner window (content area) to create a full size renderer */
       // canvasWidth = (window.innerWidth) / 1.5;
       // canvasHeight = (window.innerHeight) / 1.5;
-      canvasWidth = document.getElementById("WebGL").clientWidth;
-      canvasHeight = document.getElementById("WebGL").clientHeight;
+      canvasWidth = (document.getElementById("WebGL").clientWidth);
+      canvasHeight = (document.getElementById("WebGL").clientHeight) - 20;
 
       /* Create a new WebGL renderer */
       renderer = new THREE.WebGLRenderer({antialias:true});

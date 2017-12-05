@@ -179,8 +179,12 @@ _:-ms-input-placeholder, :root .demo-graph {
   float: left;
 }
 
-#uploadBtn:hover {
-  
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
 }
 
 .no-display {

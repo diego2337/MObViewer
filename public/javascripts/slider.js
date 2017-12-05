@@ -43,6 +43,39 @@ function graphUpdate(data){
   build(data);
 }
 
+function loadGraph()
+{
+  var xhr = new window.XMLHttpRequest();
+
+  // Upload progress
+  xhr.upload.addEventListener("progress", function(evt){
+      if (evt.lengthComputable) {
+          var percentComplete = evt.loaded / evt.total;
+          /* Hide graph */
+          $('#WebGL').css('visibility', 'hidden');
+          /*  Show WebGL div */
+          $('#progressBar').css('visibility', 'visible');
+          // console.log(percentComplete);
+      }
+  }, false);
+
+  // Download progress
+  xhr.addEventListener("progress", function(evt){
+     if (evt.lengthComputable) {
+         var percentComplete = evt.loaded / evt.total;
+         //  console.log(percentComplete);
+     }
+     else {
+     }
+     /* Hide loading bar */
+     $('#progressBar').css('visibility', 'hidden');
+     /*  Show WebGL div */
+     $('#WebGL').css('visibility', 'visible');
+  }, false);
+
+  return xhr;
+}
+
 /* Apply changes for first layer coarsening */
 $('#multilevelCoarsener').on('change', function(){
   document.getElementById("output1").innerHTML = parseFloat($('#multilevelCoarsener')[0].value);
@@ -52,7 +85,8 @@ $('#multilevelCoarsener').on('change', function(){
     type: 'POST',
     data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: true},
     // data: JSON.parse($('#multilevelCoarsener')[0].value),
-    success: graphUpdate
+    success: graphUpdate,
+    xhr: loadGraph
   });
 });
 
@@ -65,6 +99,7 @@ $('#multilevelCoarsener2').on('change', function(){
     type: 'POST',
     data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: false},
     // data: JSON.parse($('#multilevelCoarsener')[0].value),
-    success: graphUpdate
+    success: graphUpdate,
+    xhr: loadGraph
   });
 });
