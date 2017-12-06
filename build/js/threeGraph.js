@@ -657,16 +657,16 @@ Graph.prototype.buildGraph = function(scene, layout)
       }
       if(scene !== undefined)
       {
-        // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
-        // scene.add(lineSegment);
-        var line = new MeshLine();
-        // line.setGeometry(this.geometry);
-        line.setGeometry(this.geometry, function(p){
-          return 0.3;
-        });
-        var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-        var lineMesh = new THREE.Mesh(line.geometry, material);
-        scene.add(lineMesh);
+        var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+        scene.add(lineSegment);
+        // var line = new MeshLine();
+        // // line.setGeometry(this.geometry);
+        // line.setGeometry(this.geometry, function(p){
+        //   return 0.3;
+        // });
+        // var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+        // var lineMesh = new THREE.Mesh(line.geometry, material);
+        // scene.add(lineMesh);
       }
       //  if(scene !== undefined)
       //  {
@@ -936,6 +936,12 @@ Node.prototype.unhighlight = function()
 
 /* Global variables */
 var renderer;
+var graph;
+var scene;
+var camera;
+var light;
+var controls;
+var eventHandler;
 
 /**
  * Display graph info to HTML page
@@ -960,7 +966,6 @@ function displayGraphInfo(jason)
   */
 function build(data)
 {
-  var scene;
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
 
@@ -968,7 +973,8 @@ function build(data)
   displayGraphInfo(jason);
 
   /* Instantiating Graph */
-  var graph = new Graph(jason, 10, 70);
+  if(graph !== undefined) delete graph;
+  graph = new Graph(jason, 10, 70);
 
   //console.log(graph);
 
@@ -1014,6 +1020,7 @@ function build(data)
   document.getElementById("WebGL").appendChild(renderer.domElement);
 
   /* Create scene */
+  if(scene !== undefined) delete scene;
   scene = new THREE.Scene();
 
   /* Build graph */
@@ -1023,6 +1030,7 @@ function build(data)
   var depth = new Depth(0);
   depth.setZ(Math.abs(graph.getMinNode()) + Math.abs(graph.getMaxNode()));
   /* Create the camera and associate it with the scene */
+  if(camera !== undefined) delete camera;
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 2000);
   /* TODO - Setting Z value so that every element will have the same depth */
   //  setZ(10);
@@ -1048,11 +1056,13 @@ function build(data)
   // scene.add( lights[ 2 ] );
 
   /* Create simple directional light */
-  var light = new THREE.DirectionalLight();
+  if(light !== undefined) delete light;
+  light = new THREE.DirectionalLight();
   light.position.set(0, 0, 10);
   scene.add(light);
 
   /* Using orbitControls for moving */
+  if(controls !== undefined) delete controls;
   var controls = new THREE.OrbitControls(camera, renderer.domElement);
   /* Setting up params */
   controls.minDistance = 1;
@@ -1066,7 +1076,8 @@ function build(data)
 
 
   /* Creating event listener */
-  var eventHandler = new EventHandler(undefined, scene);
+  if(eventHandler !== undefined) delete eventHandler;
+  eventHandler = new EventHandler(undefined, scene);
 
   // eventHandler.setScene(scene);
 
@@ -1077,7 +1088,7 @@ function build(data)
   // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
   // document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
 
-  console.log(renderer.info);
+  // console.log(renderer.info);
   animate();
 
   function animate()
