@@ -17,6 +17,8 @@ function displayGraphInfo(jason)
   console.log(jason);
   /* Display number of vertices */
   document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  /* Display number of edges */
+  document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
   /* Display number of vertices in first set */
   document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
   /* Display number of vertices in second set */

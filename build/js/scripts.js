@@ -1,4 +1,13 @@
 /**
+  * File to watch for actions triggered at main page.
+  * Author: Diego Cintra
+  * Date: 06/12/2017
+  */
+$('#showGraphInfo').on('click', function(){
+  
+});
+
+/**
   * File to watch for clicks in buttons used for saving either .png graph image or .json file.
   * Author: Diego Cintra
   * Date: 06/12/2017

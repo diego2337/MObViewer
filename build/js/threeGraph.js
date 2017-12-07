@@ -657,16 +657,16 @@ Graph.prototype.buildGraph = function(scene, layout)
       }
       if(scene !== undefined)
       {
-        var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
-        scene.add(lineSegment);
-        // var line = new MeshLine();
-        // // line.setGeometry(this.geometry);
-        // line.setGeometry(this.geometry, function(p){
-        //   return 0.3;
-        // });
-        // var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-        // var lineMesh = new THREE.Mesh(line.geometry, material);
-        // scene.add(lineMesh);
+        // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+        // scene.add(lineSegment);
+        var line = new MeshLine();
+        // line.setGeometry(this.geometry);
+        line.setGeometry(this.geometry, function(p){
+          return 0.3;
+        });
+        var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+        var lineMesh = new THREE.Mesh(line.geometry, material);
+        scene.add(lineMesh);
       }
       //  if(scene !== undefined)
       //  {
@@ -953,6 +953,8 @@ function displayGraphInfo(jason)
   console.log(jason);
   /* Display number of vertices */
   document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  /* Display number of edges */
+  document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
   /* Display number of vertices in first set */
   document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
   /* Display number of vertices in second set */

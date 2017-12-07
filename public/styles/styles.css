@@ -10,6 +10,15 @@
   position: absolute;
 }
 
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
 .no-display {
   display: none;
 }

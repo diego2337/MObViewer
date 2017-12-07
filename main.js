@@ -18,6 +18,15 @@ app.set('views', __dirname+'/public/views');
 // app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
+/* Add number of edges to .json string */
+function addNumberOfEdgesToJSON(data)
+{
+  var jason = JSON.parse(data);
+  jason.graphInfo[0].edges = jason.links.length.toString();
+  data = JSON.stringify(jason);
+  return data;
+}
+
 /* '.json' upload route */
 app.post('/upload', function(req, res){
   /* create an incoming form object */
@@ -39,62 +48,62 @@ app.post('/upload', function(req, res){
     nodeCmd.get('mkdir -p uploads/' + file.name.split(".")[0] + '/', function(data, err, stderr) {
                       if (!err) {
                         // console.log("data from python script " + data);
+                        /* Assign variable with file name for later coarsening */
+                        fileName = file.name;
+
+                        /* Transforms .gml file into .json extension file if file is .gml */
+                        // nodeCmd.run('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json');
+                        if(file.name.split(".")[1] === "gml")
+                        {
+                          nodeCmd.get('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json', function(data, err, stderr) {
+                                            if (!err) {
+                                              // console.log("data from python script " + data);
+                                              fs.readFile(form.uploadDir + '/' + file.name.split(".")[0] + "/" + file.name.split(".")[0] + ".json", 'utf8', function(err, data){
+                                                if(err)
+                                                {
+                                                  return console.log(err);
+                                                }
+                                                else
+                                                {
+                                                  // graphSize = JSON.parse(data).graphInfo[0].vlayer.split(" ");
+                                                  /* Store graph size */
+                                                  graphSize = JSON.parse(data).graphInfo[0].vlayer;
+                                                  /* Send data to client */
+                                                  res.end(addNumberOfEdgesToJSON(data));
+                                                }
+                                              });
+                                            } else {
+                                              console.log("python script cmd error: " + err);
+                                            }
+                                        });
+                        }
+                        else if(file.name.split(".")[1] === "json")
+                        {
+                          nodeCmd.get('cp uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name, function(data, err, stderr){
+                              if(!err) {
+                                // console.log("data from python script " + data);
+                                fs.readFile(form.uploadDir + '/' + file.name.split(".")[0] + "/" + file.name.split(".")[0] + ".json", 'utf8', function(err, data){
+                                  if(err)
+                                  {
+                                    return console.log(err);
+                                  }
+                                  else
+                                  {
+                                    /* Store graph size */
+                                    graphSize = JSON.parse(data).graphInfo[0].vlayer;
+                                    /* Send data to client */
+                                    res.end(addNumberOfEdgesToJSON(data));
+                                  }
+                                });
+                              } else {
+                                console.log("python script cmd error: " + err);
+                              }
+                          });
+                        }
                       } else {
                         console.log("python script cmd error: " + err);
                         }
                   });
-    /* Assign variable with file name for later coarsening */
-    fileName = file.name;
-
-    /* Transforms .gml file into .json extension file if file is .gml */
-    // nodeCmd.run('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json');
-    if(file.name.split(".")[1] === "gml")
-    {
-      nodeCmd.get('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json', function(data, err, stderr) {
-                        if (!err) {
-                          // console.log("data from python script " + data);
-                          fs.readFile(form.uploadDir + '/' + file.name.split(".")[0] + "/" + file.name.split(".")[0] + ".json", 'utf8', function(err, data){
-                            if(err)
-                            {
-                              return console.log(err);
-                            }
-                            else
-                            {
-                              /* Store graph size */
-                              // graphSize = JSON.parse(data).graphInfo[0].vlayer.split(" ");
-                              graphSize = JSON.parse(data).graphInfo[0].vlayer;
-                              /* Send data to client */
-                              res.end(data);
-                            }
-                          });
-                        } else {
-                          console.log("python script cmd error: " + err);
-                        }
-                    });
-    }
-    else if(file.name.split(".")[1] === "json")
-    {
-      nodeCmd.get('cp uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name, function(data, err, stderr){
-          if(!err) {
-            // console.log("data from python script " + data);
-            fs.readFile(form.uploadDir + '/' + file.name.split(".")[0] + "/" + file.name.split(".")[0] + ".json", 'utf8', function(err, data){
-              if(err)
-              {
-                return console.log(err);
-              }
-              else
-              {
-                /* Store graph size */
-                graphSize = JSON.parse(data).graphInfo[0].vlayer;
-                /* Send data to client */
-                res.end(data);
-              }
-            });
-          } else {
-            console.log("python script cmd error: " + err);
-          }
-      });
-    }
   });
 
   // log any errors that occur
@@ -121,7 +130,7 @@ app.post('/slide', function(req, res){
       else
       {
         /* Send data to client */
-        res.end(data);
+        res.end(addNumberOfEdgesToJSON(data));
       }
     });
   }
@@ -168,7 +177,7 @@ app.post('/slide', function(req, res){
                                       else
                                       {
                                         /* Send data to client */
-                                        res.end(data);
+                                        res.end(addNumberOfEdgesToJSON(data));
                                       }
                                     });
                                   } else {
@@ -187,7 +196,7 @@ app.post('/slide', function(req, res){
       else /* File exists*/
       {
         /* Send data to client */
-        res.end(data);
+        res.end(addNumberOfEdgesToJSON(data));
       }
     });
   }
