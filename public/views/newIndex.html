@@ -184,7 +184,7 @@
                 <a href="#" class="mdl-button mdl-js-button mdl-js-ripple-effect">Read More</a>
               </div>
             </div> -->
-            <div class="mdl-card__actions mdl-card--border mdl-color--deep-purple-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop">
+            <div class="mdl-card__actions mdl-card--border mdl-color--deep-purple-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="graphInfoShrunk">
               <div class="mdl-color-text--blue-grey-50 mdl-grid">
                 <div class="mdl-cell mdl-cell--8-col">
                   <h4>Graph info</h4>
@@ -196,10 +196,15 @@
                 </div>
               </div>
             </div>
-            <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div>
-            <div class="demo-options mdl-card mdl-color--deep-purple-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop">
+            <!-- <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div> -->
+            <div class="no-display mdl-card__actions mdl-card--border mdl-color--deep-purple-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="graphInfoCollapsed">
               <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">
                 <h4>Graph info</h4>
+                <div class="mdl-cell mdl-cell--4-col">
+                  <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon center-right" id="showGraphInfo">
+                    <i class="material-icons">add</i>
+                  </button>
+                </div>
                 <ul class="mdl-list">
                   <!-- <li class="mdl-list__item">
                     <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
@@ -232,33 +237,6 @@
                     <span id="secondSet" class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content"></span>
                   </li>
                 </ul>
-
-                <!-- <ul>
-                  <li>
-                    <label for="chkbox1" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
-                      <input type="checkbox" id="chkbox1" class="mdl-checkbox__input">
-                      <span class="mdl-checkbox__label">Click per object</span>
-                    </label>
-                  </li>
-                  <li>
-                    <label for="chkbox2" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
-                      <input type="checkbox" id="chkbox2" class="mdl-checkbox__input">
-                      <span class="mdl-checkbox__label">Views per object</span>
-                    </label>
-                  </li>
-                  <li>
-                    <label for="chkbox3" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
-                      <input type="checkbox" id="chkbox3" class="mdl-checkbox__input">
-                      <span class="mdl-checkbox__label">Objects selected</span>
-                    </label>
-                  </li>
-                  <li>
-                    <label for="chkbox4" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
-                      <input type="checkbox" id="chkbox4" class="mdl-checkbox__input">
-                      <span class="mdl-checkbox__label">Objects viewed</span>
-                    </label>
-                  </li>
-                </ul> -->
               </div>
               <!-- <div class="mdl-card__actions mdl-card--border">
                 <a href="#" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--blue-grey-50">Change location</a>

@@ -191,6 +191,10 @@ _:-ms-input-placeholder, :root .demo-graph {
   visibility: hidden;
 }
 
+.no-display {
+  display: none;
+}
+
 .center-right {
   top: 25%;
   left: 50%;

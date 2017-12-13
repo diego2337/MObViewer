@@ -4,7 +4,8 @@
   * Date: 06/12/2017
   */
 $('#showGraphInfo').on('click', function(){
-  
+  $('#graphInfoShrunk').css('display', 'none');
+  $('#graphInfoCollapsed').css('display', 'inline');
 });
 
 /**
