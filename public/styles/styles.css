@@ -2,6 +2,10 @@
   float: left;
 }
 
+.float-right {
+  float: right;
+}
+
 .relative-div {
   position: relative;
 }

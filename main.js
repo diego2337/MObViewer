@@ -27,8 +27,15 @@ function addNumberOfEdgesToJSON(data)
   return data;
 }
 
+/* Check to see which operating system version is being used, for assigning either '/' or '\' for folder paths */
+function addFolderPath()
+{
+  return process.platform == "win32" ? "\\" : "/";
+}
+
 /* '.json' upload route */
 app.post('/upload', function(req, res){
+  var folderChar = addFolderPath();
   /* create an incoming form object */
   var form = new formidable.IncomingForm();
 
@@ -45,20 +52,20 @@ app.post('/upload', function(req, res){
     fs.rename(file.path, path.join(form.uploadDir, file.name), function(){return;});
     /* Creates directory for uploaded graph */
     // nodeCmd.run('mkdir -p uploads/' + file.name.split(".")[0]);
-    nodeCmd.get('mkdir -p uploads/' + file.name.split(".")[0] + '/', function(data, err, stderr) {
+    nodeCmd.get('mkdir -p uploads' + folderChar + file.name.split(".")[0] + folderChar, function(data, err, stderr) {
                       if (!err) {
                         // console.log("data from python script " + data);
                         /* Assign variable with file name for later coarsening */
                         fileName = file.name;
 
                         /* Transforms .gml file into .json extension file if file is .gml */
-                        // nodeCmd.run('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json');
+                        // nodeCmd.run('python mob/gmlToJson2.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json');
                         if(file.name.split(".")[1] === "gml")
                         {
-                          nodeCmd.get('python mob/gmlToJson2.py uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json', function(data, err, stderr) {
+                          nodeCmd.get('python mob' + folderChar + 'gmlToJson2.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
                                             if (!err) {
                                               // console.log("data from python script " + data);
-                                              fs.readFile(form.uploadDir + '/' + file.name.split(".")[0] + "/" + file.name.split(".")[0] + ".json", 'utf8', function(err, data){
+                                              fs.readFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + ".json", 'utf8', function(err, data){
                                                 if(err)
                                                 {
                                                   return console.log(err);
@@ -79,10 +86,10 @@ app.post('/upload', function(req, res){
                         }
                         else if(file.name.split(".")[1] === "json")
                         {
-                          nodeCmd.get('cp uploads/' + file.name + ' uploads/' + file.name.split(".")[0] + '/' + file.name, function(data, err, stderr){
+                          nodeCmd.get('cp uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name, function(data, err, stderr){
                               if(!err) {
                                 // console.log("data from python script " + data);
-                                fs.readFile(form.uploadDir + '/' + file.name.split(".")[0] + "/" + file.name.split(".")[0] + ".json", 'utf8', function(err, data){
+                                fs.readFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + ".json", 'utf8', function(err, data){
                                   if(err)
                                   {
                                     return console.log(err);
@@ -118,11 +125,12 @@ app.post('/upload', function(req, res){
 
 /* Sliders' change route */
 app.post('/slide', function(req, res){
+  var folderChar = addFolderPath();
   /* Test if no coarsening has been applied to both sets; if such case is true, return original graph */
   if(req.body.coarsening == "0" && req.body.coarseningSecondSet == "0")
   {
     /* Send .json data back to client */
-    fs.readFile('uploads/' + fileName.split(".")[0] + '/' + fileName.split(".")[0] + '.json', 'utf8', function(err, data){
+    fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', 'utf8', function(err, data){
       if(err)
       {
         return console.log(err);
@@ -147,17 +155,17 @@ app.post('/slide', function(req, res){
     //   pyName = pyName + "l0" + "r" + req.body.coarsening.split(".").join("");
     // }
     /* Check if coarsened file already exists; if not, generate a new coarsened file */
-    fs.readFile('uploads/' + fileName.split(".")[0] + '/' + pyName + '.json', 'utf8', function(err, data){
+    fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data){
       if(err) /* File doesn't exist */
       {
         /* Convert .json file to .ncol */
-        nodeCmd.get('python mob/jsonToNcol.py --input uploads/' + fileName.split(".")[0] + '/' + fileName.split(".")[0] + '.json --output uploads/' + fileName.split(".")[0] + '/' + fileName.split(".")[0] + '.ncol', function(data, err, stderr){
+        nodeCmd.get('python mob' + folderChar + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr){
           if(!err) {
             // console.log("data from python script " + data);
             /* Build python parameters string */
-            var pyPath = "mob/";
+            var pyPath = "mob" + folderChar;
             var pyProg = "coarsening.py";
-            var pyParams = "-f uploads/" + fileName.split(".")[0] + "/" + fileName.split(".")[0] + ".ncol -d uploads/" + fileName.split(".")[0] + "/ -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -m 1 1 " + " -e gml" ;
+            var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -m 1 1 " + " -e gml" ;
             // console.log("pyParams: " + pyParams);
             /* Execute python scripts */
             /* Execute coarsening with a given reduction factor */
@@ -165,11 +173,11 @@ app.post('/slide', function(req, res){
                               if (!err) {
                                 // console.log("data from python script " + data);
                                 /* Execute .gml to .json conversion */
-                                nodeCmd.get('python ' + pyPath + 'gmlToJson2.py uploads/' + fileName.split(".")[0] + '/' + pyName + '.gml uploads/' + fileName.split(".")[0] + '/' + pyName + ".json", function(data, err, stderr){
+                                nodeCmd.get('python ' + pyPath + 'gmlToJson2.py uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + ".json", function(data, err, stderr){
                                   if(!err) {
                                     // console.log("data from python script " + data);
                                     /* Send .json data back to client */
-                                    fs.readFile('uploads/' + fileName.split(".")[0] + '/' + pyName + '.json', 'utf8', function(err, data){
+                                    fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data){
                                       if(err)
                                       {
                                         return console.log(err);
