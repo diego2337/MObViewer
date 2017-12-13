@@ -27,6 +27,10 @@
   margin-left: 250px;
 }
 
+#upload-input {
+  display: none;
+}
+
 .marg {
     margin : 0;
 }
@@ -42,10 +46,10 @@ body {
   background-color: #FFFFFF;
 }
 
-body {
+/*body {
   text-align: center;
   font-family: 'Raleway', sans-serif;
-}
+}*/
 
 .row {
   margin-top: 80px;
@@ -84,10 +88,6 @@ h2 {
 .panel {
   padding-top: 20px;
   padding-bottom: 20px;
-}
-
-#upload-input {
-  display: none;
 }
 
 @media (min-width: 768px) {
