@@ -35,6 +35,10 @@
   margin-left: 250px;
 }
 
+.no-padding {
+  padding: 0px;
+}
+
 #upload-input {
   display: none;
 }

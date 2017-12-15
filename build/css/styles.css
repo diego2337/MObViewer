@@ -212,6 +212,10 @@ _:-ms-input-placeholder, :root .demo-graph {
   margin-left: 250px;
 }
 
+.no-padding {
+  padding: -8px;
+}
+
 #upload-input {
   display: none;
 }
