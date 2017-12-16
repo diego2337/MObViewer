@@ -213,7 +213,11 @@ _:-ms-input-placeholder, :root .demo-graph {
 }
 
 .no-padding {
-  padding: -8px;
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
 }
 
 #upload-input {

@@ -16,6 +16,28 @@ $('#showGraphInfoCollapsed').on('click', function(){
   $('#graphInfoCollapsed').css('display', 'none');
 });
 
+/* Collapse graph configuration menu */
+$('#showGraphConfigurationMinimized').on('click', function(){
+  $('#graphConfigurationMinimized').css('display', 'none');
+  $('#graphConfigurationCollapsed').css('display', 'inline');
+});
+
+/* Minimize graph configuration menu */
+$('#showGraphConfigurationCollapsed').on('click', function(){
+  $('#graphConfigurationCollapsed').css('display', 'none');
+  $('#graphConfigurationMinimized').css('display', 'inline');
+});
+
+/* Zoom in */
+$('#zoomIn').on('click', function(){
+  dollyIn( getZoomScale() );
+});
+
+/* Zoom out */
+$('#zoomOut').on('click', function(){
+  dollyOut( getZoomScale() );
+});
+
 /**
   * File to watch for clicks in buttons used for saving either .png graph image or .json file.
   * Author: Diego Cintra

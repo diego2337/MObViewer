@@ -152,33 +152,10 @@
             </svg>
           </div> -->
           <div class="mdl-grid mdl-cell mdl-cell--8-col demo-cards mdl-shadow--2dp mdl-color--white relative-div">
-            <!-- <h4 class="mdl-card__title">Graph</h4> -->
-            <h4 class="mdl-card__title mdl-layout__header-row absolute-div">Graph</h4>
-            <!-- <div id="WebGL" class="demo-cards mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col relative-div"> -->
             <div id="WebGL" class="mdl-grid mdl-cell mdl-cell--12-col">
-              <div class="mdl-cell mdl-cell--12-col"></div>
-              <div class="mdl-grid mdl-cell mdl-cell--12-col">
-                <!-- <div class="mdl-cell mdl-layout-spacer"></div> -->
-                <div class="mdl-cell"> </div>
-                <!-- <div class="mdl-cell mdl-cell--12-col mdl-layout-spacer"></div> -->
-                <div id="progressBar" class="hidden-visibility mdl-progress mdl-js-progress mdl-progress__indeterminate">
-                  <h6 >Loading graph...</h6>
-                </div>
-                <div class="mdl-cell"> </div>
-                <!-- <div class="mdl-cell mdl-layout-spacer"></div> -->
-                <!-- <div class="mdl-cell mdl-cell--12-col mdl-layout-spacer"></div> -->
+              <div id="progressBar" class="hidden-visibility mdl-progress mdl-js-progress mdl-progress__indeterminate">
+                <h6 >Loading graph...</h6>
               </div>
-              <div class="mdl-cell mdl-cell--12-col"></div>
-            </div>
-            <div class="mdl-layout__header-row absolute-div">
-              <!-- Title -->
-              <span class="mdl-layout-title">Zooming and panning</span>
-              <!-- Add spacer, to align navigation to the right -->
-              <div class="mdl-layout-spacer"></div>
-              <!-- Add zooming and panning -->
-              <button class="mdl-cell--middle mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="panLeft">
-                <i class="material-icons">add</i>
-              </button>
             </div>
           </div>
           <div class="demo-cards mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-grid mdl-grid--no-spacing">
@@ -203,6 +180,9 @@
                     <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphInfoMinimized">
                       <i class="material-icons">add</i>
                     </button>
+                    <div class="lower-case mdl-tooltip" for="showGraphInfoMinimized">
+                        Click to collapse
+                    </div>
                   </div>
                 </div>
               </div>
@@ -210,27 +190,19 @@
             <!-- <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div> -->
             <div class="no-display mdl-card__actions mdl-card--border mdl-color--deep-purple-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="graphInfoCollapsed">
               <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">
-                <div class="mdl-grid mdl-cell mdl-cell--7-col no-padding">
-                    <div class="mdl-cell">
-                      <h4>Graph info</h4>
-                    </div>
-                    <div class="mdl-cell">
-                      <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphInfoCollapsed">
-                        <i class="material-icons">add</i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <!-- <div class="mdl-grid">
+                <div class="mdl-grid">
                   <div class="mdl-cell mdl-cell--4-col">
                     <h4>Graph info</h4>
                   </div>
-                  <div class="mdl-cell mdl-cell--8-col">
+                  <div class="mdl-cell">
                     <button class="mdl-button mdl-cell--middle mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphInfoCollapsed">
                       <i class="material-icons">add</i>
                     </button>
+                    <div class="lower-case mdl-tooltip" for="showGraphInfoCollapsed">
+                        Click to minimize
+                    </div>
                   </div>
-                </div> -->
+                </div>
                 <ul class="mdl-list">
                   <!-- <li class="mdl-list__item">
                     <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
@@ -271,7 +243,95 @@
               </div> -->
             </div>
             <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div>
-            <div class="mdl-layout-spacer"></div>
+            <div class="mdl-card__actions mdl-card--border mdl-color--teal-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="graphConfigurationMinimized">
+              <div class="mdl-grid mdl-color-text--blue-grey-50">
+                <div class="mdl-grid mdl-cell mdl-cell--12-col no-padding">
+                  <div class="mdl-cell">
+                    <h4>Graph configuration</h4>
+                  </div>
+                  <div class="mdl-cell">
+                    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphConfigurationMinimized">
+                      <i class="material-icons">add</i>
+                    </button>
+                    <div class="lower-case mdl-tooltip" for="showGraphConfigurationMinimized">
+                        Click to collapse
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="no-display mdl-card__actions mdl-card--border mdl-color--teal-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="graphConfigurationCollapsed">
+              <div class="mdl-grid mdl-color-text--blue-grey-50">
+                <div class="mdl-grid mdl-cell mdl-cell--12-col no-padding">
+                  <div class="mdl-cell">
+                    <h4>Graph configuration</h4>
+                  </div>
+                  <div class="mdl-cell">
+                    <button ="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphConfigurationCollapsed">
+                      <i class="material-icons">add</i>
+                    </button>
+                    <div class="lower-case mdl-tooltip" for="showGraphConfigurationCollapsed">
+                        Click to minimize
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <ul class="mdl-list">
+                <!-- <li class="mdl-list__item">
+                  <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
+                    Graph name:
+                  </span>
+                  <span id="graphName" class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content"></span>
+                </li> -->
+                <li class="mdl-list__item">
+                  <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
+                    Zoom:
+                  </span>
+                  <button id="zoomIn" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                    <i class="material-icons">add</i>
+                    <div class="lower-case mdl-tooltip" for="zoomIn">
+                        Zoom in.
+                    </div>
+                  </button>
+                  <button id="zoomOut" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                    <i class="material-icons">remove</i>
+                    <div class="lower-case mdl-tooltip" for="zoomOut">
+                        Zoom out.
+                    </div>
+                  </button>
+                </li>
+                <li class="mdl-list__item">
+                  <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
+                    Pan:
+                  </span>
+                  <button id="panLeft" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                    <i class="material-icons">keyboard_arrow_left</i>
+                    <div class="lower-case mdl-tooltip" for="panLeft">
+                        Pan all the way to leftmost<br>part of bipartite graph.
+                    </div>
+                  </button>
+                  <button id="panRight" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                    <i class="material-icons">keyboard_arrow_right</i>
+                    <div class="lower-case mdl-tooltip" for="panRight">
+                        Pan all the way to rightmost<br>part of bipartite graph.
+                    </div>
+                  </button>
+                </li>
+                <li class="mdl-list__item">
+                  <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
+                    Graph layout:
+                  </span>
+                  <button id="switchLayout" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphConfigurationCollapsed">
+                    <i class="material-icons">loop</i>
+                    <div class="lower-case mdl-tooltip" for="switchLayout">
+                        Switch to either vertical or horizontal bipartite graph layout.
+                    </div>
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div>
+            <!-- <div class="mdl-layout-spacer"></div> -->
             <button id="saveImgButton" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored">
               <span class="mdl-color-text--white ">Save .png...</span>
               <!-- <i class="material-icons">launch</i> -->

@@ -16,3 +16,37 @@ from main.js, function app.post('/upload', function(req, res):
 //   waitForFile();
 //   // res.end('success');
 // });
+
+
+from newIndex.html, starting at line 154
+
+<div class="mdl-grid mdl-cell mdl-cell--8-col demo-cards mdl-shadow--2dp mdl-color--white relative-div">
+  <!-- <h4 class="mdl-card__title">Graph</h4> -->
+  <h4 class="mdl-card__title mdl-layout__header-row relative-div">Graph</h4>
+  <!-- <div id="WebGL" class="demo-cards mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col relative-div"> -->
+  <div id="WebGL" class="mdl-grid mdl-cell mdl-cell--12-col">
+    <!-- <div class="mdl-cell mdl-cell--12-col"></div> -->
+    <div class="mdl-grid mdl-cell mdl-cell--12-col">
+      <!-- <div class="mdl-cell mdl-layout-spacer"></div> -->
+      <div class="mdl-cell"> </div>
+      <!-- <div class="mdl-cell mdl-cell--12-col mdl-layout-spacer"></div> -->
+      <div id="progressBar" class="hidden-visibility mdl-progress mdl-js-progress mdl-progress__indeterminate">
+        <h6 >Loading graph...</h6>
+      </div>
+      <div class="mdl-cell"> </div>
+      <!-- <div class="mdl-cell mdl-layout-spacer"></div> -->
+      <!-- <div class="mdl-cell mdl-cell--12-col mdl-layout-spacer"></div> -->
+    </div>
+    <!-- <div class="mdl-cell mdl-cell--12-col"></div> -->
+  </div>
+  <div class="mdl-cell mdl-cell--bottom mdl-layout__header-row">
+    <!-- Title -->
+    <span class="mdl-layout-title">Zooming and panning</span>
+    <!-- Add spacer, to align navigation to the right -->
+    <div class="mdl-layout-spacer"></div>
+    <!-- Add zooming and panning -->
+    <button class="mdl-cell--middle mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="panLeft">
+      <i class="material-icons">add</i>
+    </button>
+  </div>
+</div>
