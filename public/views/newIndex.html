@@ -247,7 +247,7 @@
               <div class="mdl-grid mdl-color-text--blue-grey-50">
                 <div class="mdl-grid mdl-cell mdl-cell--12-col no-padding">
                   <div class="mdl-cell">
-                    <h4>Graph configuration</h4>
+                    <h4>Graph options</h4>
                   </div>
                   <div class="mdl-cell">
                     <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphConfigurationMinimized">
@@ -264,7 +264,7 @@
               <div class="mdl-grid mdl-color-text--blue-grey-50">
                 <div class="mdl-grid mdl-cell mdl-cell--12-col no-padding">
                   <div class="mdl-cell">
-                    <h4>Graph configuration</h4>
+                    <h4>Graph options</h4>
                   </div>
                   <div class="mdl-cell">
                     <button ="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphConfigurationCollapsed">
@@ -329,20 +329,38 @@
                   </button>
                 </li>
               </ul>
+              <button id="saveImgButton" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored">
+                <span class="mdl-color-text--white ">Save .png...</span>
+                <!-- <i class="material-icons">launch</i> -->
+              </button>
+              <!-- <div class="mdl-layout-spacer"></div> -->
+              <button id="saveFileButton" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored">
+                <span class="mdl-color-text--white ">Save .json...</span>
+                <!-- <i class="material-icons">launch</i> -->
+              </button>
             </div>
             <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div>
             <!-- <div class="mdl-layout-spacer"></div> -->
-            <button id="saveImgButton" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored">
-              <span class="mdl-color-text--white ">Save .png...</span>
-              <!-- <i class="material-icons">launch</i> -->
-            </button>
-            <div class="mdl-layout-spacer"></div>
-            <button id="saveFileButton" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored">
-              <span class="mdl-color-text--white ">Save .json...</span>
-              <!-- <i class="material-icons">launch</i> -->
-            </button>
-            <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div>
-            <div class="demo-options mdl-card mdl-color--blue-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop">
+
+            <!-- <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div> -->
+            <div class="mdl-card__actions mdl-card--border mdl-color--blue-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="multilevelOptionsMinimized">
+              <div class="mdl-grid mdl-color-text--blue-grey-50">
+                <div class="mdl-grid mdl-cell mdl-cell--12-col no-padding">
+                  <div class="mdl-cell">
+                    <h4>Multilevel options</h4>
+                  </div>
+                  <div class="mdl-cell">
+                    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showMultilevelOptions">
+                      <i class="material-icons">add</i>
+                    </button>
+                    <div class="lower-case mdl-tooltip" for="showMultilevelOptions">
+                      Click to collapse
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="hidden-visibility demo-options mdl-card mdl-color--blue-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="multilevelOptionsCollapsed">
               <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">
                 <h4>Multilevel options</h4>
                 <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">

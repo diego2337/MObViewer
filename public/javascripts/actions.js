@@ -30,10 +30,26 @@ $('#showGraphConfigurationCollapsed').on('click', function(){
 
 /* Zoom in */
 $('#zoomIn').on('click', function(){
-  dollyIn( getZoomScale() );
+  /* Creates a jQuery event for mouseWheel */
+  // var evt = jQuery.Event("wheel", {delta: 650});
+  var evt = jQuery.Event("wheel", {delta: 650});
+  /* Triggers a mousewheel function */
+  $('#WebGL').trigger(evt);
+  // dollyOut( getZoomScale() );
 });
 
 /* Zoom out */
 $('#zoomOut').on('click', function(){
-  dollyOut( getZoomScale() );
+  /* Creates a jQuery event for mouseWheel */
+  var evt = jQuery.Event("wheel", {delta: -650});
+  /* Triggers a mousewheel function */
+  $('#WebGL').trigger(evt);
+  // dollyIn( getZoomScale() );
+});
+
+/* Collapse multilevel options menu */
+$('showMultilevelOptions').on('click', function(){
+  console.log("clicou aqui");
+  $('#multilevelOptionsMinimized').css('display', 'none');
+  $('#multilevelOptionsCollapsed').css('display', 'inline');
 });
