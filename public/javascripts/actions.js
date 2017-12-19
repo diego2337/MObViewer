@@ -48,8 +48,25 @@ $('#zoomOut').on('click', function(){
 });
 
 /* Collapse multilevel options menu */
-$('showMultilevelOptions').on('click', function(){
-  console.log("clicou aqui");
+$('#showMultilevelOptionsMinimized').on('click', function(){
   $('#multilevelOptionsMinimized').css('display', 'none');
   $('#multilevelOptionsCollapsed').css('display', 'inline');
+});
+
+/* Minimize multilevel options menu */
+$('#showMultilevelOptionsCollapsed').on('click', function(){
+  $('#multilevelOptionsCollapsed').css('display', 'none');
+  $('#multilevelOptionsMinimized').css('display', 'inline');
+});
+
+/* Collapse vertex info menu */
+$('#showVertexInfoMinimized').on('click', function(){
+  $('#vertexInfoMinimized').css('display', 'none');
+  $('#vertexInfoCollapsed').css('display', 'inline');
+});
+
+/* Minimize vertex info menu */
+$('#showVertexInfoCollapsed').on('click', function(){
+  $('#vertexInfoCollapsed').css('display', 'none');
+  $('#vertexInfoMinimized').css('display', 'inline');
 });

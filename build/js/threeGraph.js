@@ -592,6 +592,16 @@ Graph.prototype.setEdgeById = function(id, edge)
 }
 
 /**
+* Highlight edges from highlighted graph
+* param:
+*    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
+*/
+Graph.prototype.highlightEdges = function(highlightedElements)
+{
+  
+}
+
+/**
 * Builds the graph in the scene. All the node and edge calculations are performed, and the elements added
 * params:
 *    - scene: the scene in which the graph will be built;
@@ -942,6 +952,18 @@ var camera;
 var light;
 var controls;
 var eventHandler;
+
+/* Check to see if any node is highlighted, and highlight its corresponding edges */
+$('#WebGL').on('mousemove', function(){
+  if(eventHandler !== undefined)
+  {
+    var highlightedElements = eventHandler.getHighlightedElements();
+    if(graph !== undefined)
+    {
+        graph.highlightEdges(highlightedElements);
+    }
+  }
+});
 
 /**
  * Display graph info to HTML page
@@ -1359,7 +1381,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     if(intersection != undefined)
     {
         var element = graph.getElementById(intersection.object.name);
-        // console.log(element);
+        console.log(element);
         element.highlight();
         if(element instanceof Node)
         {

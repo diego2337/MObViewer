@@ -7,6 +7,18 @@ var light;
 var controls;
 var eventHandler;
 
+/* Check to see if any node is highlighted, and highlight its corresponding edges */
+$('#WebGL').on('mousemove', function(){
+  if(eventHandler !== undefined)
+  {
+    var highlightedElements = eventHandler.getHighlightedElements();
+    if(graph !== undefined)
+    {
+        graph.highlightEdges(highlightedElements);
+    }
+  }
+});
+
 /**
  * Display graph info to HTML page
  * param:

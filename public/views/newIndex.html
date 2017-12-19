@@ -243,6 +243,55 @@
               </div> -->
             </div>
             <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div>
+            <div class="mdl-card__actions mdl-card--border mdl-color--lime-900 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="vertexInfoMinimized">
+              <div class="mdl-grid mdl-color-text--blue-grey-50">
+                <div class="mdl-grid mdl-cell mdl-cell--7-col no-padding">
+                  <div class="mdl-cell">
+                    <h4>Vertex info</h4>
+                  </div>
+                  <div class="mdl-cell">
+                    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showVertexInfoMinimized">
+                      <i class="material-icons">add</i>
+                    </button>
+                    <div class="lower-case mdl-tooltip" for="showVertexInfoMinimized">
+                        Click to collapse
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="no-display mdl-card__actions mdl-card--border mdl-color--lime-900 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="vertexInfoCollapsed">
+              <div class="mdl-grid mdl-color-text--blue-grey-50">
+                <div class="mdl-grid mdl-cell mdl-cell--7-col no-padding">
+                  <div class="mdl-cell">
+                    <h4>Vertex info</h4>
+                  </div>
+                  <div class="mdl-cell">
+                    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showVertexInfoCollapsed">
+                      <i class="material-icons">add</i>
+                    </button>
+                    <div class="lower-case mdl-tooltip" for="showVertexInfoCollapsed">
+                        Click to minimize
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <ul class="mdl-list">
+                <li class="mdl-list__item">
+                  <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
+                    Graph ID:
+                  </span>
+                  <span id="graphID" class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content"></span>
+                </li>
+                <li class="mdl-list__item">
+                  <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
+                    Graph description:
+                  </span>
+                  <span id="graphDescription" class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content"></span>
+                </li>
+              </ul>
+            </div>
+            <div class="mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop"><br></div>
             <div class="mdl-card__actions mdl-card--border mdl-color--teal-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="graphConfigurationMinimized">
               <div class="mdl-grid mdl-color-text--blue-grey-50">
                 <div class="mdl-grid mdl-cell mdl-cell--12-col no-padding">
@@ -350,19 +399,58 @@
                     <h4>Multilevel options</h4>
                   </div>
                   <div class="mdl-cell">
-                    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showMultilevelOptions">
+                    <button id="showMultilevelOptionsMinimized" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
                       <i class="material-icons">add</i>
                     </button>
-                    <div class="lower-case mdl-tooltip" for="showMultilevelOptions">
+                    <div class="lower-case mdl-tooltip" for="showMultilevelOptionsMinimized">
                       Click to collapse
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="hidden-visibility demo-options mdl-card mdl-color--blue-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="multilevelOptionsCollapsed">
+
+            <div class="no-display mdl-card__actions mdl-card--border mdl-color--blue-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="multilevelOptionsCollapsed">
+              <div class="mdl-grid mdl-color-text--blue-grey-50">
+                <div class="mdl-grid mdl-cell mdl-cell--12-col no-padding">
+                  <div class="mdl-cell">
+                    <h4>Multilevel options</h4>
+                  </div>
+                  <div class="mdl-cell">
+                    <button id="showMultilevelOptionsCollapsed" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                      <i class="material-icons">add</i>
+                    </button>
+                    <div class="lower-case mdl-tooltip" for="showMultilevelOptionsCollapsed">
+                      Click to minimize
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">
+                <h7>Slider for first layer:</h7>
+                <span id="output1"></span>
+                <div><br></div>
+                <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener" value="0" name="multilevelCoarsenerSlider" tabindex="0">
+              </div>
+              <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">
+                <h7>Slider for second layer:</h7>
+                <span id="output2"></span>
+                <div><br></div>
+                <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener2" value="0"  tabindex="0">
+              </div>
+            </div>
+
+            <!-- <div class="demo-options mdl-card mdl-color--blue-500 mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop" id="multilevelOptionsCollapsed">
               <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">
                 <h4>Multilevel options</h4>
+                <div class="mdl-cell">
+                  <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showMultilevelOptionsCollapsed">
+                    <i class="material-icons">add</i>
+                  </button>
+                  <div class="lower-case mdl-tooltip" for="showMultilevelOptionsCollapsed">
+                    Click to minimize
+                  </div>
+                </div>
                 <div class="mdl-card__supporting-text mdl-color-text--blue-grey-50">
                   <h7>Slider for first layer:</h7>
                   <span id="output1"></span>
@@ -375,7 +463,7 @@
                   <div><br></div>
                   <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener2" value="0"  tabindex="0">
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>

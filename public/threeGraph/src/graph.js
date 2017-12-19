@@ -296,6 +296,26 @@ Graph.prototype.setEdgeById = function(id, edge)
 }
 
 /**
+* Highlight edges from highlighted graph
+* param:
+*    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
+*/
+Graph.prototype.highlightEdges = function(highlightedElements)
+{
+  for(var i = 0; i < highlightedElements.length; i++)
+  {
+      if(highlightedElements[i] instanceof Node)
+      {
+
+      }
+      else if(highlightedElements[i] instanceof Edge)
+      {
+        
+      }
+  }
+}
+
+/**
 * Builds the graph in the scene. All the node and edge calculations are performed, and the elements added
 * params:
 *    - scene: the scene in which the graph will be built;
