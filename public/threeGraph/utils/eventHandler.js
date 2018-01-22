@@ -227,9 +227,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         element.unhighlight();
         if(element instanceof Node)
         {
-            graph.setNodeById(this.highlightedElements[i], element);
-            d3.select("#name")
-                .style("display", "none");
+            // graph.setNodeById(this.highlightedElements[i], element);
+            // d3.select("#name")
+            //     .style("display", "none");
         }
         else
         {
@@ -246,17 +246,22 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         if(element instanceof Node)
         {
             graph.setNodeById(intersection.object.name, element);
+            document.getElementById("graphID").innerHTML = element.circle.name;
+            if(element.circle.description !== undefined)
+              document.getElementById("graphDescription").innerHTML = element.circle.description;
+            else
+              document.getElementById("graphDescription").innerHTML = "No description found.";
             /* Get name of node to display onscreen */
-            d3.select("#name")
-                .text(element.circle.name)
-                .attr("font-family", "sans-serif")
-                .attr("font-size", "20px")
-                .style("display", "inline")
-                .style("position", "absolute")
-                .style("z-index", "1")
-                .style("top", y)
-                .style("left", x)
-                .attr("fill", "green");
+            // d3.select("#name")
+            //     .text(element.circle.name)
+            //     .attr("font-family", "sans-serif")
+            //     .attr("font-size", "20px")
+            //     .style("display", "inline")
+            //     .style("position", "absolute")
+            //     .style("z-index", "1")
+            //     .style("top", y)
+            //     .style("left", x)
+            //     .attr("fill", "green");
         }
         else
         {

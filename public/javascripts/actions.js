@@ -28,25 +28,6 @@ $('#showGraphConfigurationCollapsed').on('click', function(){
   $('#graphConfigurationMinimized').css('display', 'inline');
 });
 
-/* Zoom in */
-$('#zoomIn').on('click', function(){
-  /* Creates a jQuery event for mouseWheel */
-  // var evt = jQuery.Event("wheel", {delta: 650});
-  var evt = jQuery.Event("wheel", {delta: 650});
-  /* Triggers a mousewheel function */
-  $('#WebGL').trigger(evt);
-  // dollyOut( getZoomScale() );
-});
-
-/* Zoom out */
-$('#zoomOut').on('click', function(){
-  /* Creates a jQuery event for mouseWheel */
-  var evt = jQuery.Event("wheel", {delta: -650});
-  /* Triggers a mousewheel function */
-  $('#WebGL').trigger(evt);
-  // dollyIn( getZoomScale() );
-});
-
 /* Collapse multilevel options menu */
 $('#showMultilevelOptionsMinimized').on('click', function(){
   $('#multilevelOptionsMinimized').css('display', 'none');
@@ -69,4 +50,15 @@ $('#showVertexInfoMinimized').on('click', function(){
 $('#showVertexInfoCollapsed').on('click', function(){
   $('#vertexInfoCollapsed').css('display', 'none');
   $('#vertexInfoMinimized').css('display', 'inline');
+});
+
+/* Change from horizontal layout to vertical layout */
+$('#switchLayout').on('click', function(){
+  $.ajax({
+    url: '/switch',
+    type: 'POST',
+    data: {layout},
+    success: graphUpdate,
+    xhr: loadGraph
+  });
 });

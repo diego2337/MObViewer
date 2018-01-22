@@ -310,7 +310,7 @@ Graph.prototype.highlightEdges = function(highlightedElements)
       }
       else if(highlightedElements[i] instanceof Edge)
       {
-        
+
       }
   }
 }
@@ -319,25 +319,26 @@ Graph.prototype.highlightEdges = function(highlightedElements)
 * Builds the graph in the scene. All the node and edge calculations are performed, and the elements added
 * params:
 *    - scene: the scene in which the graph will be built;
-*    - layout: graph layout. Default is 2 = radial.
+*    - layout: graph layout.
 */
 Graph.prototype.buildGraph = function(scene, layout)
 {
-   layout = ecmaStandard(layout, 3);
+   layout = ecmaStandard(layout, 2);
    scene = ecmaStandard(scene, undefined);
+   this.theta = 3;
    try
    {
        var scale, theta;
        /* From D3, use a scaling function for placement */
        scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
-       /* Set which type of bipartite graph to be built */
-       if(layout == 2) this.theta = scale(i);
-       /* TODO - fix theta size; Must be according to size of nodes */
-       else if(layout == 3)
-       {
-         this.theta = 3;
-       }
+      //  /* Set which type of bipartite graph to be built */
+      //  if(layout == 2) this.theta = scale(i);
+      //  /* TODO - fix theta size; Must be according to size of nodes */
+      //  else if(layout == 3)
+      //  {
+      //    this.theta = 3;
+      //  }
 
        /* Build nodes' meshes */
        //  var j = this.lastLayer;

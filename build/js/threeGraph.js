@@ -1,3 +1,22 @@
+// /* Zoom in */
+// $('#zoomIn').on('click', function(){
+//   /* Creates a jQuery event for mouseWheel */
+//   // var evt = jQuery.Event("wheel", {delta: 650});
+//   // var evt = jQuery.Event("wheel", {delta: 650});
+//   // /* Triggers a mousewheel function */
+//   // $('#WebGL').trigger(evt);
+//   dollyOut( getZoomScale() );
+// });
+//
+// /* Zoom out */
+// $('#zoomOut').on('click', function(){
+//   /* Creates a jQuery event for mouseWheel */
+//   // var evt = jQuery.Event("wheel", {delta: -650});
+//   // /* Triggers a mousewheel function */
+//   // $('#WebGL').trigger(evt);
+//   dollyIn( getZoomScale() );
+// });
+
 /**
   * Singleton base class for depth of the scene.
   * Author: Diego S. Cintra
@@ -598,32 +617,43 @@ Graph.prototype.setEdgeById = function(id, edge)
 */
 Graph.prototype.highlightEdges = function(highlightedElements)
 {
-  
+  for(var i = 0; i < highlightedElements.length; i++)
+  {
+      if(highlightedElements[i] instanceof Node)
+      {
+
+      }
+      else if(highlightedElements[i] instanceof Edge)
+      {
+
+      }
+  }
 }
 
 /**
 * Builds the graph in the scene. All the node and edge calculations are performed, and the elements added
 * params:
 *    - scene: the scene in which the graph will be built;
-*    - layout: graph layout. Default is 2 = radial.
+*    - layout: graph layout.
 */
 Graph.prototype.buildGraph = function(scene, layout)
 {
-   layout = ecmaStandard(layout, 3);
+   layout = ecmaStandard(layout, 2);
    scene = ecmaStandard(scene, undefined);
+   this.theta = 3;
    try
    {
        var scale, theta;
        /* From D3, use a scaling function for placement */
        scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
-       /* Set which type of bipartite graph to be built */
-       if(layout == 2) this.theta = scale(i);
-       /* TODO - fix theta size; Must be according to size of nodes */
-       else if(layout == 3)
-       {
-         this.theta = 3;
-       }
+      //  /* Set which type of bipartite graph to be built */
+      //  if(layout == 2) this.theta = scale(i);
+      //  /* TODO - fix theta size; Must be according to size of nodes */
+      //  else if(layout == 3)
+      //  {
+      //    this.theta = 3;
+      //  }
 
        /* Build nodes' meshes */
        //  var j = this.lastLayer;
@@ -864,14 +894,14 @@ Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, 
 {
     switch(layout)
     {
-        case 1: // Force-directed layout
-            this.buildForceDirected();
-            break;
-        case 2: // Radial layout
+        case 1: // Radial layout
             this.buildRadial(theta);
             break;
-        case 3: // Bipartite layout
-            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta);
+        case 2: // Bipartite layout - horizontal
+            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 1);
+            break;
+        case 3: // Bipartite layout - vertical
+            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 0);
             break;
         default:
             break;
@@ -908,24 +938,45 @@ Node.prototype.buildRadial = function(theta)
  *    - firstLayer: number of nodes in first layer of bipartite graph;
  *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
  *    - alpha: value for spacing of parallel lines;
- *    - theta: used for bipartite layout.
+ *    - theta: used for bipartite layout;
+ *    - horizontal: boolean to check if layout is bipartite horizontal or not.
  */
-Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta)
+Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal)
 {
-    /* Separate vertical lines according to number of layers */
-    if(index >= firstLayer)
+    if(horizontal)
     {
-        var y = alpha;
-        // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-        index = lastLayer;
-        // index = Math.round(index / lastLayer) + lastIndex;
+      /* Separate vertical lines according to number of layers */
+      if(index >= firstLayer)
+      {
+          var y = alpha;
+          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+          index = lastLayer;
+          // index = Math.round(index / lastLayer) + lastIndex;
+      }
+      else
+      {
+          var y = alpha * (-1);
+      }
+      x = index * theta;
+      this.circle.position.set(x, y, 0);
     }
-    else
+    else if(!horizontal)
     {
-        var y = alpha * (-1);
+      /* Separate vertical lines according to number of layers */
+      if(index >= firstLayer)
+      {
+          var y = alpha;
+          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+          index = lastLayer;
+          // index = Math.round(index / lastLayer) + lastIndex;
+      }
+      else
+      {
+          var y = alpha * (-1);
+      }
+      x = index * theta;
+      this.circle.position.set(x, y, 0);
     }
-    x = index * theta;
-    this.circle.position.set(x, y, 0);
 }
 
 /**
@@ -986,10 +1037,12 @@ function displayGraphInfo(jason)
 /**
   * Render a bipartite graph given a .json file
   * param:
-  *    - data: string graph to be parsed into JSON notation and rendered
+  *    - data: string graph to be parsed into JSON notation and rendered;
+  *    - layout: graph layout. Default is 2 (bipartite horizontal)
   */
-function build(data)
+function build(data, layout)
 {
+  lay = ecmaStandard(layout, 2);
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
 
@@ -1048,7 +1101,7 @@ function build(data)
   scene = new THREE.Scene();
 
   /* Build graph */
-  graph.buildGraph(scene, 3);
+  graph.buildGraph(scene, lay);
 
   /* Define depth variable to set camera positioning */
   var depth = new Depth(0);
@@ -1098,7 +1151,6 @@ function build(data)
 
   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
 
-
   /* Creating event listener */
   if(eventHandler !== undefined) delete eventHandler;
   eventHandler = new EventHandler(undefined, scene);
@@ -1111,6 +1163,7 @@ function build(data)
   // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
   // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
   // document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
+
 
   // console.log(renderer.info);
   animate();
@@ -1367,9 +1420,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         element.unhighlight();
         if(element instanceof Node)
         {
-            graph.setNodeById(this.highlightedElements[i], element);
-            d3.select("#name")
-                .style("display", "none");
+            // graph.setNodeById(this.highlightedElements[i], element);
+            // d3.select("#name")
+            //     .style("display", "none");
         }
         else
         {
@@ -1386,17 +1439,22 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         if(element instanceof Node)
         {
             graph.setNodeById(intersection.object.name, element);
+            document.getElementById("graphID").innerHTML = element.circle.name;
+            if(element.circle.description !== undefined)
+              document.getElementById("graphDescription").innerHTML = element.circle.description;
+            else
+              document.getElementById("graphDescription").innerHTML = "No description found.";
             /* Get name of node to display onscreen */
-            d3.select("#name")
-                .text(element.circle.name)
-                .attr("font-family", "sans-serif")
-                .attr("font-size", "20px")
-                .style("display", "inline")
-                .style("position", "absolute")
-                .style("z-index", "1")
-                .style("top", y)
-                .style("left", x)
-                .attr("fill", "green");
+            // d3.select("#name")
+            //     .text(element.circle.name)
+            //     .attr("font-family", "sans-serif")
+            //     .attr("font-size", "20px")
+            //     .style("display", "inline")
+            //     .style("position", "absolute")
+            //     .style("z-index", "1")
+            //     .style("top", y)
+            //     .style("left", x)
+            //     .attr("fill", "green");
         }
         else
         {
@@ -1840,6 +1898,45 @@ THREE.OrbitControls = function ( object, domElement ) {
 		}
 
 	}
+
+	/* Zoom in */
+  $('#zoomIn').on('click', function(){
+    /* Creates a jQuery event for mouseWheel */
+    // var evt = jQuery.Event("wheel", {delta: 650});
+    // var evt = jQuery.Event("wheel", {delta: 650});
+    // /* Triggers a mousewheel function */
+    // $('#WebGL').trigger(evt);
+    dollyOut( getZoomScale() );
+		scope.update();
+  });
+
+  /* Zoom out */
+  $('#zoomOut').on('click', function(){
+    /* Creates a jQuery event for mouseWheel */
+    // var evt = jQuery.Event("wheel", {delta: -650});
+    // /* Triggers a mousewheel function */
+    // $('#WebGL').trigger(evt);
+    dollyIn( getZoomScale() );
+		scope.update();
+  });
+
+	/* Pan left */
+	$('#panLeft').on('click', function(){
+		/* Reset camera to initial position */
+		scope.reset();
+		/* Apply pan */
+		pan((graph.getNumberOfNodes())/2, 0);
+		scope.update();
+	});
+
+	/* Pan right */
+	$('#panRight').on('click', function(){
+		/* Reset camera to initial position */
+		scope.reset();
+		/* Apply pan */
+		pan(-(graph.getNumberOfNodes())*4, 0);
+		scope.update();
+	});
 
 	//
 	// event callbacks - update the object state

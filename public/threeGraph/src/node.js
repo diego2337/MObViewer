@@ -171,14 +171,14 @@ Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, 
 {
     switch(layout)
     {
-        case 1: // Force-directed layout
-            this.buildForceDirected();
-            break;
-        case 2: // Radial layout
+        case 1: // Radial layout
             this.buildRadial(theta);
             break;
-        case 3: // Bipartite layout
-            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta);
+        case 2: // Bipartite layout - horizontal
+            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 1);
+            break;
+        case 3: // Bipartite layout - vertical
+            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 0);
             break;
         default:
             break;
@@ -215,24 +215,45 @@ Node.prototype.buildRadial = function(theta)
  *    - firstLayer: number of nodes in first layer of bipartite graph;
  *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
  *    - alpha: value for spacing of parallel lines;
- *    - theta: used for bipartite layout.
+ *    - theta: used for bipartite layout;
+ *    - horizontal: boolean to check if layout is bipartite horizontal or not.
  */
-Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta)
+Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal)
 {
-    /* Separate vertical lines according to number of layers */
-    if(index >= firstLayer)
+    if(horizontal)
     {
-        var y = alpha;
-        // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-        index = lastLayer;
-        // index = Math.round(index / lastLayer) + lastIndex;
+      /* Separate vertical lines according to number of layers */
+      if(index >= firstLayer)
+      {
+          var y = alpha;
+          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+          index = lastLayer;
+          // index = Math.round(index / lastLayer) + lastIndex;
+      }
+      else
+      {
+          var y = alpha * (-1);
+      }
+      x = index * theta;
+      this.circle.position.set(x, y, 0);
     }
-    else
+    else if(!horizontal)
     {
-        var y = alpha * (-1);
+      /* Separate vertical lines according to number of layers */
+      if(index >= firstLayer)
+      {
+          var y = alpha;
+          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+          index = lastLayer;
+          // index = Math.round(index / lastLayer) + lastIndex;
+      }
+      else
+      {
+          var y = alpha * (-1);
+      }
+      x = index * theta;
+      this.circle.position.set(x, y, 0);
     }
-    x = index * theta;
-    this.circle.position.set(x, y, 0);
 }
 
 /**

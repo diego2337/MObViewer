@@ -6,6 +6,7 @@ var camera;
 var light;
 var controls;
 var eventHandler;
+var layout = 1;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 $('#WebGL').on('mousemove', function(){
@@ -40,10 +41,12 @@ function displayGraphInfo(jason)
 /**
   * Render a bipartite graph given a .json file
   * param:
-  *    - data: string graph to be parsed into JSON notation and rendered
+  *    - data: string graph to be parsed into JSON notation and rendered;
+  *    - layout: graph layout. Default is 2 (bipartite horizontal)
   */
-function build(data)
+function build(data, layout)
 {
+  lay = ecmaStandard(layout, 2);
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
 
@@ -102,7 +105,7 @@ function build(data)
   scene = new THREE.Scene();
 
   /* Build graph */
-  graph.buildGraph(scene, 3);
+  graph.buildGraph(scene, lay);
 
   /* Define depth variable to set camera positioning */
   var depth = new Depth(0);
@@ -152,7 +155,6 @@ function build(data)
 
   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
 
-
   /* Creating event listener */
   if(eventHandler !== undefined) delete eventHandler;
   eventHandler = new EventHandler(undefined, scene);
@@ -165,6 +167,7 @@ function build(data)
   // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
   // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
   // document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
+
 
   // console.log(renderer.info);
   animate();

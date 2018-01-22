@@ -407,6 +407,45 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	}
 
+	/* Zoom in */
+  $('#zoomIn').on('click', function(){
+    /* Creates a jQuery event for mouseWheel */
+    // var evt = jQuery.Event("wheel", {delta: 650});
+    // var evt = jQuery.Event("wheel", {delta: 650});
+    // /* Triggers a mousewheel function */
+    // $('#WebGL').trigger(evt);
+    dollyOut( getZoomScale() );
+		scope.update();
+  });
+
+  /* Zoom out */
+  $('#zoomOut').on('click', function(){
+    /* Creates a jQuery event for mouseWheel */
+    // var evt = jQuery.Event("wheel", {delta: -650});
+    // /* Triggers a mousewheel function */
+    // $('#WebGL').trigger(evt);
+    dollyIn( getZoomScale() );
+		scope.update();
+  });
+
+	/* Pan left */
+	$('#panLeft').on('click', function(){
+		/* Reset camera to initial position */
+		scope.reset();
+		/* Apply pan */
+		pan((graph.getNumberOfNodes())/2, 0);
+		scope.update();
+	});
+
+	/* Pan right */
+	$('#panRight').on('click', function(){
+		/* Reset camera to initial position */
+		scope.reset();
+		/* Apply pan */
+		pan(-(graph.getNumberOfNodes())*4, 0);
+		scope.update();
+	});
+
 	//
 	// event callbacks - update the object state
 	//
