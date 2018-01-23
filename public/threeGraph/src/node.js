@@ -242,16 +242,16 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
       /* Separate vertical lines according to number of layers */
       if(index >= firstLayer)
       {
-          var y = alpha;
+          var x = alpha;
           // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
           index = lastLayer;
           // index = Math.round(index / lastLayer) + lastIndex;
       }
       else
       {
-          var y = alpha * (-1);
+          var x = alpha * (-1);
       }
-      x = index * theta;
+      y = index * theta;
       this.circle.position.set(x, y, 0);
     }
 }

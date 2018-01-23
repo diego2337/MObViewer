@@ -6,7 +6,7 @@ var camera;
 var light;
 var controls;
 var eventHandler;
-var layout = 1;
+var layout = 2;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 $('#WebGL').on('mousemove', function(){

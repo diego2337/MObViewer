@@ -214,6 +214,37 @@ app.post('/slide', function(req, res){
   // console.log(graphSize);
 });
 
+/* Switch layout route */
+app.post('/switch', function(req, res){
+  var folderChar = addFolderPath();
+  /* Send data back to client */
+  fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', 'utf8', function(err, data){
+    if(err)
+    {
+      return console.log(err);
+    }
+    else
+    {
+      /* Send data to client */
+      res.end(addNumberOfEdgesToJSON(data));
+    }
+  });
+  // /* Switch currrent layout */
+  // switch(req.body.layout)
+  // {
+  //   /* Horizontal layout; change to vertical */
+  //   case 2:
+  //
+  //   break;
+  //   /* Vertical layout; change to horizontal */
+  //   case 3:
+  //
+  //   break;
+  //   default:
+  //   break;
+  // }
+});
+
 /* Main route */
 app.get('/', function(req, res){
   // res.sendFile(path.join(__dirname, 'public/views/index.html'));

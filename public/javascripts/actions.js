@@ -52,13 +52,27 @@ $('#showVertexInfoCollapsed').on('click', function(){
   $('#vertexInfoMinimized').css('display', 'inline');
 });
 
+/**
+  * Change current layout value
+  */
+function layoutUpdate()
+{
+  if(layout == 2)
+    layout = 3;
+  else if(layout == 3)
+    layout = 2;
+}
+
 /* Change from horizontal layout to vertical layout */
 $('#switchLayout').on('click', function(){
   $.ajax({
     url: '/switch',
     type: 'POST',
-    data: {layout},
-    success: graphUpdate,
+    data: {layout: layout},
+    success: function(html){
+      layoutUpdate();
+      graphUpdate(html, layout);
+    },
     xhr: loadGraph
   });
 });

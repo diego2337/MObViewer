@@ -40,7 +40,7 @@ function showValue()
 function graphUpdate(data){
   console.log("Graph update successful");
   /* Render updated graph */
-  build(data);
+  build(data, layout);
 }
 
 function loadGraph()
