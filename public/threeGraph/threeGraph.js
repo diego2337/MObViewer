@@ -143,6 +143,8 @@ function build(data, layout)
   scene.add(light);
 
   /* Using orbitControls for moving */
+  console.log("controls: ");
+  console.log(controls);
   if(controls !== undefined) delete controls;
   var controls = new THREE.OrbitControls(camera, renderer.domElement);
   /* Setting up params */
