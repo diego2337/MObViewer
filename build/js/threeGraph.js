@@ -1004,6 +1004,7 @@ var light;
 var controls;
 var eventHandler;
 var layout = 2;
+var capture = false;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 $('#WebGL').on('mousemove', function(){
@@ -1140,8 +1141,6 @@ function build(data, layout)
   scene.add(light);
 
   /* Using orbitControls for moving */
-  console.log("controls: ");
-  console.log(controls);
   if(controls !== undefined) delete controls;
   var controls = new THREE.OrbitControls(camera, renderer.domElement);
   /* Setting up params */
@@ -1173,10 +1172,21 @@ function build(data, layout)
 
   function animate()
   {
-      /* Tell the browser to call this function when page is visible */
-      requestAnimationFrame(animate);
       /* Render scene */
       renderer.render(scene, camera);
+
+      /* Tell the browser to call this function when page is visible */
+      requestAnimationFrame(animate);
+
+      /* Capture graph image (as requested) */
+      if(capture)
+      {
+        capture = false;
+        var dataURL = document.getElementsByTagName('canvas')[0].toDataURL('image/png');
+        var wd = window.open('about:blank', 'graph');
+        wd.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
+        wd.document.close();
+      }
   }
   // var fs = new FileReader();
   /* Converting passed textarea input to JSON */

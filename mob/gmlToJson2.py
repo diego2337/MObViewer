@@ -52,10 +52,10 @@ if __name__ == '__main__':
             jason.write("\"level\": \"")
             linha = line.split("\"")
             linha = linha[-2]
-            if(len(linha.split("[")) != 0):
-                linha = linha[1]
-                linha = linha.split("]")
-                linha = linha[0]
+            # if(len(linha.split("[")) != 0):
+            #     linha = linha[1]
+            #     linha = linha.split("]")
+            #     linha = linha[0]
             jason.write(linha)
             jason.write("\",\n")
         elif "node" in line:

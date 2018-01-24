@@ -68,7 +68,6 @@ $('#switchLayout').on('click', function(){
   $.ajax({
     url: '/switch',
     type: 'POST',
-    data: {layout: layout},
     success: function(html){
       layoutUpdate();
       graphUpdate(html, layout);
