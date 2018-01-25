@@ -611,6 +611,30 @@ Graph.prototype.setEdgeById = function(id, edge)
 }
 
 /**
+* Find node neighbors
+* param:
+*    - node: node from which neighbors will be found;
+* returns:
+*    - neighbor nodes.
+*/
+Graph.prototype.findNeighbors = function(node)
+{
+  var neighbors = [];
+  var neighbor = undefined;
+  for(var i = 0; i < this.edges.length; i++)
+  {
+    if(parseInt(this.edges[i].edgeObject.source) == parseInt(node.circle.name))
+      neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.target)));
+    else if(parseInt(this.edges[i].edgeObject.target) == parseInt(node.circle.name))
+      neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.source)));
+    if(neighbor !== undefined)
+      neighbors.push(this.edges[i]);
+    neighbor = undefined;
+  }
+  return neighbors;
+}
+
+/**
 * Highlight edges from highlighted graph
 * param:
 *    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
@@ -1005,18 +1029,20 @@ var controls;
 var eventHandler;
 var layout = 2;
 var capture = false;
+var clicked = false;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
-$('#WebGL').on('mousemove', function(){
-  if(eventHandler !== undefined)
-  {
-    var highlightedElements = eventHandler.getHighlightedElements();
-    if(graph !== undefined)
-    {
-        graph.highlightEdges(highlightedElements);
-    }
-  }
-});
+// $('#WebGL').on('mousemove', function(){
+//   console.log("Ta vindo aqui?");
+//   if(eventHandler !== undefined)
+//   {
+//     var highlightedElements = eventHandler.getHighlightedElements();
+//     if(graph !== undefined)
+//     {
+//         graph.highlightEdges(highlightedElements);
+//     }
+//   }
+// });
 
 /**
  * Display graph info to HTML page
@@ -1025,7 +1051,7 @@ $('#WebGL').on('mousemove', function(){
  */
 function displayGraphInfo(jason)
 {
-  console.log(jason);
+  // console.log(jason);
   /* Display number of vertices */
   document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
   /* Display number of edges */
@@ -1054,23 +1080,6 @@ function build(data, layout)
   /* Instantiating Graph */
   if(graph !== undefined) delete graph;
   graph = new Graph(jason, 10, 70);
-
-  //console.log(graph);
-
-  /* Checking for WebGL compatibility */
-  // if(Detector.webgl)
-  // {
-  //     console.log("WebGL supported");
-  //     renderer = new THREE.WebGLRenderer({antialias:true});
-  //
-  //     // If its not supported, instantiate the canvas renderer to support all non WebGL
-  //     // browsers
-  // }
-  // else
-  // {
-  //     console.log("WebGL not supported");
-  //     renderer = new THREE.CanvasRenderer();
-  // }
 
   if(renderer == undefined)
   {
@@ -1120,20 +1129,6 @@ function build(data, layout)
   camera.name = "camera";
   scene.add(camera);
 
-  /* Create lights to associate with scene */
-  // var lights = [];
-  // lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  // lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  // lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  //
-  // lights[ 0 ].position.set( 0, 2, 0 );
-  // lights[ 1 ].position.set( 1, 2, 1 );
-  // lights[ 2 ].position.set( - 1, - 2, - 1 );
-  //
-  // scene.add( lights[ 0 ] );
-  // scene.add( lights[ 1 ] );
-  // scene.add( lights[ 2 ] );
-
   /* Create simple directional light */
   if(light !== undefined) delete light;
   light = new THREE.DirectionalLight();
@@ -1161,11 +1156,11 @@ function build(data, layout)
 
   /* Adding event listeners */
   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-  /* Deprecated listeners - orbitControls taking care of zooming and panning */
-  // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
-  // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
-  // document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
-
+  document.addEventListener('dblclick', function(evt){
+    eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
+    if(!clicked) clicked = true;
+    else if(clicked) clicked = false;
+  }, false);
 
   // console.log(renderer.info);
   animate();
@@ -1178,7 +1173,7 @@ function build(data, layout)
       /* Tell the browser to call this function when page is visible */
       requestAnimationFrame(animate);
 
-      /* Capture graph image (as requested) */
+      /* Capture graph image (when requested) */
       if(capture)
       {
         capture = false;
@@ -1188,11 +1183,6 @@ function build(data, layout)
         wd.document.close();
       }
   }
-  // var fs = new FileReader();
-  /* Converting passed textarea input to JSON */
-  // var jason = JSON.parse($.trim($("textarea").val()));
-  // fs.onload = (function(data){
-  // })(path);
 }
 
 /**
@@ -1228,6 +1218,7 @@ var EventHandler = function(raycaster, scene)
     this.raycaster = new THREE.Raycaster();
     this.scene = scene;
     this.highlightedElements = [];
+    this.neighbors = [];
 }
 
 /**
@@ -1281,104 +1272,51 @@ EventHandler.prototype.setHighlightedElements = function(highlighted)
 }
 
 /**
- * Handles clicking in scene
+ * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
  * params:
+ *    - clicked: boolean to indicate if element has already been clicked;
  *    - evt: event dispatcher;
- *    - camera: camera used in three.js scene visualization.
+ *    - graph: graph, containing objects to be intersected.
  */
-// EventHandler.prototype.clickEvent = function(evt, camera)
-// {
-//     console.log(camera);
-// }
-
-/**
- * Handles dragging, which triggers panning
- * params:
- *    - evt: event dispatcher;
- *    - camera: camera used in three.js scene visualization.
- */
-EventHandler.prototype.dragEvent = function(evt, camera)
+EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
 {
-    console.log("dragging");
-}
-
-/**
- * Handles mouse wheel. If mouse is scrolled up, zoom in; otherwise zoom out
- * params:
- *    - evt: event dispatcher;
- *    - camera: camera used in three.js scene visualization.
- */
-EventHandler.prototype.wheelEvent = function (evt, camera)
-{
-    /* Check either scroll up or scroll down */
-    if(evt.deltaY > 0)
+  if(!clicked)
+  {
+    /* Find highlighted vertex and highlight its neighbors */
+    for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        /* Down scroll - decrease zoom */
-        // console.log("Down scroll");
-        if(camera.zoom - 4 > 0)
+      var element = graph.getElementById(this.highlightedElements[i]);
+      if(element instanceof Node)
+      {
+        /* Search neighbors */
+        this.neighbors = graph.findNeighbors(element);
+        /* Add itself for highlighting */
+        this.neighbors.push(element);
+        /* Remove itself so it won't unhighlight as soon as mouse moves out */
+        this.highlightedElements.splice(i, 1);
+        /* Highlight neighbors */
+        for(var j = 0; j < this.neighbors.length; j++)
         {
-            camera.zoom = camera.zoom - 4;
-            camera.updateProjectionMatrix();
+          this.neighbors[j].highlight();
         }
+      }
     }
-    else
+  }
+  else if(clicked)
+  {
+    /* An element was already clicked and its neighbors highlighted; unhighlight all */
+    for(var i = 0; i < this.neighbors.length; i++)
     {
-        /* Up scroll - increase zoom */
-        // console.log("Up scroll");
-        camera.zoom = camera.zoom + 4;
-        camera.updateProjectionMatrix();
+      var element = undefined;
+      if(this.neighbors[i] instanceof Node)
+        element = graph.getElementById(String(this.neighbors[i].circle.name));
+      else if(this.neighbors[i] instanceof Edge)
+        element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
+      element.unhighlight();
     }
-}
-
-/**
- * Handles mouse down. Initial function for dragging and camera panning
- * params:
- *    - evt: event dispatcher;
- *    - camera: camera used in three.js scene visualization.
- */
-EventHandler.prototype.mouseDownEvent = function (evt, camera)
-{
-    /* Adapted from https://stackoverflow.com/questions/9047600/how-to-determine-the-direction-on-onmousemove-event */
-    /* Object to store last position of cursor */
-    var lastPosition = {};
-    var cam = camera;
-    document.onmouseup = function(evt){ document.onmousemove = null; document.onmouseup = null; }
-    document.onmousemove = function(evt)
-    {
-        /* Compare with lastPosition */
-        if(typeof(lastPosition.x) != undefined)
-        {
-            /* Get delta */
-            var deltaX = lastPosition.x - evt.clientX;
-            var deltaY = lastPosition.y - evt.clientY;
-            /* Check direction */
-            if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX > 0)
-            {
-                /* Left */
-                cam.position.x = cam.position.x + 2.5;
-            }
-            else if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX < 0)
-            {
-                /* Right */
-                cam.position.x = cam.position.x - 2.5;
-            }
-            else if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY > 0)
-            {
-                /* Up */
-                cam.position.y = cam.position.y - 2.5;
-            }
-            else if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY < 0)
-            {
-                /* Down */
-                cam.position.y = cam.position.y + 2.5;
-            }
-        }
-        /* Update last position */
-        lastPosition = {
-            x : evt.clientX,
-            y : evt.clientY
-        };
-    }
+    /* Clearing array of neighbors */
+    this.neighbors = [];
+  }
 }
 
 /**
@@ -1395,7 +1333,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     // {
     //     this.scene.remove(this.tracker.getMesh());
     // }
-
     /* Get canvas element and adjust x and y to element offset */
     var canvas = renderer.domElement.getBoundingClientRect();
     // var coords = renderer.domElement.relMouseCoords(evt);
@@ -1430,7 +1367,19 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
         var element = graph.getElementById(this.highlightedElements[i]);
-        element.unhighlight();
+        var alreadyHighlighted = false;
+        for(var j = 0; j < this.neighbors.length; j++)
+        {
+          var el = undefined;
+          if(this.neighbors[j] instanceof Node)
+            el = this.neighbors[j].circle.name;
+          else if(this.neighbors[j] instanceof Edge)
+            el = this.neighbors[j].edgeObject.id;
+          if(element === graph.getElementById(el))
+            alreadyHighlighted = true;
+        }
+        if(!alreadyHighlighted)
+          element.unhighlight();
         if(element instanceof Node)
         {
             // graph.setNodeById(this.highlightedElements[i], element);
@@ -1475,7 +1424,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         }
         this.highlightedElements.push(intersection.object.name);
     }
-
 }
 
 /**

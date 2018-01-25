@@ -8,18 +8,20 @@ var controls;
 var eventHandler;
 var layout = 2;
 var capture = false;
+var clicked = false;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
-$('#WebGL').on('mousemove', function(){
-  if(eventHandler !== undefined)
-  {
-    var highlightedElements = eventHandler.getHighlightedElements();
-    if(graph !== undefined)
-    {
-        graph.highlightEdges(highlightedElements);
-    }
-  }
-});
+// $('#WebGL').on('mousemove', function(){
+//   console.log("Ta vindo aqui?");
+//   if(eventHandler !== undefined)
+//   {
+//     var highlightedElements = eventHandler.getHighlightedElements();
+//     if(graph !== undefined)
+//     {
+//         graph.highlightEdges(highlightedElements);
+//     }
+//   }
+// });
 
 /**
  * Display graph info to HTML page
@@ -28,7 +30,7 @@ $('#WebGL').on('mousemove', function(){
  */
 function displayGraphInfo(jason)
 {
-  console.log(jason);
+  // console.log(jason);
   /* Display number of vertices */
   document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
   /* Display number of edges */
@@ -57,23 +59,6 @@ function build(data, layout)
   /* Instantiating Graph */
   if(graph !== undefined) delete graph;
   graph = new Graph(jason, 10, 70);
-
-  //console.log(graph);
-
-  /* Checking for WebGL compatibility */
-  // if(Detector.webgl)
-  // {
-  //     console.log("WebGL supported");
-  //     renderer = new THREE.WebGLRenderer({antialias:true});
-  //
-  //     // If its not supported, instantiate the canvas renderer to support all non WebGL
-  //     // browsers
-  // }
-  // else
-  // {
-  //     console.log("WebGL not supported");
-  //     renderer = new THREE.CanvasRenderer();
-  // }
 
   if(renderer == undefined)
   {
@@ -123,20 +108,6 @@ function build(data, layout)
   camera.name = "camera";
   scene.add(camera);
 
-  /* Create lights to associate with scene */
-  // var lights = [];
-  // lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  // lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  // lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-  //
-  // lights[ 0 ].position.set( 0, 2, 0 );
-  // lights[ 1 ].position.set( 1, 2, 1 );
-  // lights[ 2 ].position.set( - 1, - 2, - 1 );
-  //
-  // scene.add( lights[ 0 ] );
-  // scene.add( lights[ 1 ] );
-  // scene.add( lights[ 2 ] );
-
   /* Create simple directional light */
   if(light !== undefined) delete light;
   light = new THREE.DirectionalLight();
@@ -164,11 +135,11 @@ function build(data, layout)
 
   /* Adding event listeners */
   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-  /* Deprecated listeners - orbitControls taking care of zooming and panning */
-  // document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
-  // document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
-  // document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
-
+  document.addEventListener('dblclick', function(evt){
+    eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
+    if(!clicked) clicked = true;
+    else if(clicked) clicked = false;
+  }, false);
 
   // console.log(renderer.info);
   animate();
@@ -181,7 +152,7 @@ function build(data, layout)
       /* Tell the browser to call this function when page is visible */
       requestAnimationFrame(animate);
 
-      /* Capture graph image (as requested) */
+      /* Capture graph image (when requested) */
       if(capture)
       {
         capture = false;
@@ -191,9 +162,4 @@ function build(data, layout)
         wd.document.close();
       }
   }
-  // var fs = new FileReader();
-  /* Converting passed textarea input to JSON */
-  // var jason = JSON.parse($.trim($("textarea").val()));
-  // fs.onload = (function(data){
-  // })(path);
 }

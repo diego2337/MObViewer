@@ -51,7 +51,6 @@ app.post('/upload', function(req, res){
   form.on('file', function(field, file) {
     fs.rename(file.path, path.join(form.uploadDir, file.name), function(){return;});
     /* Creates directory for uploaded graph */
-    // nodeCmd.run('mkdir -p uploads/' + file.name.split(".")[0]);
     nodeCmd.get('mkdir -p uploads' + folderChar + file.name.split(".")[0] + folderChar, function(data, err, stderr) {
                       if (!err) {
                         // console.log("data from python script " + data);
@@ -59,7 +58,6 @@ app.post('/upload', function(req, res){
                         fileName = file.name;
 
                         /* Transforms .gml file into .json extension file if file is .gml */
-                        // nodeCmd.run('python mob/gmlToJson2.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json');
                         if(file.name.split(".")[1] === "gml")
                         {
                           nodeCmd.get('python mob' + folderChar + 'gmlToJson2.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
@@ -72,7 +70,6 @@ app.post('/upload', function(req, res){
                                                 }
                                                 else
                                                 {
-                                                  // graphSize = JSON.parse(data).graphInfo[0].vlayer.split(" ");
                                                   /* Store graph size */
                                                   graphSize = JSON.parse(data).graphInfo[0].vlayer;
                                                   /* Send data to client */
@@ -147,13 +144,6 @@ app.post('/slide', function(req, res){
     /* Changing file name according to program standard */
     var pyName = fileName.split(".")[0] + "Coarsened" + "l" + req.body.coarsening.split(".").join("") + "r" + req.body.coarseningSecondSet.split(".").join("");
     var pyCoarsening = "-r " + req.body.coarsening + " " + req.body.coarseningSecondSet;
-    // if(req.body.firstSet) {
-    //   pyCoarsening = pyCoarsening + " " + req.body.coarsening + " 0";
-    //   pyName = pyName + "l" + req.body.coarsening.split(".").join("") + "r0";
-    // } else {
-    //   pyCoarsening = pyCoarsening + " 0 " + req.body.coarsening;
-    //   pyName = pyName + "l0" + "r" + req.body.coarsening.split(".").join("");
-    // }
     /* Check if coarsened file already exists; if not, generate a new coarsened file */
     fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data){
       if(err) /* File doesn't exist */
@@ -229,20 +219,6 @@ app.post('/switch', function(req, res){
       res.end(addNumberOfEdgesToJSON(data));
     }
   });
-  // /* Switch currrent layout */
-  // switch(req.body.layout)
-  // {
-  //   /* Horizontal layout; change to vertical */
-  //   case 2:
-  //
-  //   break;
-  //   /* Vertical layout; change to horizontal */
-  //   case 3:
-  //
-  //   break;
-  //   default:
-  //   break;
-  // }
 });
 
 /* Main route */

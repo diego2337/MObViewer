@@ -296,6 +296,30 @@ Graph.prototype.setEdgeById = function(id, edge)
 }
 
 /**
+* Find node neighbors
+* param:
+*    - node: node from which neighbors will be found;
+* returns:
+*    - neighbor nodes.
+*/
+Graph.prototype.findNeighbors = function(node)
+{
+  var neighbors = [];
+  var neighbor = undefined;
+  for(var i = 0; i < this.edges.length; i++)
+  {
+    if(parseInt(this.edges[i].edgeObject.source) == parseInt(node.circle.name))
+      neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.target)));
+    else if(parseInt(this.edges[i].edgeObject.target) == parseInt(node.circle.name))
+      neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.source)));
+    if(neighbor !== undefined)
+      neighbors.push(this.edges[i]);
+    neighbor = undefined;
+  }
+  return neighbors;
+}
+
+/**
 * Highlight edges from highlighted graph
 * param:
 *    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
