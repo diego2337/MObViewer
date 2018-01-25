@@ -1,0 +1,232 @@
+from main.js, function app.post('/upload', function(req, res):
+
+// once all the files have been uploaded, send a response to the client
+// form.on('end', function() {
+//   function waitForFile() {
+//     if(typeof form.openedFiles[0] !== undefined) {
+//       // console.log("form: ");
+//       // console.log(form);
+//       // console.log("file name: " + form.openedFiles[0].name);
+//       res.end(form.uploadDir + "/" + form.openedFiles[0].name);
+//     }
+//     else {
+//       setTimeout(waitForFile, 500);
+//     }
+//   }
+//   waitForFile();
+//   // res.end('success');
+// });
+
+
+from newIndex.html, starting at line 154
+
+<div class="mdl-grid mdl-cell mdl-cell--8-col demo-cards mdl-shadow--2dp mdl-color--white relative-div">
+  <!-- <h4 class="mdl-card__title">Graph</h4> -->
+  <h4 class="mdl-card__title mdl-layout__header-row relative-div">Graph</h4>
+  <!-- <div id="WebGL" class="demo-cards mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col relative-div"> -->
+  <div id="WebGL" class="mdl-grid mdl-cell mdl-cell--12-col">
+    <!-- <div class="mdl-cell mdl-cell--12-col"></div> -->
+    <div class="mdl-grid mdl-cell mdl-cell--12-col">
+      <!-- <div class="mdl-cell mdl-layout-spacer"></div> -->
+      <div class="mdl-cell"> </div>
+      <!-- <div class="mdl-cell mdl-cell--12-col mdl-layout-spacer"></div> -->
+      <div id="progressBar" class="hidden-visibility mdl-progress mdl-js-progress mdl-progress__indeterminate">
+        <h6 >Loading graph...</h6>
+      </div>
+      <div class="mdl-cell"> </div>
+      <!-- <div class="mdl-cell mdl-layout-spacer"></div> -->
+      <!-- <div class="mdl-cell mdl-cell--12-col mdl-layout-spacer"></div> -->
+    </div>
+    <!-- <div class="mdl-cell mdl-cell--12-col"></div> -->
+  </div>
+  <div class="mdl-cell mdl-cell--bottom mdl-layout__header-row">
+    <!-- Title -->
+    <span class="mdl-layout-title">Zooming and panning</span>
+    <!-- Add spacer, to align navigation to the right -->
+    <div class="mdl-layout-spacer"></div>
+    <!-- Add zooming and panning -->
+    <button class="mdl-cell--middle mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="panLeft">
+      <i class="material-icons">add</i>
+    </button>
+  </div>
+</div>
+
+from threeGraph.js, function build(data, layout):
+
+//console.log(graph);
+
+/* Checking for WebGL compatibility */
+// if(Detector.webgl)
+// {
+//     console.log("WebGL supported");
+//     renderer = new THREE.WebGLRenderer({antialias:true});
+//
+//     // If its not supported, instantiate the canvas renderer to support all non WebGL
+//     // browsers
+// }
+// else
+// {
+//     console.log("WebGL not supported");
+//     renderer = new THREE.CanvasRenderer();
+// }
+
+/* Create lights to associate with scene */
+// var lights = [];
+// lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+// lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+// lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+//
+// lights[ 0 ].position.set( 0, 2, 0 );
+// lights[ 1 ].position.set( 1, 2, 1 );
+// lights[ 2 ].position.set( - 1, - 2, - 1 );
+//
+// scene.add( lights[ 0 ] );
+// scene.add( lights[ 1 ] );
+// scene.add( lights[ 2 ] );
+
+/* Deprecated listeners - orbitControls taking care of zooming and panning */
+// document.addEventListener('click', function(evt){eventHandler.clickEvent(evt, camera);}, false);
+// document.addEventListener('mousedown', function(evt){eventHandler.mouseDownEvent(evt, camera);}, false);
+// document.addEventListener('wheel', function(evt){eventHandler.wheelEvent(evt, camera); evt.preventDefault();}, false);
+
+
+from threeGraph.js, function animate():
+
+// var fs = new FileReader();
+/* Converting passed textarea input to JSON */
+// var jason = JSON.parse($.trim($("textarea").val()));
+// fs.onload = (function(data){
+// })(path);
+
+from main.js, function app.post('/upload', function(req, res):
+
+// nodeCmd.run('mkdir -p uploads/' + file.name.split(".")[0]);
+// nodeCmd.run('python mob/gmlToJson2.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + '/' + file.name.split(".")[0] + '.json');
+// graphSize = JSON.parse(data).graphInfo[0].vlayer.split(" ");
+// if(req.body.firstSet) {
+//   pyCoarsening = pyCoarsening + " " + req.body.coarsening + " 0";
+//   pyName = pyName + "l" + req.body.coarsening.split(".").join("") + "r0";
+// } else {
+//   pyCoarsening = pyCoarsening + " 0 " + req.body.coarsening;
+//   pyName = pyName + "l0" + "r" + req.body.coarsening.split(".").join("");
+// }
+
+from main.js, function app.post('/switch', function(req, res):
+
+// /* Switch currrent layout */
+// switch(req.body.layout)
+// {
+//   /* Horizontal layout; change to vertical */
+//   case 2:
+//
+//   break;
+//   /* Vertical layout; change to horizontal */
+//   case 3:
+//
+//   break;
+//   default:
+//   break;
+// }
+
+from eventHandler.js:
+
+/**
+ * Handles clicking in scene
+ * params:
+ *    - evt: event dispatcher;
+ *    - camera: camera used in three.js scene visualization.
+ */
+// EventHandler.prototype.clickEvent = function(evt, camera)
+// {
+//     console.log(camera);
+// }
+
+/**
+ * Handles dragging, which triggers panning
+ * params:
+ *    - evt: event dispatcher;
+ *    - camera: camera used in three.js scene visualization.
+ */
+EventHandler.prototype.dragEvent = function(evt, camera)
+{
+    console.log("dragging");
+}
+
+/**
+ * Handles mouse wheel. If mouse is scrolled up, zoom in; otherwise zoom out
+ * params:
+ *    - evt: event dispatcher;
+ *    - camera: camera used in three.js scene visualization.
+ */
+EventHandler.prototype.wheelEvent = function (evt, camera)
+{
+    /* Check either scroll up or scroll down */
+    if(evt.deltaY > 0)
+    {
+        /* Down scroll - decrease zoom */
+        // console.log("Down scroll");
+        if(camera.zoom - 4 > 0)
+        {
+            camera.zoom = camera.zoom - 4;
+            camera.updateProjectionMatrix();
+        }
+    }
+    else
+    {
+        /* Up scroll - increase zoom */
+        // console.log("Up scroll");
+        camera.zoom = camera.zoom + 4;
+        camera.updateProjectionMatrix();
+    }
+}
+
+/**
+ * Handles mouse down. Initial function for dragging and camera panning
+ * params:
+ *    - evt: event dispatcher;
+ *    - camera: camera used in three.js scene visualization.
+ */
+EventHandler.prototype.mouseDownEvent = function (evt, camera)
+{
+    /* Adapted from https://stackoverflow.com/questions/9047600/how-to-determine-the-direction-on-onmousemove-event */
+    /* Object to store last position of cursor */
+    var lastPosition = {};
+    var cam = camera;
+    document.onmouseup = function(evt){ document.onmousemove = null; document.onmouseup = null; }
+    document.onmousemove = function(evt)
+    {
+        /* Compare with lastPosition */
+        if(typeof(lastPosition.x) != undefined)
+        {
+            /* Get delta */
+            var deltaX = lastPosition.x - evt.clientX;
+            var deltaY = lastPosition.y - evt.clientY;
+            /* Check direction */
+            if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX > 0)
+            {
+                /* Left */
+                cam.position.x = cam.position.x + 2.5;
+            }
+            else if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX < 0)
+            {
+                /* Right */
+                cam.position.x = cam.position.x - 2.5;
+            }
+            else if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY > 0)
+            {
+                /* Up */
+                cam.position.y = cam.position.y - 2.5;
+            }
+            else if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY < 0)
+            {
+                /* Down */
+                cam.position.y = cam.position.y + 2.5;
+            }
+        }
+        /* Update last position */
+        lastPosition = {
+            x : evt.clientX,
+            y : evt.clientY
+        };
+    }
+}

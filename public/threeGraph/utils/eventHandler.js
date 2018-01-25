@@ -22,6 +22,7 @@ var EventHandler = function(raycaster, scene)
     this.raycaster = new THREE.Raycaster();
     this.scene = scene;
     this.highlightedElements = [];
+    this.neighbors = [];
 }
 
 /**
@@ -75,104 +76,51 @@ EventHandler.prototype.setHighlightedElements = function(highlighted)
 }
 
 /**
- * Handles clicking in scene
+ * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
  * params:
+ *    - clicked: boolean to indicate if element has already been clicked;
  *    - evt: event dispatcher;
- *    - camera: camera used in three.js scene visualization.
+ *    - graph: graph, containing objects to be intersected.
  */
-// EventHandler.prototype.clickEvent = function(evt, camera)
-// {
-//     console.log(camera);
-// }
-
-/**
- * Handles dragging, which triggers panning
- * params:
- *    - evt: event dispatcher;
- *    - camera: camera used in three.js scene visualization.
- */
-EventHandler.prototype.dragEvent = function(evt, camera)
+EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
 {
-    console.log("dragging");
-}
-
-/**
- * Handles mouse wheel. If mouse is scrolled up, zoom in; otherwise zoom out
- * params:
- *    - evt: event dispatcher;
- *    - camera: camera used in three.js scene visualization.
- */
-EventHandler.prototype.wheelEvent = function (evt, camera)
-{
-    /* Check either scroll up or scroll down */
-    if(evt.deltaY > 0)
+  if(!clicked)
+  {
+    /* Find highlighted vertex and highlight its neighbors */
+    for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        /* Down scroll - decrease zoom */
-        // console.log("Down scroll");
-        if(camera.zoom - 4 > 0)
+      var element = graph.getElementById(this.highlightedElements[i]);
+      if(element instanceof Node)
+      {
+        /* Search neighbors */
+        this.neighbors = graph.findNeighbors(element);
+        /* Add itself for highlighting */
+        this.neighbors.push(element);
+        /* Remove itself so it won't unhighlight as soon as mouse moves out */
+        this.highlightedElements.splice(i, 1);
+        /* Highlight neighbors */
+        for(var j = 0; j < this.neighbors.length; j++)
         {
-            camera.zoom = camera.zoom - 4;
-            camera.updateProjectionMatrix();
+          this.neighbors[j].highlight();
         }
+      }
     }
-    else
+  }
+  else if(clicked)
+  {
+    /* An element was already clicked and its neighbors highlighted; unhighlight all */
+    for(var i = 0; i < this.neighbors.length; i++)
     {
-        /* Up scroll - increase zoom */
-        // console.log("Up scroll");
-        camera.zoom = camera.zoom + 4;
-        camera.updateProjectionMatrix();
+      var element = undefined;
+      if(this.neighbors[i] instanceof Node)
+        element = graph.getElementById(String(this.neighbors[i].circle.name));
+      else if(this.neighbors[i] instanceof Edge)
+        element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
+      element.unhighlight();
     }
-}
-
-/**
- * Handles mouse down. Initial function for dragging and camera panning
- * params:
- *    - evt: event dispatcher;
- *    - camera: camera used in three.js scene visualization.
- */
-EventHandler.prototype.mouseDownEvent = function (evt, camera)
-{
-    /* Adapted from https://stackoverflow.com/questions/9047600/how-to-determine-the-direction-on-onmousemove-event */
-    /* Object to store last position of cursor */
-    var lastPosition = {};
-    var cam = camera;
-    document.onmouseup = function(evt){ document.onmousemove = null; document.onmouseup = null; }
-    document.onmousemove = function(evt)
-    {
-        /* Compare with lastPosition */
-        if(typeof(lastPosition.x) != undefined)
-        {
-            /* Get delta */
-            var deltaX = lastPosition.x - evt.clientX;
-            var deltaY = lastPosition.y - evt.clientY;
-            /* Check direction */
-            if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX > 0)
-            {
-                /* Left */
-                cam.position.x = cam.position.x + 2.5;
-            }
-            else if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX < 0)
-            {
-                /* Right */
-                cam.position.x = cam.position.x - 2.5;
-            }
-            else if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY > 0)
-            {
-                /* Up */
-                cam.position.y = cam.position.y - 2.5;
-            }
-            else if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY < 0)
-            {
-                /* Down */
-                cam.position.y = cam.position.y + 2.5;
-            }
-        }
-        /* Update last position */
-        lastPosition = {
-            x : evt.clientX,
-            y : evt.clientY
-        };
-    }
+    /* Clearing array of neighbors */
+    this.neighbors = [];
+  }
 }
 
 /**
@@ -189,7 +137,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     // {
     //     this.scene.remove(this.tracker.getMesh());
     // }
-
     /* Get canvas element and adjust x and y to element offset */
     var canvas = renderer.domElement.getBoundingClientRect();
     // var coords = renderer.domElement.relMouseCoords(evt);
@@ -224,12 +171,24 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
         var element = graph.getElementById(this.highlightedElements[i]);
-        element.unhighlight();
+        var alreadyHighlighted = false;
+        for(var j = 0; j < this.neighbors.length; j++)
+        {
+          var el = undefined;
+          if(this.neighbors[j] instanceof Node)
+            el = this.neighbors[j].circle.name;
+          else if(this.neighbors[j] instanceof Edge)
+            el = this.neighbors[j].edgeObject.id;
+          if(element === graph.getElementById(el))
+            alreadyHighlighted = true;
+        }
+        if(!alreadyHighlighted)
+          element.unhighlight();
         if(element instanceof Node)
         {
-            graph.setNodeById(this.highlightedElements[i], element);
-            d3.select("#name")
-                .style("display", "none");
+            // graph.setNodeById(this.highlightedElements[i], element);
+            // d3.select("#name")
+            //     .style("display", "none");
         }
         else
         {
@@ -246,17 +205,22 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         if(element instanceof Node)
         {
             graph.setNodeById(intersection.object.name, element);
+            document.getElementById("graphID").innerHTML = element.circle.name;
+            if(element.circle.description !== undefined)
+              document.getElementById("graphDescription").innerHTML = element.circle.description;
+            else
+              document.getElementById("graphDescription").innerHTML = "No description found.";
             /* Get name of node to display onscreen */
-            d3.select("#name")
-                .text(element.circle.name)
-                .attr("font-family", "sans-serif")
-                .attr("font-size", "20px")
-                .style("display", "inline")
-                .style("position", "absolute")
-                .style("z-index", "1")
-                .style("top", y)
-                .style("left", x)
-                .attr("fill", "green");
+            // d3.select("#name")
+            //     .text(element.circle.name)
+            //     .attr("font-family", "sans-serif")
+            //     .attr("font-size", "20px")
+            //     .style("display", "inline")
+            //     .style("position", "absolute")
+            //     .style("z-index", "1")
+            //     .style("top", y)
+            //     .style("left", x)
+            //     .attr("fill", "green");
         }
         else
         {
@@ -264,7 +228,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         }
         this.highlightedElements.push(intersection.object.name);
     }
-
 }
 
 /**

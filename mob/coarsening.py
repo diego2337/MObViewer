@@ -198,7 +198,8 @@ def main():
 		# Save graph
 		for levels, graph in reversed(zip(hierarchy_levels, hierarchy_graphs)):
 			# Save json conf
-			with open(output + str(levels) + '.conf', 'w+') as f:
+			# with open(output + str(levels) + '.conf', 'w+') as f:
+			with open(output + '.conf', 'w+') as f:
 				d = {}
 				d['edges'] = graph.ecount()
 				d['vertices'] = graph.vcount()
@@ -215,10 +216,14 @@ def main():
 				graph.vs['name'] = map(str, range(0, graph.vcount()))
 				graph['vertices'] = ' '.join(str(e) for e in graph['vertices'])
 				graph['layers'] = str(graph['layers'])
+				# print str(graph['level']).split("[")[1].split("]")[0].split(",")
 				graph['level'] = str(graph['level'])
-			graph.write(output + str(levels) + '.' + options.extension, format=options.extension)
+				# graph['level'] = str(graph['level']).split("[")[1].split("]")[0].split(",")
+			# graph.write(output + str(levels) + '.' + options.extension, format=options.extension)
+			graph.write(output + '.' + options.extension, format=options.extension)
 			# Save super-vertices
-			with open(output + str(levels) + '.cluster', 'w+') as f:
+			# with open(output + str(levels) + '.cluster', 'w+') as f:
+			with open(output + '.cluster', 'w+') as f:
 				for v in graph.vs():
 					f.write(' '.join(map(str, v['original'])) + '\n')
 			if not options.save_hierarchy: break

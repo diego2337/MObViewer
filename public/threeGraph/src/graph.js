@@ -36,23 +36,29 @@ var Graph = function(graph, min, max)
        }
        this.graphInfo.min = min;
        this.graphInfo.max = max;
+       this.theta = 0;
+       /* Graph keeps instances of geometries and materials for optimization */
+       this.circleGeometry = new THREE.CircleGeometry(1, 32);
+       this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
        if(graph.nodes instanceof Array)
        {
            this.nodes = [];
            for(var i = 0; i < graph.nodes.length; i++)
            {
-               this.nodes[i] = new Node(graph.nodes[i], min, max);
+               this.nodes[i] = new Node(graph.nodes[i], min, max, this.circleGeometry, this.meshBasicMaterial);
            }
            // graph.nodes.forEach(function(d, i){
            //     this.nodes[i] = new Node(d);
            // });
        }
+       /* Graph keeps instances of geometries and materials for optimization */
+       this.geometry = new THREE.Geometry();
        if(graph.links instanceof Array)
        {
            this.edges = [];
            for(var i = 0; i < graph.links.length; i++)
            {
-               this.edges[i] = new Edge(graph.links[i]);
+               this.edges[i] = new Edge(graph.links[i], 0, 100, this.lineBasicMaterial);
            }
            // graph.edges.forEach(function(d, i){
            //     this.edges[i] = new Edge(d);
@@ -162,6 +168,46 @@ Graph.prototype.setNodeById = function(id, node)
 }
 
 /**
+  * Get leftmost (or downmost) node of graph
+  * returns:
+  *    - world coordinate of leftmost (or downmost) element of graph.
+  */
+Graph.prototype.getMinNode = function()
+{
+  return this.minNode;
+}
+
+/**
+  * Set leftmost (or downmost) node of graph
+  * param:
+  *    - minNode: world coordinate of leftmost (or downmost) element of graph.
+  */
+Graph.prototype.setMinNode = function(minNode)
+{
+  this.minNode = minNode;
+}
+
+/**
+  * Get rightmost (or upmost) node of graph
+  * returns:
+  *    - world coordinate of rightmost (or upmost) element of graph.
+  */
+Graph.prototype.getMaxNode = function()
+{
+  return this.maxNode;
+}
+
+/**
+  * Set rightmost (or upmost) node of graph
+  * param:
+  *    - maxNode: world coordinate of rightmost (or upmost) element of graph.
+  */
+Graph.prototype.setMaxNode = function(maxNode)
+{
+  this.maxNode = maxNode;
+}
+
+/**
 * Get edges from graph
 */
 Graph.prototype.getEdges = function()
@@ -250,55 +296,133 @@ Graph.prototype.setEdgeById = function(id, edge)
 }
 
 /**
+* Find node neighbors
+* param:
+*    - node: node from which neighbors will be found;
+* returns:
+*    - neighbor nodes.
+*/
+Graph.prototype.findNeighbors = function(node)
+{
+  var neighbors = [];
+  var neighbor = undefined;
+  for(var i = 0; i < this.edges.length; i++)
+  {
+    if(parseInt(this.edges[i].edgeObject.source) == parseInt(node.circle.name))
+      neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.target)));
+    else if(parseInt(this.edges[i].edgeObject.target) == parseInt(node.circle.name))
+      neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.source)));
+    if(neighbor !== undefined)
+      neighbors.push(this.edges[i]);
+    neighbor = undefined;
+  }
+  return neighbors;
+}
+
+/**
+* Highlight edges from highlighted graph
+* param:
+*    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
+*/
+Graph.prototype.highlightEdges = function(highlightedElements)
+{
+  for(var i = 0; i < highlightedElements.length; i++)
+  {
+      if(highlightedElements[i] instanceof Node)
+      {
+
+      }
+      else if(highlightedElements[i] instanceof Edge)
+      {
+
+      }
+  }
+}
+
+/**
 * Builds the graph in the scene. All the node and edge calculations are performed, and the elements added
 * params:
 *    - scene: the scene in which the graph will be built;
-*    - layout: graph layout. Default is 2 = radial.
+*    - layout: graph layout.
 */
 Graph.prototype.buildGraph = function(scene, layout)
 {
-   layout = ecmaStandard(layout, 3);
+   layout = ecmaStandard(layout, 2);
    scene = ecmaStandard(scene, undefined);
+   this.theta = 3;
    try
    {
        var scale, theta;
        /* From D3, use a scaling function for placement */
        scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
-       /* Set which type of bipartite graph to be built */
-       if(layout == 2) theta = scale(i);
-       /* TODO - fix theta size; Must be according to size of nodes */
-       else if(layout == 3)
-       {
-         theta = 3;
-       }
+      //  /* Set which type of bipartite graph to be built */
+      //  if(layout == 2) this.theta = scale(i);
+      //  /* TODO - fix theta size; Must be according to size of nodes */
+      //  else if(layout == 3)
+      //  {
+      //    this.theta = 3;
+      //  }
 
        /* Build nodes' meshes */
        //  var j = this.lastLayer;
        var j = 0;
+      //  var singleGeometry = new THREE.Geometry();
        for(var i = 0; i < this.nodes.length; i++)
        {
            if(i == this.firstLayer)
            {
-             theta = ((this.firstLayer / this.lastLayer)  * theta);
+             this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
              j = parseInt(j) + parseInt(1);
            }
            else if(i > this.firstLayer)
            {
              j = parseInt(j) + parseInt(1);
            }
-           this.nodes[i].buildNode(i, this.firstLayer, j, 20, theta, layout);
+           if(i == 0) this.setMinNode(parseInt(i*this.theta));
+           if(i == this.nodes.length - 1) this.setMaxNode(parseInt(i*this.theta));
+           this.nodes[i].buildNode(i, this.firstLayer, j, 20, this.theta, layout);
+          //  this.nodes[i].getCircle().updateMatrix();
+          //  singleGeometry.merge(this.nodes[i].getCircle().geometry, this.nodes[i].getCircle().matrix);
            if(scene !== undefined) scene.add(this.nodes[i].getCircle());
        }
+      //  if(scene !== undefined)
+      //  {
+      //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
+      //      var mesh = new THREE.Mesh(singleGeometry, material);
+      //      scene.add(mesh);
+      //  }
 
-       /* Build edges' meshes and add to scene */
-       for(var i = 0; i < this.edges.length; i++)
-       {
-           this.edges[i].buildEdge(this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
-           // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
-           // scene.add(helper);
-           if(scene !== undefined) scene.add(this.edges[i].getLine());
-       }
+      //  /* Build edges' meshes and add to scene */
+      // var singleGeometry2 = new THREE.Geometry();
+      for(var i = 0; i < this.edges.length; i++)
+      {
+         this.edges[i].buildEdge(this.geometry, this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
+         // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
+         // scene.add(helper);
+         // this.edges[i].getLine().updateMatrix();
+         // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
+        // if(scene !== undefined) scene.add(this.edges[i].getLine());
+      }
+      if(scene !== undefined)
+      {
+        // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+        // scene.add(lineSegment);
+        var line = new MeshLine();
+        // line.setGeometry(this.geometry);
+        line.setGeometry(this.geometry, function(p){
+          return 0.3;
+        });
+        var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+        var lineMesh = new THREE.Mesh(line.geometry, material);
+        scene.add(lineMesh);
+      }
+      //  if(scene !== undefined)
+      //  {
+      //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
+      //      var mesh = new THREE.Mesh(singleGeometry2, material);
+      //      scene.add(mesh);
+      //  }
    }
    catch(err)
    {
