@@ -1294,6 +1294,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
         this.neighbors.push(element);
         /* Remove itself so it won't unhighlight as soon as mouse moves out */
         this.highlightedElements.splice(i, 1);
+
         /* Highlight neighbors */
         for(var j = 0; j < this.neighbors.length; j++)
         {
