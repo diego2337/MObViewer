@@ -230,3 +230,16 @@ EventHandler.prototype.mouseDownEvent = function (evt, camera)
         };
     }
 }
+
+from main.js:
+
+// app.engine('html', require('ejs').renderFile);
+
+in function app.post('/upload', function(req, res)):
+// form.multiples = false;
+// parse the incoming request containing the form data
+form.parse(req, function(err, fields, files){
+});
+
+in function app.get('/', function(req, res)):
+// res.sendFile(path.join(__dirname, 'public/views/index.html'));
