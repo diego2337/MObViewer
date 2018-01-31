@@ -1297,6 +1297,8 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
         /* Highlight neighbors */
         for(var j = 0; j < this.neighbors.length; j++)
         {
+          console.log("this.neighbors[j]: ");
+          console.log(this.neighbors[j]);
           this.neighbors[j].highlight();
         }
       }

@@ -44,7 +44,7 @@ function addFolderPath()
 /**
  * Read .json file stored on server-side, sending it to client side.
  * @public
- * @param {Object} 
+ * @param {Object}
  */
 function readJsonFile()
 {
