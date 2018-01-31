@@ -313,7 +313,7 @@ Edge.prototype.unhighlight = function()
     this.line.material.color.setHex(0x8D9091);
 }
 
-/**
+this.line/**
 * Constructor
 * params:
 *    - graph: object containing JSON graph file, with:
@@ -367,6 +367,9 @@ var Graph = function(graph, min, max)
            // });
        }
        /* Graph keeps instances of geometries and materials for optimization */
+       this.line = undefined;
+       this.lineMesh = undefined;
+       this.material = undefined;
        this.geometry = new THREE.Geometry();
        if(graph.links instanceof Array)
        {
@@ -631,6 +634,8 @@ Graph.prototype.findNeighbors = function(node)
       neighbors.push(this.edges[i]);
     neighbor = undefined;
   }
+  /* Push line geometry so that edges can be colored */
+  // neighbors.push(this.line);
   return neighbors;
 }
 
@@ -723,14 +728,25 @@ Graph.prototype.buildGraph = function(scene, layout)
       {
         // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
         // scene.add(lineSegment);
-        var line = new MeshLine();
+        this.line = new MeshLine();
         // line.setGeometry(this.geometry);
-        line.setGeometry(this.geometry, function(p){
+        this.line.setGeometry(this.geometry, function(p){
           return 0.3;
         });
-        var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-        var lineMesh = new THREE.Mesh(line.geometry, material);
-        scene.add(lineMesh);
+
+        // this.material = new MeshLineMaterial({color: new THREE.Color(0xFFFFFF), vertexColors: THREE.VertexColors});
+        this.material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+        this.lineMesh = new THREE.Mesh(this.line.geometry, this.material);
+        /** Adding color to vertexes from BufferGeometry */
+        // var colors = new Float32Array(this.lineMesh.geometry.attributes.position.length);
+        // for(var i = 0; i < colors.length; i++)
+        // {
+        //   colors[i] = 0.0;
+        // }
+        // this.lineMesh.geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+        // console.log("this.lineMesh");
+        // console.log(this.lineMesh);
+        scene.add(this.lineMesh);
       }
       //  if(scene !== undefined)
       //  {
@@ -1070,6 +1086,8 @@ function displayGraphInfo(jason)
   */
 function build(data, layout)
 {
+  /* show Loading bar */
+  $('#progressBar').css('visibility', 'visible');
   lay = ecmaStandard(layout, 2);
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
@@ -1163,6 +1181,8 @@ function build(data, layout)
   }, false);
 
   // console.log(renderer.info);
+  /* Hide loading bar */
+  $('#progressBar').css('visibility', 'hidden');
   animate();
 
   function animate()
@@ -1301,6 +1321,47 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
         }
       }
     }
+    /* Highlight edges according to neighbors which have been highlighted. Iterate i+3 since positions (x,y,z) are stored as one element each in array */
+    /* Convert from BufferGeometry to Geometry */
+    var auxGeometry = new THREE.Geometry();
+    auxGeometry.fromBufferGeometry(graph.lineMesh.geometry);
+    console.log("converteu?");
+    console.log(auxGeometry);
+    /* Iterate through auxGeometry's faces, changing vertexColors */
+    // /* Highlight edges according to neighbors which have been highlighted. Iterate i+3 since positions (x,y,z) are stored as one element each in array */
+    // if(graph.line.geometry.attributes.color == undefined)
+    //   graph.line.geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(graph.line.attributes.position.array.length), 3));
+    // // console.log("o que te faz entrar no for?");
+    // // console.log(graph.line.geometry.attributes.color);
+    // // console.log(graph.line.geometry.attributes.color.array);
+    // // console.log(graph.line.geometry.attributes.color.array.length);
+    // for(var i = 0; i < graph.line.geometry.attributes.color.array.length; i = i + 3)
+    // {
+    //   /* Iterating through every neighbor */
+    //   for(var j = 0 ; j < this.neighbors.length && this.neighbors[j] instanceof Node; j++)
+    //   {
+    //       /* Position from BufferGeometry matches vertex position; highlight */
+    //       // console.log("vamos la");
+    //       // console.log(graph.line.geometry.attributes.color.array[i]);
+    //       // console.log(graph.line.geometry.attributes.color.array[i+1]);
+    //       // console.log(graph.line.geometry.attributes.color.array[i+2]);
+    //       // console.log(this.neighbors[j].circle.position.x);
+    //       // console.log(this.neighbors[j].circle.position.y);
+    //       // console.log(this.neighbors[j].circle.position.z);
+    //       // console.log("al somav");
+    //       if(graph.line.geometry.attributes.position.array[i] == this.neighbors[j].circle.position.x && graph.line.geometry.attributes.position.array[i+1] == this.neighbors[j].circle.position.y && graph.line.geometry.attributes.position.array[i+2] == this.neighbors[j].circle.position.z)
+    //       {
+    //         var newColor = new THREE.Color(0xffff00);
+    //         graph.line.geometry.attributes.color.array[i] = newColor.r;
+    //         graph.line.geometry.attributes.color.array[i+1] = newColor.g;
+    //         graph.line.geometry.attributes.color.array[i+2] = newColor.b;
+    //         /* Vertex found; leave for loop */
+    //         j = this.neighbors.length + 1;
+    //       }
+    //   }
+    // }
+    // /* Set update for color buffer */
+    // graph.line.geometry.attributes.color.needsUpdate = true;
   }
   else if(clicked)
   {

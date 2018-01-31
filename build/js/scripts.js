@@ -247,8 +247,7 @@ $('#upload-input').on('change', function(){
           build(data);
           /* Below won't work - AJAX call works for same page only! */
           // location.href = '/visualization';
-      },
-      xhr: loadGraph
+      }
       // xhr: function() {
       //   // create an XMLHttpRequest
       //   var xhr = new XMLHttpRequest();

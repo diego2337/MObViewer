@@ -1,4 +1,4 @@
-/**
+this.line/**
 * Constructor
 * params:
 *    - graph: object containing JSON graph file, with:
@@ -52,6 +52,9 @@ var Graph = function(graph, min, max)
            // });
        }
        /* Graph keeps instances of geometries and materials for optimization */
+       this.line = undefined;
+       this.lineMesh = undefined;
+       this.material = undefined;
        this.geometry = new THREE.Geometry();
        if(graph.links instanceof Array)
        {
@@ -316,6 +319,8 @@ Graph.prototype.findNeighbors = function(node)
       neighbors.push(this.edges[i]);
     neighbor = undefined;
   }
+  /* Push line geometry so that edges can be colored */
+  // neighbors.push(this.line);
   return neighbors;
 }
 
@@ -408,14 +413,25 @@ Graph.prototype.buildGraph = function(scene, layout)
       {
         // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
         // scene.add(lineSegment);
-        var line = new MeshLine();
+        this.line = new MeshLine();
         // line.setGeometry(this.geometry);
-        line.setGeometry(this.geometry, function(p){
+        this.line.setGeometry(this.geometry, function(p){
           return 0.3;
         });
-        var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-        var lineMesh = new THREE.Mesh(line.geometry, material);
-        scene.add(lineMesh);
+
+        // this.material = new MeshLineMaterial({color: new THREE.Color(0xFFFFFF), vertexColors: THREE.VertexColors});
+        this.material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+        this.lineMesh = new THREE.Mesh(this.line.geometry, this.material);
+        /** Adding color to vertexes from BufferGeometry */
+        // var colors = new Float32Array(this.lineMesh.geometry.attributes.position.length);
+        // for(var i = 0; i < colors.length; i++)
+        // {
+        //   colors[i] = 0.0;
+        // }
+        // this.lineMesh.geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+        // console.log("this.lineMesh");
+        // console.log(this.lineMesh);
+        scene.add(this.lineMesh);
       }
       //  if(scene !== undefined)
       //  {
