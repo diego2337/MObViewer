@@ -24,9 +24,9 @@ var clicked = false;
 // });
 
 /**
- * Display graph info to HTML page
- * param:
- *    - jason: .json file representing graph
+ * Display graph info on HTML page.
+ * @public
+ * @param {JSON} jason .json file representing graph.
  */
 function displayGraphInfo(jason)
 {
@@ -42,10 +42,10 @@ function displayGraphInfo(jason)
 }
 
 /**
-  * Render a bipartite graph given a .json file
-  * param:
-  *    - data: string graph to be parsed into JSON notation and rendered;
-  *    - layout: graph layout. Default is 2 (bipartite horizontal)
+  * Render a bipartite graph, given a .json file.
+  * @public
+  * @param {string} data String graph to be parsed into JSON notation and rendered.
+  * @param {int} layout Graph layout. Default is 2 (bipartite horizontal).
   */
 function build(data, layout)
 {
@@ -63,17 +63,13 @@ function build(data, layout)
   if(renderer == undefined)
   {
       /* Get the size of the inner window (content area) to create a full size renderer */
-      // canvasWidth = (window.innerWidth) / 1.5;
-      // canvasHeight = (window.innerHeight) / 1.5;
       canvasWidth = (document.getElementById("WebGL").clientWidth);
       canvasHeight = (document.getElementById("WebGL").clientHeight) - 20;
-
       /* Create a new WebGL renderer */
       renderer = new THREE.WebGLRenderer({antialias:true});
       /* Set the background color of the renderer to black, with full opacity */
       renderer.setClearColor("rgb(255, 255, 255)", 1);
-
-      /* Set the renderers size to the content areas size */
+      /* Set the renderers size to the content area size */
       renderer.setSize(canvasWidth, canvasHeight);
   }
   else
@@ -81,9 +77,7 @@ function build(data, layout)
       renderer.clear();
   }
 
-  // renderer.sortObjects = false;
-
-  /* Get the DIV element from the HTML document by its ID and append the renderers DOM object to it */
+  /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
 
   /* Create scene */
@@ -93,17 +87,10 @@ function build(data, layout)
   /* Build graph */
   graph.buildGraph(scene, lay);
 
-  /* Define depth variable to set camera positioning */
-  var depth = new Depth(0);
-  depth.setZ(Math.abs(graph.getMinNode()) + Math.abs(graph.getMaxNode()));
   /* Create the camera and associate it with the scene */
   if(camera !== undefined) delete camera;
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 2000);
-  /* TODO - Setting Z value so that every element will have the same depth */
-  //  setZ(10);
   camera.position.set(0, 0, 70);
-  // camera.position.set(0, 0, (depth.getZ()));
-  // console.log("(depth.getZ()): ", (depth.getZ()));
   camera.lookAt(scene.position);
   camera.name = "camera";
   scene.add(camera);
@@ -117,6 +104,7 @@ function build(data, layout)
   /* Using orbitControls for moving */
   if(controls !== undefined) delete controls;
   var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
   /* Setting up params */
   controls.minDistance = 1;
   controls.maxDistance = 500;
@@ -131,14 +119,11 @@ function build(data, layout)
   if(eventHandler !== undefined) delete eventHandler;
   eventHandler = new EventHandler(undefined, scene);
 
-  // eventHandler.setScene(scene);
-
   /* Adding event listeners */
   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
   document.addEventListener('dblclick', function(evt){
     eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
-    if(!clicked) clicked = true;
-    else if(clicked) clicked = false;
+    !clicked ? clicked = true : clicked = false;
   }, false);
 
   // console.log(renderer.info);

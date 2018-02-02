@@ -1,23 +1,10 @@
 /**
- * Constructor
- * params:
- *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for the geometry (from three.js).
- *
-function Node(circleGeometry, meshBasicMaterial)
-{
-    this.circleGeometry = circleGeometry;
-    this.meshBasicMaterial = meshBasicMaterial;
-}*/
-
-/**
- * Constructor
- * params:
- *    - nodeObject: the node object taken from the JSON file;
- *    - min: min value to be used in feature scaling;
- *    - max: max value to be used in feature scaling;
- *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for geometry (from three.js).
+ * @constructor
+ * @param {Object} nodeObject The node object taken from the JSON file;
+ * @param {int} min Min value to be used in feature scaling;
+ * @param {int} max Max value to be used in feature scaling;
+ * @param {Object} circleGeometry A geometry of type circle (from three.js);
+ * @param {Object} meshBasicMaterial Material for geometry (from three.js).
  */
 var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
 {
@@ -27,32 +14,30 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     meshBasicMaterial = ecmaStandard(meshBasicMaterial, undefined);
     try
     {
-        // CHANGED - INCLUDED this.nodeObject; REMOVED this.id, this.weight
         this.nodeObject = nodeObject;
-        //this.id = toInt(nodeObject.id);
-        //this.weight = toInt(nodeObject.weight);
-        // CHANGED - FROM this.weight TO this.nodeObject.weight
         if(this.nodeObject.weight == undefined)
         {
             this.nodeObject.weight = 1;
         }
-
         /* Use feature scaling to fit nodes */
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
-        // circleGeometry.scale(x, x, x);
-        // this.circleGeometry = new THREE.CircleGeometry(x, 100);
-        this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        if(circleGeometry == undefined)
+        {
+            this.circleGeometry = new THREE.circleGeometry(1, 32);
+        }
+        else
+        {
+            this.circleGeometry = circleGeometry;
+        }
 
-        /* Store number of nodes from each layer */
-
-        // if(meshBasicMaterial == undefined)
-        // {
-        //     this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
-        // }
-        // else
-        // {
-        //     this.meshBasicMaterial = meshBasicMaterial;
-        // }
+        if(meshBasicMaterial == undefined)
+        {
+            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        }
+        else
+        {
+          this.meshBasicMaterial = meshBasicMaterial;
+        }
     }
     catch(err)
     {
@@ -67,26 +52,21 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     }
     finally
     {
-        this.circle = new THREE.Mesh(circleGeometry, this.meshBasicMaterial);
+        this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
         this.circle.scale.set(x, x, x);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
         this.circle.geometry.computeBoundingBox();
         this.circle.geometry.computeBoundingSphere();
-        // this.circle.geometry.boundingBox = null;
         this.circle.geometry.verticesNeedUpdate = true;
         this.circle.renderOrder = 1;
     }
 }
 
 /**
- * Define constructor
-
-Node.prototype.constructor = Node;
-*/
-
-/**
- * Getter for node - COPY, NOT REFERENCE
+ * Getter for node via copy, not reference.
+ * @public
+ * @returns {Object} Node type object.
  */
 Node.prototype.getNode = function()
 {
@@ -98,9 +78,9 @@ Node.prototype.getNode = function()
 }
 
 /**
- * Sets the current node with new node attributes
- * param:
- *    - node: node for copying.
+ * Sets the current node with new node attributes.
+ * @public
+ * @param {Object} node Node for copying.
  */
 Node.prototype.setNode = function(node)
 {
@@ -110,7 +90,9 @@ Node.prototype.setNode = function(node)
 }
 
 /**
- * Getter for circleGeometry
+ * Getter for circleGeometry.
+ * @public
+ * @returns {Object} THREE.CircleGeometry type object.
  */
 Node.prototype.getCircleGeometry = function()
 {
@@ -118,7 +100,9 @@ Node.prototype.getCircleGeometry = function()
 }
 
 /**
- * Setter for circleGeometry
+ * Setter for circleGeometry.
+ * @public
+ * @param {Object} circleGeometry THREE.CircleGeometry type object.
  */
 Node.prototype.setCircleGeometry = function(circleGeometry)
 {
@@ -126,7 +110,9 @@ Node.prototype.setCircleGeometry = function(circleGeometry)
 }
 
 /**
- * Getter for meshBasicMaterial
+ * Getter for meshBasicMaterial.
+ * @public
+ * @returns {Object} THREE.MeshBasicMaterial type object.
  */
 Node.prototype.getMeshBasicMaterial = function()
 {
@@ -134,7 +120,9 @@ Node.prototype.getMeshBasicMaterial = function()
 }
 
 /**
- * Setter for meshBasicMaterial
+ * Setter for meshBasicMaterial.
+ * @public
+ * @param {Object} meshBasicMaterial THREE.MeshBasicMaterial type object.
  */
 Node.prototype.setMeshBasicMaterial = function(meshBasicMaterial)
 {
@@ -142,7 +130,9 @@ Node.prototype.setMeshBasicMaterial = function(meshBasicMaterial)
 }
 
 /**
- * Getter for circle
+ * Getter for circle.
+ * @public
+ * @returns {Object} THREE.Mesh type object.
  */
 Node.prototype.getCircle = function()
 {
@@ -150,7 +140,9 @@ Node.prototype.getCircle = function()
 }
 
 /**
- * Setter for circle
+ * Setter for circle.
+ * @public
+ * @param THREE.Mesh type object.
  */
 Node.prototype.setCircle = function(circle)
 {
@@ -158,26 +150,29 @@ Node.prototype.setCircle = function(circle)
 }
 
 /**
- * Build the node into the scene
- * params:
- *    - index: index of current node;
- *    - firstLayer: number of nodes in first layer of bipartite graph;
- *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
- *    - alpha: value used in bipartite layout;
- *    - layout: the graph layout;
- *    - theta: used in the parametric equation of radial layout.
+ * Build node into scene.
+ * @public
+ * @param {int} index Index of current node.
+ * @param {int} firstLayer Number of nodes in first layer of bipartite graph.
+ * @param {int} lastLayer Number of nodes in second (or last) layer of bipartite graph.
+ * @param {int} alpha Value for spacing of parallel lines.
+ * @param {int} theta Used to define distance of nodes.
+ * @param {int} layout Used for checking if layout is either vertical bipartite (0) or horizontal bipartite (1).
  */
 Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, layout)
 {
     switch(layout)
     {
-        case 1: // Radial layout
+        /** Radial layout */
+        case 1:
             this.buildRadial(theta);
             break;
-        case 2: // Bipartite layout - horizontal
+        /** Bipartite layout - horizontal */
+        case 2:
             this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 1);
             break;
-        case 3: // Bipartite layout - vertical
+        /** Bipartite layout - vertical */
+        case 3:
             this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 0);
             break;
         default:
@@ -186,17 +181,9 @@ Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, 
 }
 
 /**
- * Build a node into the scene, using a force directed layout
- */
-Node.prototype.buildForceDirected = function()
-{
-    console.log("To be implemented");
-}
-
-/**
- * Build a node into the scene, using a radial layout
- * param:
- *    - theta: used in the parametric equation of radial layout.
+ * Build node into scene, using a radial layout.
+ * @public
+ * @param {int} theta Used in the parametric equation of radial layout.
  */
 Node.prototype.buildRadial = function(theta)
 {
@@ -209,55 +196,68 @@ Node.prototype.buildRadial = function(theta)
 }
 
 /**
- * Build a node into the scene, using a bipartite layout
- * params:
- *    - index: index of node being positioned;
- *    - firstLayer: number of nodes in first layer of bipartite graph;
- *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
- *    - alpha: value for spacing of parallel lines;
- *    - theta: used for bipartite layout;
- *    - horizontal: boolean to check if layout is bipartite horizontal or not.
+ * Build node into scene, using a bipartite layout.
+ * @public
+ * @param {int} index Index of node being positioned.
+ * @param {int} firstLayer Number of nodes in first layer of bipartite graph.
+ * @param {int} lastLayer Number of nodes in second (or last) layer of bipartite graph.
+ * @param {int} alpha Value for spacing of parallel lines.
+ * @param {int} theta sed to define distance of nodes.
+ * @param {int} horizontal Boolean to check if layout is bipartite horizontal or vertical.
  */
 Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal)
 {
-    if(horizontal)
+    /* Separate vertical lines according to number of layers */
+    if(index >= firstLayer)
     {
-      /* Separate vertical lines according to number of layers */
-      if(index >= firstLayer)
-      {
-          var y = alpha;
-          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-          index = lastLayer;
-          // index = Math.round(index / lastLayer) + lastIndex;
-      }
-      else
-      {
-          var y = alpha * (-1);
-      }
-      x = index * theta;
-      this.circle.position.set(x, y, 0);
+        var y = alpha;
+        index = lastLayer;
     }
-    else if(!horizontal)
+    else
     {
-      /* Separate vertical lines according to number of layers */
-      if(index >= firstLayer)
-      {
-          var x = alpha;
-          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-          index = lastLayer;
-          // index = Math.round(index / lastLayer) + lastIndex;
-      }
-      else
-      {
-          var x = alpha * (-1);
-      }
-      y = index * theta;
-      this.circle.position.set(x, y, 0);
+        var y = alpha * (-1);
     }
+    x = index * theta;
+    horizontal ? this.circle.position.set(x, y, 0) : this.circle.position.set(y, x, 0);
+    // if(horizontal)
+    // {
+    //   /* Separate vertical lines according to number of layers */
+    //   if(index >= firstLayer)
+    //   {
+    //       var y = alpha;
+    //       // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+    //       index = lastLayer;
+    //       // index = Math.round(index / lastLayer) + lastIndex;
+    //   }
+    //   else
+    //   {
+    //       var y = alpha * (-1);
+    //   }
+    //   x = index * theta;
+    //   this.circle.position.set(x, y, 0);
+    // }
+    // else if(!horizontal)
+    // {
+    //   /* Separate vertical lines according to number of layers */
+    //   if(index >= firstLayer)
+    //   {
+    //       var x = alpha;
+    //       // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+    //       index = lastLayer;
+    //       // index = Math.round(index / lastLayer) + lastIndex;
+    //   }
+    //   else
+    //   {
+    //       var x = alpha * (-1);
+    //   }
+    //   y = index * theta;
+    //   this.circle.position.set(x, y, 0);
+    // }
 }
 
 /**
- * Highlight node
+ * Highlight node.
+ * @public
  */
 Node.prototype.highlight = function()
 {
@@ -265,7 +265,8 @@ Node.prototype.highlight = function()
 }
 
 /**
- * Unhighlight node
+ * Unhighlight node.
+ * @public
  */
 Node.prototype.unhighlight = function()
 {

@@ -1,15 +1,15 @@
 /**
-  * File to watch for clicks in buttons used for saving either .png graph image or .json file.
-  * Author: Diego Cintra
+  * @ File to watch for clicks in buttons used for saving either .png graph image or .json file.
+  * @author Diego Cintra
   * Date: 06/12/2017
   */
 
+/** Trigger image saving when button is clicked */
 $('#saveImgButton').on('click', function (){
   capture = true;
-  // document.getElementById('saveImgButton').href = dataURL;
-  // document.getElementById('saveImg').click();
 });
 
+/** Generate .json file from graph */
 $('#saveFileButton').on('click', function(){
   $.ajax({
     url: '/switch',

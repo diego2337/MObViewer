@@ -1,6 +1,6 @@
 /**
- * Base class for pre ECMAScript2015 standardization.
- * Author: Diego S. Cintra
+ * @desc Base class for pre ECMAScript2015 standardization.
+ * @author Diego S. Cintra
  */
 var ecmaStandard = function(variable, defaultValue)
 {

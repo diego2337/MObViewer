@@ -1,35 +1,12 @@
 /**
-  * File to watch for changes in slider used for multilevel paradigm.
-  * Author: Diego Cintra
+  * @desc File to watch for changes in slider used for multilevel paradigm.
+  * @author Diego Cintra
   * Date: 15/11/2017
   */
 
 /**
-  * Change min and max values for input type range element in HTML page
-  * Param:
-  *    - data: .json graph uploaded to server-side
-  */
-function changeMinAndMaxValues(data)
-{
-  // console.log("changeMinAndMaxFunction");
-  var d = JSON.parse(data);
-  var numberOfNodes1 = d.graphInfo[0].vlayer.split(" ");
-  $('#multilevelCoarsener').prop({
-    'min': 1,
-    'max': numberOfNodes1[0],
-    'value': numberOfNodes1[0]
-  });
-  $('#multilevelCoarsener2').prop({
-    'min': 1,
-    'max': numberOfNodes1[1],
-    'value': numberOfNodes1[1]
-  });
-  document.getElementById("output1").innerHTML = numberOfNodes1[0];
-  document.getElementById("output2").innerHTML = numberOfNodes1[1];
-}
-
-/**
-  * Outputs current slider value
+  * Outputs current slider value.
+  * @public
   */
 function showValue()
 {
@@ -37,12 +14,21 @@ function showValue()
   document.getElementById("output2").innerHTML = document.getElementById("multilevelCoarsener2").value;
 }
 
+/**
+ * Build graph on screen using three.js.
+ * @public
+ */
 function graphUpdate(data){
-  console.log("Graph update successful");
+  // console.log("Graph update successful");
   /* Render updated graph */
   build(data, layout);
 }
 
+/**
+ * While server-side functions are running, display progress bar.
+ * @public
+ * @return {Object} xhr object for AJAX call.
+ */
 function loadGraph()
 {
   var xhr = new window.XMLHttpRequest();
@@ -76,7 +62,7 @@ function loadGraph()
   return xhr;
 }
 
-/* Apply changes for first layer coarsening */
+/** Apply changes for first layer coarsening */
 $('#multilevelCoarsener').on('change', function(){
   document.getElementById("output1").innerHTML = parseFloat($('#multilevelCoarsener')[0].value);
   /* Perform an AJAX request to server */
@@ -84,13 +70,12 @@ $('#multilevelCoarsener').on('change', function(){
     url: '/slide',
     type: 'POST',
     data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: true},
-    // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate,
     xhr: loadGraph
   });
 });
 
-/* Apply changes for second layer coarsening */
+/** Apply changes for second layer coarsening */
 $('#multilevelCoarsener2').on('change', function(){
   document.getElementById("output2").innerHTML = $('#multilevelCoarsener2')[0].value;
   /* Perform an AJAX request to server */
@@ -98,7 +83,6 @@ $('#multilevelCoarsener2').on('change', function(){
     url: '/slide',
     type: 'POST',
     data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: false},
-    // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate,
     xhr: loadGraph
   });

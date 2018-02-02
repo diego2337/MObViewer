@@ -154,7 +154,7 @@ app.post('/upload', function(req, res) {
                               if (!err)
                               {
                                 /** Python script executed successfully; read .json file */
-                                readJsonFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', fs, form, folderChar, file, res);
+                                readJsonFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', fs, res);
                               }
                               else
                               {
@@ -251,7 +251,7 @@ app.post('/switch', function(req, res){
  */
 app.get('/', function(req, res){
   // res.sendFile(path.join(__dirname, 'public/views/index.html'));
-  res.sendFile(path.join(__dirname, 'public/views/newIndex.html'));
+  res.sendFile(path.join(__dirname, 'public/views/index.html'));
 });
 
 /** Main function to trigger server */

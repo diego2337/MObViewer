@@ -1,21 +1,28 @@
+/**
+  * @desc File to watch for uploaded files by user.
+  * @author Diego Cintra
+  * Date: 02/02/2018
+  */
+
+/** Trigger upload-input element click */
 $('.upload-btn').on('click', function (){
     $('#upload-input').click();
     $('.progress-bar').text('0%');
     $('.progress-bar').width('0%');
 });
 
+/** Trigger AJAX call to send data server-side */
 $('#upload-input').on('change', function(){
   var files = $(this).get(0).files;
   if (files.length > 0){
-    // create a FormData object which will be sent as the data payload in the
-    // AJAX request
+    /* Create a FormData object which will be sent as the data payload in the AJAX request */
     var formData = new FormData();
 
-    // loop through all the selected files and add them to the formData object
+    /* Loop through all the selected files and add them to the formData object */
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
 
-      // add the files to formData object for the data payload
+      /* Add the files to formData object for the data payload */
       formData.append('uploads[]', file, file.name);
     }
 
@@ -27,45 +34,14 @@ $('#upload-input').on('change', function(){
       contentType: false,
       success: function(data){
           console.log('Upload successful!\n');
-          /* Change slider min & max values */
-          // changeMinAndMaxValues(data);
           /* Show slider's current value */
           showValue();
           /* Hide upload box */
-          $('#uploadBox').css('display', 'none');
-          /* Build the graph after loading .json file */
+          // $('#uploadBox').css('display', 'none');
+          /* Build graph after loading .json file */
           build(data);
-          /* Below won't work - AJAX call works for same page only! */
-          // location.href = '/visualization';
       },
       xhr: loadGraph
-      // xhr: function() {
-      //   // create an XMLHttpRequest
-      //   var xhr = new XMLHttpRequest();
-      //
-      //   // listen to the 'progress' event
-      //   xhr.upload.addEventListener('progress', function(evt) {
-      //
-      //     if (evt.lengthComputable) {
-      //       // calculate the percentage of upload completed
-      //       var percentComplete = evt.loaded / evt.total;
-      //       percentComplete = parseInt(percentComplete * 100);
-      //
-      //       // update the Bootstrap progress bar with the new percentage
-      //       $('.progress-bar').text(percentComplete + '%');
-      //       $('.progress-bar').width(percentComplete + '%');
-      //
-      //       // once the upload reaches 100%, set the progress bar text to done
-      //       if (percentComplete === 100) {
-      //         $('.progress-bar').html('Done');
-      //       }
-      //
-      //     }
-      //
-      //   }, false);
-      //
-      //   return xhr;
-      // }
     });
 
   }

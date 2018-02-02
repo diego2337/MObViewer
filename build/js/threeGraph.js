@@ -1,25 +1,6 @@
-// /* Zoom in */
-// $('#zoomIn').on('click', function(){
-//   /* Creates a jQuery event for mouseWheel */
-//   // var evt = jQuery.Event("wheel", {delta: 650});
-//   // var evt = jQuery.Event("wheel", {delta: 650});
-//   // /* Triggers a mousewheel function */
-//   // $('#WebGL').trigger(evt);
-//   dollyOut( getZoomScale() );
-// });
-//
-// /* Zoom out */
-// $('#zoomOut').on('click', function(){
-//   /* Creates a jQuery event for mouseWheel */
-//   // var evt = jQuery.Event("wheel", {delta: -650});
-//   // /* Triggers a mousewheel function */
-//   // $('#WebGL').trigger(evt);
-//   dollyIn( getZoomScale() );
-// });
-
 /**
   * Singleton base class for depth of the scene.
-  * Author: Diego S. Cintra
+  * @author Diego S. Cintra
   */
 
 /**
@@ -746,25 +727,12 @@ Graph.prototype.buildGraph = function(scene, layout)
 }
 
 /**
- * Constructor
- * params:
- *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for the geometry (from three.js).
- *
-function Node(circleGeometry, meshBasicMaterial)
-{
-    this.circleGeometry = circleGeometry;
-    this.meshBasicMaterial = meshBasicMaterial;
-}*/
-
-/**
- * Constructor
- * params:
- *    - nodeObject: the node object taken from the JSON file;
- *    - min: min value to be used in feature scaling;
- *    - max: max value to be used in feature scaling;
- *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for geometry (from three.js).
+ * @constructor
+ * @param {Object} nodeObject The node object taken from the JSON file;
+ * @param {int} min Min value to be used in feature scaling;
+ * @param {int} max Max value to be used in feature scaling;
+ * @param {Object} circleGeometry A geometry of type circle (from three.js);
+ * @param {Object} meshBasicMaterial Material for geometry (from three.js).
  */
 var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
 {
@@ -774,32 +742,30 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     meshBasicMaterial = ecmaStandard(meshBasicMaterial, undefined);
     try
     {
-        // CHANGED - INCLUDED this.nodeObject; REMOVED this.id, this.weight
         this.nodeObject = nodeObject;
-        //this.id = toInt(nodeObject.id);
-        //this.weight = toInt(nodeObject.weight);
-        // CHANGED - FROM this.weight TO this.nodeObject.weight
         if(this.nodeObject.weight == undefined)
         {
             this.nodeObject.weight = 1;
         }
-
         /* Use feature scaling to fit nodes */
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
-        // circleGeometry.scale(x, x, x);
-        // this.circleGeometry = new THREE.CircleGeometry(x, 100);
-        this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        if(circleGeometry == undefined)
+        {
+            this.circleGeometry = new THREE.circleGeometry(1, 32);
+        }
+        else
+        {
+            this.circleGeometry = circleGeometry;
+        }
 
-        /* Store number of nodes from each layer */
-
-        // if(meshBasicMaterial == undefined)
-        // {
-        //     this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
-        // }
-        // else
-        // {
-        //     this.meshBasicMaterial = meshBasicMaterial;
-        // }
+        if(meshBasicMaterial == undefined)
+        {
+            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        }
+        else
+        {
+          this.meshBasicMaterial = meshBasicMaterial;
+        }
     }
     catch(err)
     {
@@ -814,26 +780,21 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     }
     finally
     {
-        this.circle = new THREE.Mesh(circleGeometry, this.meshBasicMaterial);
+        this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
         this.circle.scale.set(x, x, x);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
         this.circle.geometry.computeBoundingBox();
         this.circle.geometry.computeBoundingSphere();
-        // this.circle.geometry.boundingBox = null;
         this.circle.geometry.verticesNeedUpdate = true;
         this.circle.renderOrder = 1;
     }
 }
 
 /**
- * Define constructor
-
-Node.prototype.constructor = Node;
-*/
-
-/**
- * Getter for node - COPY, NOT REFERENCE
+ * Getter for node via copy, not reference.
+ * @public
+ * @returns {Object} Node type object.
  */
 Node.prototype.getNode = function()
 {
@@ -845,9 +806,9 @@ Node.prototype.getNode = function()
 }
 
 /**
- * Sets the current node with new node attributes
- * param:
- *    - node: node for copying.
+ * Sets the current node with new node attributes.
+ * @public
+ * @param {Object} node Node for copying.
  */
 Node.prototype.setNode = function(node)
 {
@@ -857,7 +818,9 @@ Node.prototype.setNode = function(node)
 }
 
 /**
- * Getter for circleGeometry
+ * Getter for circleGeometry.
+ * @public
+ * @returns {Object} THREE.CircleGeometry type object.
  */
 Node.prototype.getCircleGeometry = function()
 {
@@ -865,7 +828,9 @@ Node.prototype.getCircleGeometry = function()
 }
 
 /**
- * Setter for circleGeometry
+ * Setter for circleGeometry.
+ * @public
+ * @param {Object} circleGeometry THREE.CircleGeometry type object.
  */
 Node.prototype.setCircleGeometry = function(circleGeometry)
 {
@@ -873,7 +838,9 @@ Node.prototype.setCircleGeometry = function(circleGeometry)
 }
 
 /**
- * Getter for meshBasicMaterial
+ * Getter for meshBasicMaterial.
+ * @public
+ * @returns {Object} THREE.MeshBasicMaterial type object.
  */
 Node.prototype.getMeshBasicMaterial = function()
 {
@@ -881,7 +848,9 @@ Node.prototype.getMeshBasicMaterial = function()
 }
 
 /**
- * Setter for meshBasicMaterial
+ * Setter for meshBasicMaterial.
+ * @public
+ * @param {Object} meshBasicMaterial THREE.MeshBasicMaterial type object.
  */
 Node.prototype.setMeshBasicMaterial = function(meshBasicMaterial)
 {
@@ -889,7 +858,9 @@ Node.prototype.setMeshBasicMaterial = function(meshBasicMaterial)
 }
 
 /**
- * Getter for circle
+ * Getter for circle.
+ * @public
+ * @returns {Object} THREE.Mesh type object.
  */
 Node.prototype.getCircle = function()
 {
@@ -897,7 +868,9 @@ Node.prototype.getCircle = function()
 }
 
 /**
- * Setter for circle
+ * Setter for circle.
+ * @public
+ * @param THREE.Mesh type object.
  */
 Node.prototype.setCircle = function(circle)
 {
@@ -905,26 +878,29 @@ Node.prototype.setCircle = function(circle)
 }
 
 /**
- * Build the node into the scene
- * params:
- *    - index: index of current node;
- *    - firstLayer: number of nodes in first layer of bipartite graph;
- *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
- *    - alpha: value used in bipartite layout;
- *    - layout: the graph layout;
- *    - theta: used in the parametric equation of radial layout.
+ * Build node into scene.
+ * @public
+ * @param {int} index Index of current node.
+ * @param {int} firstLayer Number of nodes in first layer of bipartite graph.
+ * @param {int} lastLayer Number of nodes in second (or last) layer of bipartite graph.
+ * @param {int} alpha Value for spacing of parallel lines.
+ * @param {int} theta Used to define distance of nodes.
+ * @param {int} layout Used for checking if layout is either vertical bipartite (0) or horizontal bipartite (1).
  */
 Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, layout)
 {
     switch(layout)
     {
-        case 1: // Radial layout
+        /** Radial layout */
+        case 1:
             this.buildRadial(theta);
             break;
-        case 2: // Bipartite layout - horizontal
+        /** Bipartite layout - horizontal */
+        case 2:
             this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 1);
             break;
-        case 3: // Bipartite layout - vertical
+        /** Bipartite layout - vertical */
+        case 3:
             this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 0);
             break;
         default:
@@ -933,17 +909,9 @@ Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, 
 }
 
 /**
- * Build a node into the scene, using a force directed layout
- */
-Node.prototype.buildForceDirected = function()
-{
-    console.log("To be implemented");
-}
-
-/**
- * Build a node into the scene, using a radial layout
- * param:
- *    - theta: used in the parametric equation of radial layout.
+ * Build node into scene, using a radial layout.
+ * @public
+ * @param {int} theta Used in the parametric equation of radial layout.
  */
 Node.prototype.buildRadial = function(theta)
 {
@@ -956,55 +924,68 @@ Node.prototype.buildRadial = function(theta)
 }
 
 /**
- * Build a node into the scene, using a bipartite layout
- * params:
- *    - index: index of node being positioned;
- *    - firstLayer: number of nodes in first layer of bipartite graph;
- *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
- *    - alpha: value for spacing of parallel lines;
- *    - theta: used for bipartite layout;
- *    - horizontal: boolean to check if layout is bipartite horizontal or not.
+ * Build node into scene, using a bipartite layout.
+ * @public
+ * @param {int} index Index of node being positioned.
+ * @param {int} firstLayer Number of nodes in first layer of bipartite graph.
+ * @param {int} lastLayer Number of nodes in second (or last) layer of bipartite graph.
+ * @param {int} alpha Value for spacing of parallel lines.
+ * @param {int} theta sed to define distance of nodes.
+ * @param {int} horizontal Boolean to check if layout is bipartite horizontal or vertical.
  */
 Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal)
 {
-    if(horizontal)
+    /* Separate vertical lines according to number of layers */
+    if(index >= firstLayer)
     {
-      /* Separate vertical lines according to number of layers */
-      if(index >= firstLayer)
-      {
-          var y = alpha;
-          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-          index = lastLayer;
-          // index = Math.round(index / lastLayer) + lastIndex;
-      }
-      else
-      {
-          var y = alpha * (-1);
-      }
-      x = index * theta;
-      this.circle.position.set(x, y, 0);
+        var y = alpha;
+        index = lastLayer;
     }
-    else if(!horizontal)
+    else
     {
-      /* Separate vertical lines according to number of layers */
-      if(index >= firstLayer)
-      {
-          var x = alpha;
-          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-          index = lastLayer;
-          // index = Math.round(index / lastLayer) + lastIndex;
-      }
-      else
-      {
-          var x = alpha * (-1);
-      }
-      y = index * theta;
-      this.circle.position.set(x, y, 0);
+        var y = alpha * (-1);
     }
+    x = index * theta;
+    horizontal ? this.circle.position.set(x, y, 0) : this.circle.position.set(y, x, 0);
+    // if(horizontal)
+    // {
+    //   /* Separate vertical lines according to number of layers */
+    //   if(index >= firstLayer)
+    //   {
+    //       var y = alpha;
+    //       // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+    //       index = lastLayer;
+    //       // index = Math.round(index / lastLayer) + lastIndex;
+    //   }
+    //   else
+    //   {
+    //       var y = alpha * (-1);
+    //   }
+    //   x = index * theta;
+    //   this.circle.position.set(x, y, 0);
+    // }
+    // else if(!horizontal)
+    // {
+    //   /* Separate vertical lines according to number of layers */
+    //   if(index >= firstLayer)
+    //   {
+    //       var x = alpha;
+    //       // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
+    //       index = lastLayer;
+    //       // index = Math.round(index / lastLayer) + lastIndex;
+    //   }
+    //   else
+    //   {
+    //       var x = alpha * (-1);
+    //   }
+    //   y = index * theta;
+    //   this.circle.position.set(x, y, 0);
+    // }
 }
 
 /**
- * Highlight node
+ * Highlight node.
+ * @public
  */
 Node.prototype.highlight = function()
 {
@@ -1012,7 +993,8 @@ Node.prototype.highlight = function()
 }
 
 /**
- * Unhighlight node
+ * Unhighlight node.
+ * @public
  */
 Node.prototype.unhighlight = function()
 {
@@ -1045,9 +1027,9 @@ var clicked = false;
 // });
 
 /**
- * Display graph info to HTML page
- * param:
- *    - jason: .json file representing graph
+ * Display graph info on HTML page.
+ * @public
+ * @param {JSON} jason .json file representing graph.
  */
 function displayGraphInfo(jason)
 {
@@ -1063,10 +1045,10 @@ function displayGraphInfo(jason)
 }
 
 /**
-  * Render a bipartite graph given a .json file
-  * param:
-  *    - data: string graph to be parsed into JSON notation and rendered;
-  *    - layout: graph layout. Default is 2 (bipartite horizontal)
+  * Render a bipartite graph, given a .json file.
+  * @public
+  * @param {string} data String graph to be parsed into JSON notation and rendered.
+  * @param {int} layout Graph layout. Default is 2 (bipartite horizontal).
   */
 function build(data, layout)
 {
@@ -1084,17 +1066,13 @@ function build(data, layout)
   if(renderer == undefined)
   {
       /* Get the size of the inner window (content area) to create a full size renderer */
-      // canvasWidth = (window.innerWidth) / 1.5;
-      // canvasHeight = (window.innerHeight) / 1.5;
       canvasWidth = (document.getElementById("WebGL").clientWidth);
       canvasHeight = (document.getElementById("WebGL").clientHeight) - 20;
-
       /* Create a new WebGL renderer */
       renderer = new THREE.WebGLRenderer({antialias:true});
       /* Set the background color of the renderer to black, with full opacity */
       renderer.setClearColor("rgb(255, 255, 255)", 1);
-
-      /* Set the renderers size to the content areas size */
+      /* Set the renderers size to the content area size */
       renderer.setSize(canvasWidth, canvasHeight);
   }
   else
@@ -1102,9 +1080,7 @@ function build(data, layout)
       renderer.clear();
   }
 
-  // renderer.sortObjects = false;
-
-  /* Get the DIV element from the HTML document by its ID and append the renderers DOM object to it */
+  /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
 
   /* Create scene */
@@ -1114,17 +1090,10 @@ function build(data, layout)
   /* Build graph */
   graph.buildGraph(scene, lay);
 
-  /* Define depth variable to set camera positioning */
-  var depth = new Depth(0);
-  depth.setZ(Math.abs(graph.getMinNode()) + Math.abs(graph.getMaxNode()));
   /* Create the camera and associate it with the scene */
   if(camera !== undefined) delete camera;
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 2000);
-  /* TODO - Setting Z value so that every element will have the same depth */
-  //  setZ(10);
   camera.position.set(0, 0, 70);
-  // camera.position.set(0, 0, (depth.getZ()));
-  // console.log("(depth.getZ()): ", (depth.getZ()));
   camera.lookAt(scene.position);
   camera.name = "camera";
   scene.add(camera);
@@ -1138,6 +1107,7 @@ function build(data, layout)
   /* Using orbitControls for moving */
   if(controls !== undefined) delete controls;
   var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
   /* Setting up params */
   controls.minDistance = 1;
   controls.maxDistance = 500;
@@ -1152,14 +1122,11 @@ function build(data, layout)
   if(eventHandler !== undefined) delete eventHandler;
   eventHandler = new EventHandler(undefined, scene);
 
-  // eventHandler.setScene(scene);
-
   /* Adding event listeners */
   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
   document.addEventListener('dblclick', function(evt){
     eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
-    if(!clicked) clicked = true;
-    else if(clicked) clicked = false;
+    !clicked ? clicked = true : clicked = false;
   }, false);
 
   // console.log(renderer.info);
@@ -1186,8 +1153,8 @@ function build(data, layout)
 }
 
 /**
- * Base class for pre ECMAScript2015 standardization.
- * Author: Diego S. Cintra
+ * @desc Base class for pre ECMAScript2015 standardization.
+ * @author Diego S. Cintra
  */
 var ecmaStandard = function(variable, defaultValue)
 {
@@ -1196,7 +1163,7 @@ var ecmaStandard = function(variable, defaultValue)
 
 /**
  * Base class for a Event handler, implementing Event interface.
- * Author: Diego S. Cintra
+ * @author Diego S. Cintra
  */
 
 // var THREE = require('../../../node_modules/three/build/three.js');
@@ -2533,127 +2500,3 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 	}
 
 } );
-
-// /**
-//   * Base class for building scene and performing preprocessing operations, such as node size and node positions.
-//   * Author: Diego S. Cintra
-//   */
-//
-// var Graph = require('../src/graph.js');
-// var Node = require('../src/node.js');
-// var Edge = require('../src/edge.js');
-// var THREE = require('../../../node_modules/three/build/three.js');
-//
-// /**
-//  * Constructor
-//  * params:
-//  *    - jsonFile: JSON graph
-//  */
-// var SceneBuilder = function(jsonFile)
-// {
-// 	/* Converting text string to JSON */
-//     var jason = JSON.parse(jsonFile);
-//
-//     /* Instantiating Graph */
-//     this.graph = new Graph(jason, 2, 10, 70);
-//
-//     /* Create the scene */
-//     this.scene = new THREE.Scene();
-//
-//     /* Create lights to associate with scene */
-//     var lights = [];
-//     lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-//     lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-//     lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-//
-//     lights[ 0 ].position.set( 0, 2, 0 );
-//     lights[ 1 ].position.set( 1, 2, 1 );
-//     lights[ 2 ].position.set( - 1, - 2, - 1 );
-//
-//     this.scene.add( lights[ 0 ] );
-//     this.scene.add( lights[ 1 ] );
-//     this.scene.add( lights[ 2 ] );
-// }
-//
-// SceneBuilder.prototype.build = function()
-// {
-//     /* Build graph */
-//     // graph.buildGraph(scene);
-//     this.graph.buildGraph();
-//
-//     /* Add graph elements to scene */
-//     for(var i = 0; i < this.graph.getNumberOfNodes(); i++)
-//     {
-//     	this.scene.add(this.graph.getNodeByIndex(i).getCircle());
-//     }
-//     for(var i = 0; i < this.graph.getNumberOfEdges(); i++)
-//     {
-//     	this.scene.add(this.graph.getEdgeByIndex(i).getLine());
-//     }
-// }
-//
-// module.exports = SceneBuilder;
-
-// /**
-//  * Base class for tracking mouse object, used for debugging.
-//  * Author: Diego S. Cintra
-//  */
-//
-// /**
-//  * Constructor which, by default, defines a triangleMesh
-//  */
-// var Tracker = function()
-// {
-//     this.triangleGeometry = new THREE.Geometry();
-//     this.triangleGeometry.vertices.push(new THREE.Vector3( 0.0,  0.2, 0.0));
-//     this.triangleGeometry.vertices.push(new THREE.Vector3(-0.2, -0.2, 0.0));
-//     this.triangleGeometry.vertices.push(new THREE.Vector3( 0.2, -0.2, 0.0));
-//     this.triangleGeometry.faces.push(new THREE.Face3(0, 1, 2));
-//     this.triangleGeometry.faces[0].vertexColors[0] = new THREE.Color(0xFF0000);
-//     this.triangleGeometry.faces[0].vertexColors[1] = new THREE.Color(0x00FF00);
-//     this.triangleGeometry.faces[0].vertexColors[2] = new THREE.Color(0x0000FF);
-//     this.triangleMaterial = new THREE.MeshBasicMaterial({
-//         vertexColors:THREE.VertexColors,
-//         side:THREE.DoubleSide
-//     });
-//     this.triangleMesh = new THREE.Mesh(this.triangleGeometry, this.triangleMaterial);
-//     this.triangleMesh.name = "tracker";
-// }
-//
-// /**
-//  * Getter for mesh
-//  */
-// Tracker.prototype.getMesh = function()
-// {
-//     return this.triangleMesh;
-// }
-//
-// /**
-//  * Define tracker's position
-//  * params:
-//  *    - mouseX: x coordinate position;
-//  *    - mouseY: y coordinate position.
-//  */
-// Tracker.prototype.setPos = function(mouseX, mouseY)
-// {
-//     this.triangleMesh.position.set(mouseX, mouseY, 0);
-// }
-//
-// /**
-//  * Make tracker follow mouse position
-//  * params:
-//  *    - mouseX: x coordinate position;
-//  *    - mouseY: y coordinate position;
-//  *    - camera: scene camera.
-//  */
-// Tracker.prototype.followMouse = function(mouseX, mouseY, camera)
-// {
-//     var vector = new THREE.Vector3(mouseX, mouseY, 0.5);
-// 	vector.unproject( camera );
-// 	var dir = vector.sub( camera.position ).normalize();
-// 	var distance = - camera.position.z / dir.z;
-// 	var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-// 	this.triangleMesh.position.copy(pos);
-// }
-//
-// module.exports = Tracker;

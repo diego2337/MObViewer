@@ -1,6 +1,6 @@
 /**
   * Singleton base class for depth of the scene.
-  * Author: Diego S. Cintra
+  * @author Diego S. Cintra
   */
 
 /**
