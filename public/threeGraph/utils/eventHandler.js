@@ -3,9 +3,6 @@
  * @author Diego S. Cintra
  */
 
-// var THREE = require('../../../node_modules/three/build/three.js');
-// var ecmaStandard = require('../utils/ecmaStandard.js');
-
 /**
  * Constructor
  * params:
@@ -14,13 +11,9 @@
  */
 var EventHandler = function(raycaster, scene)
 {
-    /* Pre ECMAScript 2015 standardization */
-    // raycaster = typeof raycaster !== 'undefined' ? raycaster : new THREE.Raycaster();
-    // scene = typeof scene !== 'undefined' ? scene : new THREE.Scene();
-    raycaster = ecmaStandard(raycaster, undefined);
-    scene = ecmaStandard(scene, undefined);
-    this.raycaster = new THREE.Raycaster();
-    this.scene = scene;
+    this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
+    this.raycaster.linePrecision = 0.3;
+    this.scene = ecmaStandard(scene, new THREE.Scene());
     this.highlightedElements = [];
     this.neighbors = [];
 }
@@ -101,8 +94,8 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
         /* Highlight neighbors */
         for(var j = 0; j < this.neighbors.length; j++)
         {
-          console.log("this.neighbors[j]: ");
-          console.log(this.neighbors[j]);
+          // console.log("this.neighbors[j]: ");
+          // console.log(this.neighbors[j]);
           this.neighbors[j].highlight();
         }
       }
@@ -134,16 +127,8 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
  */
 EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
 {
-    /* DEBUG - Removes tracking object from scene, if there is any */
-    // if(this.tracker != undefined)
-    // {
-    //     this.scene.remove(this.tracker.getMesh());
-    // }
     /* Get canvas element and adjust x and y to element offset */
     var canvas = renderer.domElement.getBoundingClientRect();
-    // var coords = renderer.domElement.relMouseCoords(evt);
-    // var x = coords.x;
-    // var y = coords.y;
     var x = evt.clientX - canvas.left;
     var y = evt.clientY - canvas.top;
     // console.log("x: " + x + " y: " + y);
@@ -151,16 +136,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     /* Adjusting mouse coordinates to NDC [-1, 1] */
     var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
     var mouseY = -(y / renderer.domElement.clientHeight) * 2 + 1;
-    // var mouseX = ((evt.clientX-renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1;
-    // var mouseY = -((evt.clientY-renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1;
 
     var mouse = new THREE.Vector2(mouseX, mouseY);
     var camera = this.scene.getObjectByName("camera", true);
-
-    /* DEBUG - Adds tracking object */
-    // this.tracker = new Tracker();
-    // this.tracker.followMouse(mouseX, mouseY, camera);
-    // this.scene.add(this.tracker.getMesh());
 
     /* Setting raycaster starting from camera */
     this.raycaster.setFromCamera(mouse, camera);
@@ -188,9 +166,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
           element.unhighlight();
         if(element instanceof Node)
         {
-            // graph.setNodeById(this.highlightedElements[i], element);
-            // d3.select("#name")
-            //     .style("display", "none");
+            graph.setNodeById(this.highlightedElements[i], element);
         }
         else
         {
@@ -202,7 +178,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     if(intersection != undefined)
     {
         var element = graph.getElementById(intersection.object.name);
-        console.log(element);
         element.highlight();
         if(element instanceof Node)
         {
@@ -212,17 +187,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
               document.getElementById("graphDescription").innerHTML = element.circle.description;
             else
               document.getElementById("graphDescription").innerHTML = "No description found.";
-            /* Get name of node to display onscreen */
-            // d3.select("#name")
-            //     .text(element.circle.name)
-            //     .attr("font-family", "sans-serif")
-            //     .attr("font-size", "20px")
-            //     .style("display", "inline")
-            //     .style("position", "absolute")
-            //     .style("z-index", "1")
-            //     .style("top", y)
-            //     .style("left", x)
-            //     .attr("fill", "green");
         }
         else
         {

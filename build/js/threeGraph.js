@@ -93,24 +93,18 @@ Depth.prototype.setZ = function(z)
 // }
 
 /**
- * Constructor
- * params:
- *    - edgeObject: the edge object taken from the JSON file;
- *    - min: min value to be used in feature scaling;
- *    - max: max value to be used in feature scaling;
- *    - geometry: optimized geometry to build line (from three.js);
- *    - lineBasicMaterial: material for geometry (from three.js).
+ * @constructor
+ * @param {Object} edgeObject The edge object taken from the JSON file.
+ * @param {int} min Min value to be used in feature scaling.
+ * @param {int} max Max value to be used in feature scaling.
+ * @param {Object} geometry Optimized geometry to build line (from three.js).
+ * @param {Object} lineBasicMaterial Material for geometry (from three.js).
  */
-// var Edge = function(edgeObject, min, max, geometry, lineBasicMaterial)
 var Edge = function(edgeObject, min, max, geometry, lineBasicMaterial)
 {
     /* Pre ECMAScript 2015 standardization */
-    // min = typeof min !== 'undefined' ? min : 0;
-    // max = typeof max !== 'undefined' ? max : 50;
     min = ecmaStandard(min, 0);
     max = ecmaStandard(max, 100);
-    // geometry = typeof geometry !== 'undefined' ? geometry : undefined;
-    // lineBasicMaterial = typeof lineBasicMaterial !== 'undefined' ? lineBasicMaterial : undefined;
     try
     {
         this.edgeObject = edgeObject;
@@ -120,66 +114,20 @@ var Edge = function(edgeObject, min, max, geometry, lineBasicMaterial)
         {
             this.edgeObject.weight = 1;
         }
-
         /* Use feature scaling to fit edges */
         this.edgeRadius = (this.edgeObject.weight - min)/(max-min);
-        lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
-        this.line = new THREE.LineSegments(geometry, lineBasicMaterial);
-        this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
-        this.line.boundingBox = null;
-        this.line.renderOrder = 0;
-        this.line.matrixAutoUpdate = false;
+        this.line = new MeshLine();
     }
     catch(err)
     {
-        throw "Constructor must have edgeObject type as first parameter! " +
-        " Constructor " +
-            " params: " +
-            "    - edgeObject: the edge object taken from the JSON file; " +
-            "    - min: min value to be used in feature scaling; " +
-            "    - max: max value to be used in feature scaling; " +
-            "    - geometry: a generic geometry (from three.js); " +
-            "    - lineBasicMaterial: line material for the object (from three.js).";
-    }
-    finally
-    {
-        // if(geometry != undefined && lineBasicMaterial == undefined)
-        // {
-        //     this.geometry = geometry;
-        //     this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
-        // }
-        // else if(geometry == undefined && lineBasicMaterial != undefined)
-        // {
-        //     this.geometry = new THREE.Geometry();
-        //     this.lineBasicMaterial = lineBasicMaterial;
-        // }
-        // else if(geometry != undefined && lineBasicMaterial != undefined)
-        // {
-        //     this.geometry = geometry;
-        //     this.lineBasicMaterial = lineBasicMaterial;
-        // }
-        // else
-        // {
-        //     this.geometry = new THREE.Geometry();
-        //     this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
-        // }
-
-        /* TODO - eliminates ray tracing completely */
-        // this.geometry.computeBoundingSphere();
-        // this.geometry.computeFaceNormals();
-        // this.geometry.boundingBox = null;
-        // this.geometry.verticesNeedUpdate = true;
-        // this.geometry.computeLineDistances();
-        // this.geometry.computeBoundingBox();
-        // this.geometry.computeFlatVertexNormals();
-        // this.geometry.computeLineDistances();
-        // this.geometry.computeMorphNormals();
-        // this.geometry.verticesNeedUpdate = true;
+        throw "Constructor must have edgeObject type as first parameter! ";
     }
 }
 
 /**
- * Getter for edge - COPY, NOT REFERENCE
+ * Getter for edge via copy, not reference.
+ * @public
+ * @returns {Object} Edge type object.
  */
 Edge.prototype.getEdge = function()
 {
@@ -191,9 +139,9 @@ Edge.prototype.getEdge = function()
 }
 
 /**
- * Sets the current edge with new edge attributes
- * param:
- *    - Edge: edge for copying.
+ * Sets the current edge with new node attributes.
+ * @public
+ * @param {Object} edge Edge for copying.
  */
 Edge.prototype.setEdge = function(edge)
 {
@@ -203,59 +151,11 @@ Edge.prototype.setEdge = function(edge)
 }
 
 /**
- * Getter for Geometry
- */
-Edge.prototype.getGeometry = function()
-{
-    return this.geometry;
-}
-
-/**
- * Setter for Geometry
- */
-Edge.prototype.setGeometry = function(geometry)
-{
-    this.geometry = geometry;
-}
-
-/**
- * Getter for lineBasicMaterial
- */
-Edge.prototype.getlineBasicMaterial = function()
-{
-    return this.lineBasicMaterial;
-}
-
-/**
- * Setter for lineBasicMaterial
- */
-Edge.prototype.setlineBasicMaterial = function(lineBasicMaterial)
-{
-    this.lineBasicMaterial = lineBasicMaterial;
-}
-
-/**
- * Getter for line
- */
-Edge.prototype.getLine = function()
-{
-    return this.line;
-}
-
-/**
- * Setter for line
- */
-Edge.prototype.setLine = function(line)
-{
-    this.line = line;
-}
-
-/**
- * Build the edge into the scene
- * params:
- *    - geometry: geometry for edges;
- *    - source: source node from which the edge starts (if directed);
- *    - target: target node from which the edge ends (if dirceted).
+ * Build edge into scene.
+ * @public
+ * @param {Object} geometry Geometry for edges.
+ * @param {Object} source Source node from which the edge starts.
+ * @param {Object} target Target node from which the edge ends.
  */
 Edge.prototype.buildEdge = function(geometry, source, target)
 {
@@ -265,21 +165,11 @@ Edge.prototype.buildEdge = function(geometry, source, target)
     var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
     geometry.vertices.push(v1);
     geometry.vertices.push(v2);
-    // this.geometry = new THREE.Geometry();
-    // var path = new Float32Array([
-    //     sourcePos.x, sourcePos.y, sourcePos.z,
-    //
-    //     targetPos.x, targetPos.y, targetPos.z
-    // ]);
-    // geometry.addAttribute('position', new THREE.BufferAttribute( path, 3 ));
-    // this.line.geometry.addAttribute('position', new THREE.BufferAttribute( path, 3 ));
-    // this.geometry.computeFaceNormals();
-    // this.geometry.computeVertexNormals();
-    // this.geometry.computeBoundingSphere();
 }
 
 /**
- * Highlight edge
+ * Highlight edge.
+ * @public
  */
 Edge.prototype.highlight = function()
 {
@@ -287,7 +177,8 @@ Edge.prototype.highlight = function()
 }
 
 /**
- * Unhighlight edge
+ * Unhighlight edge.
+ * @public
  */
 Edge.prototype.unhighlight = function()
 {
@@ -295,27 +186,23 @@ Edge.prototype.unhighlight = function()
 }
 
 /**
-* Constructor
-* params:
-*    - graph: object containing JSON graph file, with:
-*      - graphInfo: object containing information such as:
-*              1) if the graph is directed;
-*              2) which multilevel is;
-*              3) the number of layers;
-*              4) n integers, each containing the number of nodes in a layer.
-*      - nodes: array of Node type;
-*      - edges: array of Edge type;
-*    - min: the minimal value for feature scaling, applied to nodes and edges. Default is 0
-*    - max: the maximum value for feature scaling, applied to nodes and edges. Default is 10
-*/
+ * @constructor
+ * @param {Object} graph Object containing .json graph file, with:
+ *      - graphInfo: object containing information such as:
+ *              1) if the graph is directed;
+ *              2) which multilevel is;
+ *              3) the number of layers;
+ *              4) n integers, each containing the number of nodes in a layer.
+ *      - nodes: array of Node type;
+ *      - edges: array of Edge type;
+ * @param {int} min The minimal value for feature scaling, applied to nodes and edges. Default is 0.
+ * @param {int} max The maximum value for feature scaling, applied to nodes and edges. Default is 10.
+ */
 var Graph = function(graph, min, max)
 {
-   /* Pre ECMAScript2015 standardization */
-   // layout = typeof layout !== 'undefined' ? layout : 2;
-   // min = typeof min !== 'undefined' ? min : 0;
-   // max = typeof max !== 'undefined' ? max : 10
-   min = ecmaStandard(min);
-   max = ecmaStandard(max);
+   /** Assigning default values to min and max size of elements */
+  //  min = ecmaStandard(min);
+  //  max = ecmaStandard(max);
    try
    {
        this.graphInfo = graph.graphInfo[0];
@@ -330,10 +217,10 @@ var Graph = function(graph, min, max)
        {
            this.firstLayer = this.lastLayer =  Math.floor(graph.nodes.length / 2);
        }
-       this.graphInfo.min = min;
-       this.graphInfo.max = max;
+       this.graphInfo.min = ecmaStandard(min, 0);
+       this.graphInfo.max = ecmaStandard(max, 10);
        this.theta = 0;
-       /* Graph keeps instances of geometries and materials for optimization */
+       /** Define geometry and material in graph class for optimization - one actor only (graph), with only one mesh */
        this.circleGeometry = new THREE.CircleGeometry(1, 32);
        this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
        if(graph.nodes instanceof Array)
@@ -343,11 +230,8 @@ var Graph = function(graph, min, max)
            {
                this.nodes[i] = new Node(graph.nodes[i], min, max, this.circleGeometry, this.meshBasicMaterial);
            }
-           // graph.nodes.forEach(function(d, i){
-           //     this.nodes[i] = new Node(d);
-           // });
        }
-       /* Graph keeps instances of geometries and materials for optimization */
+       /** Define geometry and material in graph class for optimization - one actor only (graph), with only one mesh */
        this.geometry = new THREE.Geometry();
        if(graph.links instanceof Array)
        {
@@ -356,9 +240,6 @@ var Graph = function(graph, min, max)
            {
                this.edges[i] = new Edge(graph.links[i], 0, 100, this.lineBasicMaterial);
            }
-           // graph.edges.forEach(function(d, i){
-           //     this.edges[i] = new Edge(d);
-           // })
        }
    }
    catch(err)
@@ -368,59 +249,51 @@ var Graph = function(graph, min, max)
 }
 
 /**
-* Get element by id
-* param:
-*    - id: element id.
-*/
+ * Get element by id.
+ * @public
+ * @param {int} id Element id.
+ * @returns {Object} Either Node or Edge type object.
+ */
 Graph.prototype.getElementById = function(id)
 {
    var identification = id.slice(0,1);
-   if(identification == "e") // edge
+   if(identification == "e") /* edge */
    {
        return this.getEdgeById(id);
    }
-   else // node
+   else /* node */
    {
        return this.getNodeById(id);
    }
 }
 
 /**
-* Get nodes from graph
-*/
+ * Get nodes from graph.
+ * @public
+ * @returns {Array} Node type array.
+ */
 Graph.prototype.getNodes = function()
 {
    return this.nodes;
 }
 
 /**
-* Get nodes meshes
-*/
-Graph.prototype.getNodesMeshes = function()
-{
-   var meshes = [];
-   for(var i = 0; i < this.nodes.length; i++)
-   {
-       meshes.push(this.nodes[i].getCircle());
-   }
-   return meshes;
-}
-
-/**
-* Get specific node from graph by id
-* param:
-*    - id: node id.
-*/
+ * Get specific node from graph by id.
+ * @public
+ * @param {int} id Node id.
+ * @returns {Object} Node type object.
+ */
 Graph.prototype.getNodeById = function(id)
 {
    return this.getNodeByIndex(this.findNode(id));
 }
 
 /**
-* Find node by id
-* param:
-*    - id: node id.
-*/
+ * Find node by id.
+ * @public
+ * @param {int} id Node id.
+ * @returns index of node, or -1 if node wasn't found.
+ */
 Graph.prototype.findNode = function(id)
 {
    for(var i = 0; i < this.nodes.length; i++)
@@ -434,29 +307,32 @@ Graph.prototype.findNode = function(id)
 }
 
 /**
-* Get specific node from graph by index
-* param:
-*    - i: index from array of nodes in "Graph" class.
-*/
+ * Get specific node from graph by index.
+ * @public
+ * @param {int} i Index from array of nodes in "Graph" class.
+ * @returns {Object} Either Node found, or string "Node not found.".
+ */
 Graph.prototype.getNodeByIndex = function(i)
 {
    return i != -1 ? this.nodes[i] : "Node not found.";
 }
 
 /**
-* Get number of nodes from graph
-*/
+ * Get number of nodes from graph.
+ * @public
+ * @returns Length of nodes.
+ */
 Graph.prototype.getNumberOfNodes = function()
 {
    return this.nodes.length;
 }
 
 /**
-* Set node by id
-* param:
-*    - id: node id;
-*    - node: object to be assigned.
-*/
+ * Set node by id.
+ * @public
+ * @param {int} id Node id.
+ * @param {Object} node Object to be assigned.
+ */
 Graph.prototype.setNodeById = function(id, node)
 {
    var index = this.findNode(id);
@@ -464,81 +340,22 @@ Graph.prototype.setNodeById = function(id, node)
 }
 
 /**
-  * Get leftmost (or downmost) node of graph
-  * returns:
-  *    - world coordinate of leftmost (or downmost) element of graph.
-  */
-Graph.prototype.getMinNode = function()
-{
-  return this.minNode;
-}
-
-/**
-  * Set leftmost (or downmost) node of graph
-  * param:
-  *    - minNode: world coordinate of leftmost (or downmost) element of graph.
-  */
-Graph.prototype.setMinNode = function(minNode)
-{
-  this.minNode = minNode;
-}
-
-/**
-  * Get rightmost (or upmost) node of graph
-  * returns:
-  *    - world coordinate of rightmost (or upmost) element of graph.
-  */
-Graph.prototype.getMaxNode = function()
-{
-  return this.maxNode;
-}
-
-/**
-  * Set rightmost (or upmost) node of graph
-  * param:
-  *    - maxNode: world coordinate of rightmost (or upmost) element of graph.
-  */
-Graph.prototype.setMaxNode = function(maxNode)
-{
-  this.maxNode = maxNode;
-}
-
-/**
-* Get edges from graph
-*/
-Graph.prototype.getEdges = function()
-{
-   return this.edges;
-}
-
-/**
-* Get edges meshes
-*/
-Graph.prototype.getEdgesMeshes = function()
-{
-   var meshes = [];
-   for(var i = 0; i < this.edges.length; i++)
-   {
-       meshes.push(this.edges[i].getLine());
-   }
-   return meshes;
-}
-
-/**
-* Get specific edge from graph by id
-* params:
-*    - id: edge id.
-*/
+ * Get specific edge from graph by id.
+ * @public
+ * @param {int} id Edge id.
+ * @returns {Object} Edge type object.
+ */
 Graph.prototype.getEdgeById = function(id)
 {
    return this.getEdgeByIndex(this.findEdge(id));
 }
 
 /**
-* Find edge by id
-* param:
-*    - id: edge id.
-*/
+ * Find edge by id.
+ * @public
+ * @param {int} id Edge id.
+ * @returns index of edge, or -1 if edge wasn't found.
+ */
 Graph.prototype.findEdge = function(id)
 {
    for(var i = 0; i < this.edges.length; i++)
@@ -552,51 +369,63 @@ Graph.prototype.findEdge = function(id)
 }
 
 /**
-* Get specific edge from graph by index
-* param:
-*    - i: index from array of edges in "Graph" class.
-*/
+ * Get specific edge from graph by index.
+ * @public
+ * @param {int} i Index from array of edges in "Graph" class.
+ * @returns {Object} Either Edge found, or string "Node not found.".
+ */
 Graph.prototype.getEdgeByIndex = function(i)
 {
    return i != -1 ? this.edges[i] : "Edge not found.";
 }
 
 /**
-* Get specific edge from graph by index
-* param:
-*    - i: index from array of edges in "Graph" class.
-*/
-Graph.prototype.getEdgeByIndex = function(i)
-{
-   return this.edges[i];
-}
-
-/**
-* Get number of edges from graph
-*/
+ * Get number of edges from graph.
+ * @public
+ * @returns Length of edges.
+ */
 Graph.prototype.getNumberOfEdges = function()
 {
    return this.edges.length;
 }
 
 /**
-* Set edge by id
-* param:
-*    - id: edge id;
-*    - edge: object to be assigned.
-*/
+ * Set edge by id.
+ * @public
+ * @param {int} id Edge id.
+ * @param {Object} node Object to be assigned.
+ */
 Graph.prototype.setEdgeById = function(id, edge)
 {
    var index = this.findEdge(id);
    this.edges[index].setEdge(edge);
 }
 
+// /**
+// * Highlight edges from highlighted graph
+// * param:
+// *    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
+// */
+// Graph.prototype.highlightEdges = function(highlightedElements)
+// {
+//   for(var i = 0; i < highlightedElements.length; i++)
+//   {
+//       if(highlightedElements[i] instanceof Node)
+//       {
+//
+//       }
+//       else if(highlightedElements[i] instanceof Edge)
+//       {
+//
+//       }
+//   }
+// }
+
 /**
-* Find node neighbors
-* param:
-*    - node: node from which neighbors will be found;
-* returns:
-*    - neighbor nodes.
+* Find node's neighbors.
+* @public
+* @param {Object} node Node from which neighbors will be found.
+* @returns List of neighbors for given node.
 */
 Graph.prototype.findNeighbors = function(node)
 {
@@ -616,122 +445,71 @@ Graph.prototype.findNeighbors = function(node)
 }
 
 /**
-* Highlight edges from highlighted graph
-* param:
-*    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
-*/
-Graph.prototype.highlightEdges = function(highlightedElements)
+ * Builds graph in the scene. All necessary node and edge calculations are performed, then these elements are added as actors
+ * @public
+ * @param {Object} scene The scene in which the graph will be built.
+ * @param {int} layout Graph layout.
+ */
+Graph.prototype.buildGraph = function(scene, layout)
 {
-  for(var i = 0; i < highlightedElements.length; i++)
+
+  layout = ecmaStandard(layout, 2);
+  scene = ecmaStandard(scene, undefined);
+  this.theta = 3;
+  try
   {
-      if(highlightedElements[i] instanceof Node)
-      {
+    var scale;
+    /* From D3, use a scaling function for radial placement */
+    scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
-      }
-      else if(highlightedElements[i] instanceof Edge)
+    /* Build nodes' meshes */
+    var j = 0;
+    for(var i = 0; i < this.nodes.length; i++)
+    {
+      if(i == this.firstLayer)
       {
-
+        this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
+        j = parseInt(j) + parseInt(1);
       }
+      else if(i > this.firstLayer)
+      {
+        j = parseInt(j) + parseInt(1);
+      }
+      //  if(i == 0) this.setMinNode(parseInt(i*this.theta));
+      //  if(i == this.nodes.length - 1) this.setMaxNode(parseInt(i*this.theta));
+      this.nodes[i].buildNode(i, this.firstLayer, j, 20, this.theta, layout);
+      if(scene !== undefined) scene.add(this.nodes[i].getCircle());
+    }
+    for(var i = 0; i < this.edges.length; i++)
+    {
+      this.edges[i].buildEdge(this.geometry, this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target));
+    }
+    if(scene !== undefined)
+    {
+      // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+      // scene.add(lineSegment);
+      var line = new MeshLine();
+      line.setGeometry(this.geometry);
+      line.setGeometry(this.geometry, function(p){
+        return 0.3;
+      });
+      var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+      var lineMesh = new THREE.Mesh(line.geometry, material);
+      scene.add(lineMesh);
+    }
+  }
+  catch(err)
+  {
+     throw "Unexpected error ocurred at line " + err.line + ". " + err;
   }
 }
 
 /**
-* Builds the graph in the scene. All the node and edge calculations are performed, and the elements added
-* params:
-*    - scene: the scene in which the graph will be built;
-*    - layout: graph layout.
-*/
-Graph.prototype.buildGraph = function(scene, layout)
-{
-   layout = ecmaStandard(layout, 2);
-   scene = ecmaStandard(scene, undefined);
-   this.theta = 3;
-   try
-   {
-       var scale, theta;
-       /* From D3, use a scaling function for placement */
-       scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
-
-      //  /* Set which type of bipartite graph to be built */
-      //  if(layout == 2) this.theta = scale(i);
-      //  /* TODO - fix theta size; Must be according to size of nodes */
-      //  else if(layout == 3)
-      //  {
-      //    this.theta = 3;
-      //  }
-
-       /* Build nodes' meshes */
-       //  var j = this.lastLayer;
-       var j = 0;
-      //  var singleGeometry = new THREE.Geometry();
-       for(var i = 0; i < this.nodes.length; i++)
-       {
-           if(i == this.firstLayer)
-           {
-             this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
-             j = parseInt(j) + parseInt(1);
-           }
-           else if(i > this.firstLayer)
-           {
-             j = parseInt(j) + parseInt(1);
-           }
-           if(i == 0) this.setMinNode(parseInt(i*this.theta));
-           if(i == this.nodes.length - 1) this.setMaxNode(parseInt(i*this.theta));
-           this.nodes[i].buildNode(i, this.firstLayer, j, 20, this.theta, layout);
-          //  this.nodes[i].getCircle().updateMatrix();
-          //  singleGeometry.merge(this.nodes[i].getCircle().geometry, this.nodes[i].getCircle().matrix);
-           if(scene !== undefined) scene.add(this.nodes[i].getCircle());
-       }
-      //  if(scene !== undefined)
-      //  {
-      //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
-      //      var mesh = new THREE.Mesh(singleGeometry, material);
-      //      scene.add(mesh);
-      //  }
-
-      //  /* Build edges' meshes and add to scene */
-      // var singleGeometry2 = new THREE.Geometry();
-      for(var i = 0; i < this.edges.length; i++)
-      {
-         this.edges[i].buildEdge(this.geometry, this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
-         // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
-         // scene.add(helper);
-         // this.edges[i].getLine().updateMatrix();
-         // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
-        // if(scene !== undefined) scene.add(this.edges[i].getLine());
-      }
-      if(scene !== undefined)
-      {
-        // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
-        // scene.add(lineSegment);
-        var line = new MeshLine();
-        // line.setGeometry(this.geometry);
-        line.setGeometry(this.geometry, function(p){
-          return 0.3;
-        });
-        var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-        var lineMesh = new THREE.Mesh(line.geometry, material);
-        scene.add(lineMesh);
-      }
-      //  if(scene !== undefined)
-      //  {
-      //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
-      //      var mesh = new THREE.Mesh(singleGeometry2, material);
-      //      scene.add(mesh);
-      //  }
-   }
-   catch(err)
-   {
-       throw "Unexpected error ocurred at line " + err.line + ". " + err;
-   }
-}
-
-/**
  * @constructor
- * @param {Object} nodeObject The node object taken from the JSON file;
- * @param {int} min Min value to be used in feature scaling;
- * @param {int} max Max value to be used in feature scaling;
- * @param {Object} circleGeometry A geometry of type circle (from three.js);
+ * @param {Object} nodeObject The node object taken from the JSON file.
+ * @param {int} min Min value to be used in feature scaling.
+ * @param {int} max Max value to be used in feature scaling.
+ * @param {Object} circleGeometry A geometry of type circle (from three.js).
  * @param {Object} meshBasicMaterial Material for geometry (from three.js).
  */
 var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
@@ -769,14 +547,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     }
     catch(err)
     {
-        throw "Constructor must have nodeObject type as first parameter! " +
-        " Constructor " +
-            " params: " +
-            "    - nodeObject: the node object taken from the JSON file; " +
-            "    - min: min value to be used in feature scaling; " +
-            "    - max: max value to be used in feature scaling; " +
-            "    - circleGeometry: a geometry of type circle (from three.js); " +
-            "    - meshBasicMaterial: material for geometry (from three.js).";
+        throw "Constructor must have nodeObject type as first parameter! ";
     }
     finally
     {
@@ -947,40 +718,6 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
     }
     x = index * theta;
     horizontal ? this.circle.position.set(x, y, 0) : this.circle.position.set(y, x, 0);
-    // if(horizontal)
-    // {
-    //   /* Separate vertical lines according to number of layers */
-    //   if(index >= firstLayer)
-    //   {
-    //       var y = alpha;
-    //       // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-    //       index = lastLayer;
-    //       // index = Math.round(index / lastLayer) + lastIndex;
-    //   }
-    //   else
-    //   {
-    //       var y = alpha * (-1);
-    //   }
-    //   x = index * theta;
-    //   this.circle.position.set(x, y, 0);
-    // }
-    // else if(!horizontal)
-    // {
-    //   /* Separate vertical lines according to number of layers */
-    //   if(index >= firstLayer)
-    //   {
-    //       var x = alpha;
-    //       // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-    //       index = lastLayer;
-    //       // index = Math.round(index / lastLayer) + lastIndex;
-    //   }
-    //   else
-    //   {
-    //       var x = alpha * (-1);
-    //   }
-    //   y = index * theta;
-    //   this.circle.position.set(x, y, 0);
-    // }
 }
 
 /**
@@ -1166,9 +903,6 @@ var ecmaStandard = function(variable, defaultValue)
  * @author Diego S. Cintra
  */
 
-// var THREE = require('../../../node_modules/three/build/three.js');
-// var ecmaStandard = require('../utils/ecmaStandard.js');
-
 /**
  * Constructor
  * params:
@@ -1177,13 +911,9 @@ var ecmaStandard = function(variable, defaultValue)
  */
 var EventHandler = function(raycaster, scene)
 {
-    /* Pre ECMAScript 2015 standardization */
-    // raycaster = typeof raycaster !== 'undefined' ? raycaster : new THREE.Raycaster();
-    // scene = typeof scene !== 'undefined' ? scene : new THREE.Scene();
-    raycaster = ecmaStandard(raycaster, undefined);
-    scene = ecmaStandard(scene, undefined);
-    this.raycaster = new THREE.Raycaster();
-    this.scene = scene;
+    this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
+    this.raycaster.linePrecision = 0.3;
+    this.scene = ecmaStandard(scene, new THREE.Scene());
     this.highlightedElements = [];
     this.neighbors = [];
 }
@@ -1264,8 +994,8 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
         /* Highlight neighbors */
         for(var j = 0; j < this.neighbors.length; j++)
         {
-          console.log("this.neighbors[j]: ");
-          console.log(this.neighbors[j]);
+          // console.log("this.neighbors[j]: ");
+          // console.log(this.neighbors[j]);
           this.neighbors[j].highlight();
         }
       }
@@ -1297,16 +1027,8 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
  */
 EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
 {
-    /* DEBUG - Removes tracking object from scene, if there is any */
-    // if(this.tracker != undefined)
-    // {
-    //     this.scene.remove(this.tracker.getMesh());
-    // }
     /* Get canvas element and adjust x and y to element offset */
     var canvas = renderer.domElement.getBoundingClientRect();
-    // var coords = renderer.domElement.relMouseCoords(evt);
-    // var x = coords.x;
-    // var y = coords.y;
     var x = evt.clientX - canvas.left;
     var y = evt.clientY - canvas.top;
     // console.log("x: " + x + " y: " + y);
@@ -1314,16 +1036,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     /* Adjusting mouse coordinates to NDC [-1, 1] */
     var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
     var mouseY = -(y / renderer.domElement.clientHeight) * 2 + 1;
-    // var mouseX = ((evt.clientX-renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1;
-    // var mouseY = -((evt.clientY-renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1;
 
     var mouse = new THREE.Vector2(mouseX, mouseY);
     var camera = this.scene.getObjectByName("camera", true);
-
-    /* DEBUG - Adds tracking object */
-    // this.tracker = new Tracker();
-    // this.tracker.followMouse(mouseX, mouseY, camera);
-    // this.scene.add(this.tracker.getMesh());
 
     /* Setting raycaster starting from camera */
     this.raycaster.setFromCamera(mouse, camera);
@@ -1351,9 +1066,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
           element.unhighlight();
         if(element instanceof Node)
         {
-            // graph.setNodeById(this.highlightedElements[i], element);
-            // d3.select("#name")
-            //     .style("display", "none");
+            graph.setNodeById(this.highlightedElements[i], element);
         }
         else
         {
@@ -1365,8 +1078,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     if(intersection != undefined)
     {
         var element = graph.getElementById(intersection.object.name);
-        console.log(element);
-        element.highlight();
+        element.color = new THREE.Color(0xFF0000);
+        // element.highlight();
         if(element instanceof Node)
         {
             graph.setNodeById(intersection.object.name, element);
@@ -1375,17 +1088,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
               document.getElementById("graphDescription").innerHTML = element.circle.description;
             else
               document.getElementById("graphDescription").innerHTML = "No description found.";
-            /* Get name of node to display onscreen */
-            // d3.select("#name")
-            //     .text(element.circle.name)
-            //     .attr("font-family", "sans-serif")
-            //     .attr("font-size", "20px")
-            //     .style("display", "inline")
-            //     .style("position", "absolute")
-            //     .style("z-index", "1")
-            //     .style("top", y)
-            //     .style("left", x)
-            //     .attr("fill", "green");
         }
         else
         {

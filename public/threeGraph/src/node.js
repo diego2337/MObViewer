@@ -1,9 +1,9 @@
 /**
  * @constructor
- * @param {Object} nodeObject The node object taken from the JSON file;
- * @param {int} min Min value to be used in feature scaling;
- * @param {int} max Max value to be used in feature scaling;
- * @param {Object} circleGeometry A geometry of type circle (from three.js);
+ * @param {Object} nodeObject The node object taken from the JSON file.
+ * @param {int} min Min value to be used in feature scaling.
+ * @param {int} max Max value to be used in feature scaling.
+ * @param {Object} circleGeometry A geometry of type circle (from three.js).
  * @param {Object} meshBasicMaterial Material for geometry (from three.js).
  */
 var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
@@ -41,14 +41,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     }
     catch(err)
     {
-        throw "Constructor must have nodeObject type as first parameter! " +
-        " Constructor " +
-            " params: " +
-            "    - nodeObject: the node object taken from the JSON file; " +
-            "    - min: min value to be used in feature scaling; " +
-            "    - max: max value to be used in feature scaling; " +
-            "    - circleGeometry: a geometry of type circle (from three.js); " +
-            "    - meshBasicMaterial: material for geometry (from three.js).";
+        throw "Constructor must have nodeObject type as first parameter! ";
     }
     finally
     {
@@ -219,40 +212,6 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
     }
     x = index * theta;
     horizontal ? this.circle.position.set(x, y, 0) : this.circle.position.set(y, x, 0);
-    // if(horizontal)
-    // {
-    //   /* Separate vertical lines according to number of layers */
-    //   if(index >= firstLayer)
-    //   {
-    //       var y = alpha;
-    //       // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-    //       index = lastLayer;
-    //       // index = Math.round(index / lastLayer) + lastIndex;
-    //   }
-    //   else
-    //   {
-    //       var y = alpha * (-1);
-    //   }
-    //   x = index * theta;
-    //   this.circle.position.set(x, y, 0);
-    // }
-    // else if(!horizontal)
-    // {
-    //   /* Separate vertical lines according to number of layers */
-    //   if(index >= firstLayer)
-    //   {
-    //       var x = alpha;
-    //       // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-    //       index = lastLayer;
-    //       // index = Math.round(index / lastLayer) + lastIndex;
-    //   }
-    //   else
-    //   {
-    //       var x = alpha * (-1);
-    //   }
-    //   y = index * theta;
-    //   this.circle.position.set(x, y, 0);
-    // }
 }
 
 /**
