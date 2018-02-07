@@ -1086,8 +1086,6 @@ function displayGraphInfo(jason)
   */
 function build(data, layout)
 {
-  /* show Loading bar */
-  $('#progressBar').css('visibility', 'visible');
   lay = ecmaStandard(layout, 2);
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
@@ -1181,8 +1179,6 @@ function build(data, layout)
   }, false);
 
   // console.log(renderer.info);
-  /* Hide loading bar */
-  $('#progressBar').css('visibility', 'hidden');
   animate();
 
   function animate()

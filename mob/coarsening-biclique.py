@@ -6,6 +6,7 @@ Coarsening
 =====================================================
 
 Copyright (C) 2017 Alan Valejo <alanvalejo@gmail.com> All rights reserved.
+Copyright (C) 2017 Vinicius Ferreira <viniciusferreira97@gmail.com> All rights reserved.
 
 In coarsening strategy a sequence (or hierarchy) of smaller networks is
 constructed from the original network, such that $|V_0| > |V_1| > ... > |V_N|$.
@@ -36,6 +37,7 @@ import sharedmem
 import argparse
 import igraph
 import logging
+import numpy as np
 import json
 
 from datetime import datetime
@@ -60,7 +62,7 @@ def main():
 	"""
 
 	# Parse options command line
-	description = 'Coarsening bipartite networks basead on neighborhood.'
+	description = 'Coarsening bipartite networks based on bicliques.'
 	parser = argparse.ArgumentParser(description=description, formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50, width=150))
 	parser._action_groups.pop()
 
@@ -71,11 +73,12 @@ def main():
 	optional = parser.add_argument_group('optional arguments')
 	optional.add_argument('-d', '--directory', dest='directory', action='store', type=str, metavar='DIR', default=None, help='directory of FILE if it is not current directory')
 	optional.add_argument('-o', '--output', dest='output', action='store', type=str, metavar='FILE', default=None, help='name of the %(metavar)s to be save')
-	optional.add_argument('-r', '--rf', dest='reduction_factor', action='store', nargs='+', type=float, metavar=('float', 'float'), default=None, help='reduction factor for each layer')
-	optional.add_argument('-m', '--ml', dest='max_levels', action='store', nargs='+', type=int, metavar=('int', 'int'), default=None, help='max levels (default: %(default)s)')
-	optional.add_argument('-c', '--matching', dest='matching', action='store', type=str, metavar='str', nargs='+', default='greedy_twohops', help='matching method (default: %(default)s)')
-	optional.add_argument('-s', '--similarity', dest='similarity', action="store", type=str, metavar='str', nargs='+', default='weighted_common_neighbors', help='similarity measure (default: Common Neighbors)')
-	optional.add_argument('-l', '--layers_to_contract', dest='layers_to_contract', action='store', nargs='+', type=int, metavar=('int', 'int'), default=None, help='layers that will be processed')
+	optional.add_argument('-m', '--ml', dest='max_levels', action='store', type=int, metavar=int, default=3, help='max levels (default: %(default)s)')
+	optional.add_argument('-c', '--matching', dest='matching', action='store', type=str, metavar='str', nargs='+', default='greedy_seed_biclique', help='matching method (default: %(default)s)')
+	optional.add_argument('-bp', '--biclique_priority', dest='biclique_priority', action='store', type=str, metavar='str', nargs='+', default='balanced', help='sort biclique method (default: %(default)s)')
+	optional.add_argument('-sp', '--seed_priority', dest='seed_priority', action='store', type=str, metavar='str', default='degree', help='sort seed method (default: %(default)s)')
+	optional.add_argument('-mbs', '--min_biclique_size', dest='min_biclique_size', action='store', nargs='+', type=int, metavar=('int', 'int'), default=[1, 1], help='minimum size of biclique')
+	optional.add_argument('-bs', '--biclique_size', dest='biclique_size', action='store', nargs='+', type=int, metavar=('int', 'int'), default=[1, 1], help='size of biclique (default: %(default)s)')
 	optional.add_argument('-e', '--extension', dest='extension', action='store', type=str, metavar='str', default='ncol', help='output extension (default: %(default)s)')
 	optional.add_argument('--save_hierarchy', dest='save_hierarchy', action='store_true', default=False, help='save all levels of hierarchy of coarsening (default: %(default)s)')
 	optional.add_argument('--show_timing', dest='show_timing', action='store_true', default=False, help='show timing (default: %(default)s)')
@@ -88,28 +91,12 @@ def main():
 	options = parser.parse_args()
 
 	# Instanciation of log
-	log = logging.getLogger('MOb')
+	log = logging.getLogger('OPM')
 	level = logging.WARNING
 	logging.basicConfig(level=level, format="%(message)s")
 
 	# Instanciation of timing
 	timing = Timing(['Snippet', 'Time [m]', 'Time [s]'])
-
-	# Create default values for optional parameters
-	if options.reduction_factor is None:
-		options.reduction_factor = [0.5] * len(options.vertices)
-	if options.max_levels is None:
-		options.max_levels = [3] * len(options.vertices)
-	if options.layers_to_contract is None:
-		options.layers_to_contract = range(len(options.vertices))
-
-	# Verification of the dimension of the parameters
-	if len(options.vertices) != len(options.reduction_factor):
-		log.warning('Sizes of input arguments -v and -r do not match.')
-		sys.exit(1)
-	if len(options.vertices) != len(options.max_levels):
-		log.warning('Sizes of input arguments -v and -m do not match.')
-		sys.exit(1)
 
 	# Process directory and output file
 	if options.directory is None:
@@ -127,7 +114,7 @@ def main():
 	# Validation of matching method
 	if type(options.matching) is list: options.matching = '_'.join(options.matching)
 	options.matching = options.matching.lower()
-	if options.matching not in ['greedy_seed_twohops', 'greedy_twohops', 'greedy_seed_modularity', 'greedy_modularity']:
+	if options.matching not in ['greedy_seed_biclique', 'greedy_biclique']:
 		log.warning('Matching method is unvalid.')
 		sys.exit(1)
 
@@ -136,20 +123,22 @@ def main():
 		log.warning('Supported formats: ncol, gml and pajek.')
 		sys.exit(1)
 
-	# Validation of similarity measure
-	valid_similarity = ['common_neighbors', 'weighted_common_neighbors',
-	'salton', 'preferential_attachment', 'jaccard', 'adamic_adar', 'resource_allocation',
-	'sorensen', 'hub_promoted', 'hub_depressed', 'leicht_holme_newman']
-	if type(options.similarity) is list: options.similarity = '_'.join(options.similarity)
-	options.similarity = options.similarity.lower()
-	if options.similarity not in valid_similarity:
-		log.warning('Similarity misure is unvalid.')
+	# Validation of sort biclique method
+	if type(options.biclique_priority) is list: options.biclique_priority = '_'.join(options.biclique_priority)
+	options.biclique_priority = options.biclique_priority.lower()
+	if options.biclique_priority not in ['first_maximal', 'maximum_vertex', 'maximum_edge', 'balanced', 'size', 'weighted']:
+		log.warning('Supported formats: first_maximal, maximum_vertex, maximum_edge, balanced and size.')
+		sys.exit(1)
+
+	# Validation of sort seed
+	if options.seed_priority not in ['degree', 'strength', 'random']:
+		log.warning('Supported formats: degree, strength, and random.')
 		sys.exit(1)
 
 	# Load bipartite graph
 	with timing.timeit_context_add('Load'):
 		graph = load(options.filename, options.vertices)
-		graph['level'] = [0] * graph['layers']
+		graph['level'] = 0
 
 	# Coarsening
 	hierarchy_graphs = []
@@ -157,27 +146,24 @@ def main():
 	with timing.timeit_context_add('Coarsening'):
 		while not graph['level'] == options.max_levels:
 
-			graph['similarity'] = getattr(Similarity(graph, graph['adjlist']), options.similarity)
+			if options.matching == 'greedy_biclique':
+				coarsening_method = getattr(graph, 'coarsening_groups')
+				kwargs = {'min_biclique_size': options.min_biclique_size}
+			if options.matching == 'greedy_seed_biclique':
+				coarsening_method = getattr(graph, 'coarsening_groups')
+				min_layer = np.argsort(graph['vertices'])[0]
+				vertices = graph.vs.select(type=min_layer)['name']
+				kwargs = {'vertices': vertices, 'seed_priority': options.seed_priority, 'biclique_priority': options.biclique_priority, 'min_biclique_size': options.min_biclique_size}
+
 			matching_method = getattr(graph, options.matching)
-			matching = range(graph.vcount())
-			levels = graph['level']
+			matching = matching_method(**kwargs)
+			coarse = coarsening_method(matching)
 
-			if 'modularity' in options.matching:
-				graph.vs['strength'] = graph.strength(range(graph.vcount()), weights='weight')
-
-			for layer in options.layers_to_contract:
-				if levels[layer] == options.max_levels[layer]: continue
-				levels[layer] += 1
-				start = sum(graph['vertices'][0:layer])
-				end = sum(graph['vertices'][0:layer + 1])
-				matching_method(range(start, end), options.reduction_factor[layer], matching)
-
-			coarse = graph.coarsening_pairs(matching)
-			coarse['level'] = levels
+			coarse['level'] = graph['level'] + 1
 			graph = coarse
 			if options.save_hierarchy or graph['level'] == options.max_levels:
 				hierarchy_graphs.append(graph)
-				hierarchy_levels.append(levels[:])
+				hierarchy_levels.append(graph['level'])
 
 	# Save
 	with timing.timeit_context_add('Save'):
@@ -185,8 +171,7 @@ def main():
 		# Save graph
 		for levels, graph in reversed(zip(hierarchy_levels, hierarchy_graphs)):
 			# Save json conf
-			# with open(output + str(levels) + '.conf', 'w+') as f:
-			with open(output + '.conf', 'w+') as f:
+			with open(output + str(levels) + '.conf', 'w+') as f:
 				d = {}
 				d['edges'] = graph.ecount()
 				d['vertices'] = graph.vcount()
@@ -204,11 +189,9 @@ def main():
 				graph['vertices'] = ' '.join(str(e) for e in graph['vertices'])
 				graph['layers'] = str(graph['layers'])
 				graph['level'] = str(graph['level'])
-			# graph.write(output + str(levels) + '.' + options.extension, format=options.extension)
-			graph.write(output + '.' + options.extension, format=options.extension)
+			graph.write(output + str(levels) + '.' + options.extension, format=options.extension)
 			# Save super-vertices
-			# with open(output + str(levels) + '.cluster', 'w+') as f:
-			with open(output + '.cluster', 'w+') as f:
+			with open(output + str(levels) + '.cluster', 'w+') as f:
 				for v in graph.vs():
 					f.write(' '.join(map(str, v['original'])) + '\n')
 			if not options.save_hierarchy: break
@@ -217,5 +200,5 @@ def main():
 	if options.save_timing_csv: timing.save_csv(output + '.timing')
 	if options.save_timing_json: timing.save_json(output + '.timing')
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	sys.exit(main())

@@ -88,7 +88,7 @@ def main():
 	options = parser.parse_args()
 
 	# Instanciation of log
-	log = logging.getLogger('MOb')
+	log = logging.getLogger('OPM')
 	level = logging.WARNING
 	logging.basicConfig(level=level, format="%(message)s")
 
@@ -152,8 +152,8 @@ def main():
 		graph['level'] = [0] * graph['layers']
 
 	# Coarsening
-	hierarchy_graphs = []
-	hierarchy_levels = []
+	hierarchy_graphs = [graph]
+	hierarchy_levels = [graph['level'][:]]
 	with timing.timeit_context_add('Coarsening'):
 		while not graph['level'] == options.max_levels:
 
@@ -175,13 +175,26 @@ def main():
 			coarse = graph.coarsening_pairs(matching)
 			coarse['level'] = levels
 			graph = coarse
-			if options.save_hierarchy or graph['level'] == options.max_levels:
-				hierarchy_graphs.append(graph)
-				hierarchy_levels.append(levels[:])
+			hierarchy_graphs.append(graph)
+			hierarchy_levels.append(levels[:])
 
 	# Save
 	with timing.timeit_context_add('Save'):
 		output = options.directory + options.output
+		# Save json conf
+		with open(output + '.conf', 'w+') as f:
+			d = {}
+			# Config for layers
+			d['filename'] = output
+			d['extension'] = options.extension
+			d['layers'] = graph['layers']
+			d['layers to contract'] = options.layers_to_contract
+			for layer in options.layers_to_contract:
+				d['rf'] = options.reduction_factor
+				d['ml'] = options.max_levels
+			d['matching method'] = options.matching
+			d['similarity measure'] = options.similarity
+			json.dump(d, f, indent=4)
 		# Save graph
 		for levels, graph in reversed(zip(hierarchy_levels, hierarchy_graphs)):
 			# Save json conf
@@ -203,7 +216,9 @@ def main():
 				graph.vs['name'] = map(str, range(0, graph.vcount()))
 				graph['vertices'] = ' '.join(str(e) for e in graph['vertices'])
 				graph['layers'] = str(graph['layers'])
+				# print str(graph['level']).split("[")[1].split("]")[0].split(",")
 				graph['level'] = str(graph['level'])
+				# graph['level'] = str(graph['level']).split("[")[1].split("]")[0].split(",")
 			# graph.write(output + str(levels) + '.' + options.extension, format=options.extension)
 			graph.write(output + '.' + options.extension, format=options.extension)
 			# Save super-vertices

@@ -83,7 +83,7 @@ $('#multilevelCoarsener').on('change', function(){
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: true},
+    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: 1},
     // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate,
     xhr: loadGraph
@@ -97,7 +97,7 @@ $('#multilevelCoarsener2').on('change', function(){
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: false},
+    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: 0},
     // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate,
     xhr: loadGraph

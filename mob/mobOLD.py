@@ -351,7 +351,7 @@ class MGraph(Graph):
 
 		return matching
 
-	def find_bicliques(self, L, P, biclique_priority='balanced', min_biclique_size=[1, 1], biclique_size=[1, 1]):
+	def find_bicliques(self, L, P, biclique_priority='balanced', min_biclique_size=[1, 1], biclique_size=[2, 2]):
 		"""
 		Finding bicliques in bipartite graphs
 		"""

@@ -187,7 +187,7 @@ $('#multilevelCoarsener').on('change', function(){
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: true},
+    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: 1},
     // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate,
     xhr: loadGraph
@@ -201,7 +201,7 @@ $('#multilevelCoarsener2').on('change', function(){
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: false},
+    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: 0},
     // data: JSON.parse($('#multilevelCoarsener')[0].value),
     success: graphUpdate,
     xhr: loadGraph
@@ -247,7 +247,8 @@ $('#upload-input').on('change', function(){
           build(data);
           /* Below won't work - AJAX call works for same page only! */
           // location.href = '/visualization';
-      }
+      },
+      xhr: loadGraph
       // xhr: function() {
       //   // create an XMLHttpRequest
       //   var xhr = new XMLHttpRequest();

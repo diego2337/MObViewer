@@ -155,13 +155,16 @@ app.post('/slide', function(req, res){
             /* Build python parameters string */
             var pyPath = "mob" + folderChar;
             var pyProg = "coarsening.py";
-            var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -m 1 1 " + " -e gml" ;
+            var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -e gml" ;
+            console.log(req.body.firstSet);
+            req.body.firstSet == 1 ? pyParams = pyParams + " -l 0 -m 1 0 " : pyParams = pyParams + " -l 1 -m 0 1";
             // console.log("pyParams: " + pyParams);
             /* Execute python scripts */
             /* Execute coarsening with a given reduction factor */
             nodeCmd.get('python ' + pyPath + pyProg + " " + pyParams, function(data, err, stderr) {
                               if (!err) {
-                                // console.log("data from python script " + data);
+                                console.log("O que foi executado: ");
+                                console.log('python ' + pyPath + pyProg + " " + pyParams);
                                 /* Execute .gml to .json conversion */
                                 nodeCmd.get('python ' + pyPath + 'gmlToJson2.py uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + ".json", function(data, err, stderr){
                                   if(!err) {
