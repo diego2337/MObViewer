@@ -41,7 +41,7 @@ var Graph = function(graph, min, max)
            this.nodes = [];
            for(var i = 0; i < graph.nodes.length; i++)
            {
-               this.nodes[i] = new Node(graph.nodes[i], min, max, this.circleGeometry, this.meshBasicMaterial);
+               this.nodes[i] = new Node(graph.nodes[i], this.minNodeWeight, this.maxNodeWeight, this.circleGeometry, this.meshBasicMaterial);
            }
        }
        /** Define geometry and material in graph class for optimization - one actor only (graph), with only one mesh */
@@ -51,7 +51,7 @@ var Graph = function(graph, min, max)
            this.edges = [];
            for(var i = 0; i < graph.links.length; i++)
            {
-               this.edges[i] = new Edge(graph.links[i], 0, 100, this.lineBasicMaterial);
+               this.edges[i] = new Edge(graph.links[i], this.minEdgeWeight, this.maxEdgeWeight, this.lineBasicMaterial);
            }
        }
    }

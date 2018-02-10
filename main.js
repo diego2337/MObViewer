@@ -33,6 +33,77 @@ function addNumberOfEdgesToJSON(data)
 }
 
 /**
+ * @desc Find and add maximum and minimum edge weights at edge set.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function addMinAndMaxEdge(data)
+{
+  var max = 1, min = 1000000000;
+  var jason = JSON.parse(data);
+  for(var i = 0; i < jason.links.length; i++)
+  {
+    /** Check if weight exists */
+    if(jason.links[i].weight != undefined)
+    {
+      if(jason.links[i].weight > max)
+      {
+        max = jason.links[i].weight;
+      }
+      if(jason.links[i].weight < min)
+      {
+        min = jason.links[i].weight;
+      }
+    }
+  }
+  /** Store in .json edges weights */
+  jason.graphInfo[0].maxEdgeWeight = max;
+  jason.graphInfo[0].minEdgeWeight = min;
+  return JSON.stringify(jason);
+}
+
+/**
+ * @desc Find and add maximum and minimum node weights at node set.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function addMinAndMaxNode(data)
+{
+  var max = 1, min = 1000000000;
+  var jason = JSON.parse(data);
+  for(var i = 0; i < jason.nodes.length; i++)
+  {
+    /** Check if weight exists */
+    if(jason.nodes[i].weight != undefined)
+    {
+      if(jason.nodes[i].weight > max)
+      {
+        max = jason.nodes[i].weight;
+      }
+      if(jason.nodes[i].weight < min)
+      {
+        min = jason.nodes[i].weight;
+      }
+    }
+  }
+  /** Store in .json nodes weights */
+  jason.graphInfo[0].maxNodeWeight = max;
+  jason.graphInfo[0].minNodeWeight = min;
+  return JSON.stringify(jason);
+}
+
+/**
+ * @desc Add necessary values for .json.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function addValues(data)
+{
+  return addMinAndMaxEdge(addMinAndMaxNode(addNumberOfEdgesToJSON(data)));
+}
+
+
+/**
  * Check to see which operating system version is being used, assigning either '/' or '\' for folder paths.
  * @public
  * @returns {string} either '\' or '/' symbol for folder paths.
@@ -62,7 +133,7 @@ function readJsonFile(path, fs, res)
       /* Store graph size */
       if(graphSize.length == 0) console.log("Entre uma vez somente pfvr"), graphSize = JSON.parse(data).graphInfo[0].vlayer;
       /* Send data to client */
-      res.end(addNumberOfEdgesToJSON(data));
+      res.end(addValues(data));
     }
   });
 }
@@ -222,7 +293,7 @@ app.post('/slide', function(req, res) {
       else /* File exists*/
       {
         /* Send data to client */
-        res.end(addNumberOfEdgesToJSON(data));
+        res.end(addValues(data));
       }
     });
   }

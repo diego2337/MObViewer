@@ -21,23 +21,25 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
         }
         /* Use feature scaling to fit nodes */
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
-        if(circleGeometry == undefined)
-        {
-            this.circleGeometry = new THREE.circleGeometry(1, 32);
-        }
-        else
-        {
-            this.circleGeometry = circleGeometry;
-        }
-
-        if(meshBasicMaterial == undefined)
-        {
-            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
-        }
-        else
-        {
-          this.meshBasicMaterial = meshBasicMaterial;
-        }
+        this.circleGeometry = new THREE.CircleGeometry(x, 32);
+        this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        // if(circleGeometry == undefined)
+        // {
+        //     this.circleGeometry = new THREE.CircleGeometry(1, 32);
+        // }
+        // else
+        // {
+        //     this.circleGeometry = circleGeometry;
+        // }
+        //
+        // if(meshBasicMaterial == undefined)
+        // {
+        //     this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        // }
+        // else
+        // {
+        //   this.meshBasicMaterial = meshBasicMaterial;
+        // }
     }
     catch(err)
     {

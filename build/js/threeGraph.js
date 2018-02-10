@@ -1,98 +1,4 @@
 /**
-  * Singleton base class for depth of the scene.
-  * @author Diego S. Cintra
-  */
-
-/**
-  * Constructor
-  * params:
-  *    - z: Depth to be applied to camera.
-  */
-var Depth = function(z)
-{
-  this.z = z;
-}
-
-/**
-  * Getter for depth
-  * - returns: z-coordinate for camera
-  */
-Depth.prototype.getZ = function()
-{
-  return this.z;
-}
-
-/**
-  * Setter for depth
-  * param:
-  *    - z: z-coordinate for camera
-  */
-Depth.prototype.setZ = function(z)
-{
-  this.z = z;
-}
-// var Depth = (function (){
-//
-//         // Instance stores a reference to the Singleton
-//         var instance;
-//
-//         // Singleton
-//         function init(z2)
-//         {
-//             // Private methods and variables
-//             var z = z2;
-//
-//             return{
-//
-//                 // Public methods and variables
-//                 /**
-//                  * Getter of z
-//                  */
-//                 getZ : function()
-//                 {
-//                     return z;
-//                 },
-//
-//                 /**
-//                 * Setter of z
-//                 */
-//                 setZ : function(z)
-//                 {
-//                     this.z = z;
-//                 }
-//
-//             };
-//
-//         };
-//
-//         return{
-//
-//             // Get the Singleton instance if one exists
-//             // or create one if it doesn't
-//             getInstance: function (z2)
-//             {
-//                 if ( !instance ) {
-//                     instance = init(z2);
-//                 }
-//
-//                 return instance;
-//             }
-//
-//         };
-//
-// })();
-
-/**
- * Constructor
- * params:
- *    - z: Depth to be applied in every element of the scene.
- */
-// function Depth(z)
-// {
-//     this.z = z;
-// }
-
-/**
  * @constructor
  * @param {Object} edgeObject The edge object taken from the JSON file.
  * @param {int} min Min value to be used in feature scaling.
@@ -228,7 +134,7 @@ var Graph = function(graph, min, max)
            this.nodes = [];
            for(var i = 0; i < graph.nodes.length; i++)
            {
-               this.nodes[i] = new Node(graph.nodes[i], min, max, this.circleGeometry, this.meshBasicMaterial);
+               this.nodes[i] = new Node(graph.nodes[i], this.minNodeWeight, this.maxNodeWeight, this.circleGeometry, this.meshBasicMaterial);
            }
        }
        /** Define geometry and material in graph class for optimization - one actor only (graph), with only one mesh */
@@ -238,7 +144,7 @@ var Graph = function(graph, min, max)
            this.edges = [];
            for(var i = 0; i < graph.links.length; i++)
            {
-               this.edges[i] = new Edge(graph.links[i], 0, 100, this.lineBasicMaterial);
+               this.edges[i] = new Edge(graph.links[i], this.minEdgeWeight, this.maxEdgeWeight, this.lineBasicMaterial);
            }
        }
    }
@@ -527,23 +433,25 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
         }
         /* Use feature scaling to fit nodes */
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
-        if(circleGeometry == undefined)
-        {
-            this.circleGeometry = new THREE.circleGeometry(1, 32);
-        }
-        else
-        {
-            this.circleGeometry = circleGeometry;
-        }
-
-        if(meshBasicMaterial == undefined)
-        {
-            this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
-        }
-        else
-        {
-          this.meshBasicMaterial = meshBasicMaterial;
-        }
+        this.circleGeometry = new THREE.CircleGeometry(x, 32);
+        this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        // if(circleGeometry == undefined)
+        // {
+        //     this.circleGeometry = new THREE.CircleGeometry(1, 32);
+        // }
+        // else
+        // {
+        //     this.circleGeometry = circleGeometry;
+        // }
+        //
+        // if(meshBasicMaterial == undefined)
+        // {
+        //     this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+        // }
+        // else
+        // {
+        //   this.meshBasicMaterial = meshBasicMaterial;
+        // }
     }
     catch(err)
     {
@@ -804,7 +712,7 @@ function build(data, layout)
   {
       /* Get the size of the inner window (content area) to create a full size renderer */
       canvasWidth = (document.getElementById("WebGL").clientWidth);
-      canvasHeight = (document.getElementById("WebGL").clientHeight) - 20;
+      canvasHeight = (document.getElementById("WebGL").clientHeight);
       /* Create a new WebGL renderer */
       renderer = new THREE.WebGLRenderer({antialias:true});
       /* Set the background color of the renderer to black, with full opacity */
@@ -861,14 +769,17 @@ function build(data, layout)
   {
     eventHandler = new EventHandler(undefined, scene);
     /* Adding event listeners */
+    document.addEventListener('resize', function(evt){
+      camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
+    }, false);
     document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
     document.addEventListener('dblclick', function(evt){
       eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
       // !clicked ? clicked = true : clicked = false;
     }, false);
   }
-  // if(eventHandler !== undefined) delete eventHandler;
-  // eventHandler = new EventHandler(undefined, scene);
 
   // console.log(renderer.info);
   animate();

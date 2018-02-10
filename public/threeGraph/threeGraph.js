@@ -64,7 +64,7 @@ function build(data, layout)
   {
       /* Get the size of the inner window (content area) to create a full size renderer */
       canvasWidth = (document.getElementById("WebGL").clientWidth);
-      canvasHeight = (document.getElementById("WebGL").clientHeight) - 20;
+      canvasHeight = (document.getElementById("WebGL").clientHeight);
       /* Create a new WebGL renderer */
       renderer = new THREE.WebGLRenderer({antialias:true});
       /* Set the background color of the renderer to black, with full opacity */
@@ -121,14 +121,17 @@ function build(data, layout)
   {
     eventHandler = new EventHandler(undefined, scene);
     /* Adding event listeners */
+    document.addEventListener('resize', function(evt){
+      camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
+    }, false);
     document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
     document.addEventListener('dblclick', function(evt){
       eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
       // !clicked ? clicked = true : clicked = false;
     }, false);
   }
-  // if(eventHandler !== undefined) delete eventHandler;
-  // eventHandler = new EventHandler(undefined, scene);
 
   // console.log(renderer.info);
   animate();
