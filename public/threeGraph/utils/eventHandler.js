@@ -77,7 +77,7 @@ EventHandler.prototype.setHighlightedElements = function(highlighted)
  */
 EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
 {
-  if(!clicked)
+  if(!clicked.wasClicked)
   {
     /* Find highlighted vertex and highlight its neighbors */
     for(var i = 0; i < this.highlightedElements.length; i++)
@@ -94,24 +94,29 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
         /* Highlight neighbors */
         for(var j = 0; j < this.neighbors.length; j++)
         {
-          // console.log("this.neighbors[j]: ");
-          // console.log(this.neighbors[j]);
-          this.neighbors[j].highlight();
+          if(this.neighbors[j] instanceof Node)
+          {
+            this.neighbors[j].highlight();
+            clicked.wasClicked = true;
+          }
         }
       }
     }
   }
-  else if(clicked)
+  else if(clicked.wasClicked)
   {
+    clicked.wasClicked = false;
     /* An element was already clicked and its neighbors highlighted; unhighlight all */
     for(var i = 0; i < this.neighbors.length; i++)
     {
       var element = undefined;
       if(this.neighbors[i] instanceof Node)
+      {
         element = graph.getElementById(String(this.neighbors[i].circle.name));
+        element.unhighlight();
+      }
       else if(this.neighbors[i] instanceof Edge)
         element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
-      element.unhighlight();
     }
     /* Clearing array of neighbors */
     this.neighbors = [];

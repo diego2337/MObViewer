@@ -641,7 +641,7 @@ Node.prototype.getCircle = function()
 /**
  * Setter for circle.
  * @public
- * @param THREE.Mesh type object.
+ * @param {Object} circle THREE.Mesh type object.
  */
 Node.prototype.setCircle = function(circle)
 {
@@ -748,7 +748,7 @@ var controls;
 var eventHandler;
 var layout = 2;
 var capture = false;
-var clicked = false;
+var clicked = {wasClicked: false};
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 // $('#WebGL').on('mousemove', function(){
@@ -856,15 +856,19 @@ function build(data, layout)
   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
 
   /* Creating event listener */
-  if(eventHandler !== undefined) delete eventHandler;
-  eventHandler = new EventHandler(undefined, scene);
-
-  /* Adding event listeners */
-  document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-  document.addEventListener('dblclick', function(evt){
-    eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
-    !clicked ? clicked = true : clicked = false;
-  }, false);
+  if(eventHandler !== undefined) eventHandler.setScene(scene);
+  else
+  {
+    eventHandler = new EventHandler(undefined, scene);
+    /* Adding event listeners */
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
+    document.addEventListener('dblclick', function(evt){
+      eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
+      // !clicked ? clicked = true : clicked = false;
+    }, false);
+  }
+  // if(eventHandler !== undefined) delete eventHandler;
+  // eventHandler = new EventHandler(undefined, scene);
 
   // console.log(renderer.info);
   animate();
@@ -977,7 +981,7 @@ EventHandler.prototype.setHighlightedElements = function(highlighted)
  */
 EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
 {
-  if(!clicked)
+  if(!clicked.wasClicked)
   {
     /* Find highlighted vertex and highlight its neighbors */
     for(var i = 0; i < this.highlightedElements.length; i++)
@@ -994,24 +998,29 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
         /* Highlight neighbors */
         for(var j = 0; j < this.neighbors.length; j++)
         {
-          // console.log("this.neighbors[j]: ");
-          // console.log(this.neighbors[j]);
-          this.neighbors[j].highlight();
+          if(this.neighbors[j] instanceof Node)
+          {
+            this.neighbors[j].highlight();
+            clicked.wasClicked = true;
+          }
         }
       }
     }
   }
-  else if(clicked)
+  else if(clicked.wasClicked)
   {
+    clicked.wasClicked = false;
     /* An element was already clicked and its neighbors highlighted; unhighlight all */
     for(var i = 0; i < this.neighbors.length; i++)
     {
       var element = undefined;
       if(this.neighbors[i] instanceof Node)
+      {
         element = graph.getElementById(String(this.neighbors[i].circle.name));
+        element.unhighlight();
+      }
       else if(this.neighbors[i] instanceof Edge)
         element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
-      element.unhighlight();
     }
     /* Clearing array of neighbors */
     this.neighbors = [];
@@ -1078,8 +1087,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     if(intersection != undefined)
     {
         var element = graph.getElementById(intersection.object.name);
-        element.color = new THREE.Color(0xFF0000);
-        // element.highlight();
+        element.highlight();
         if(element instanceof Node)
         {
             graph.setNodeById(intersection.object.name, element);

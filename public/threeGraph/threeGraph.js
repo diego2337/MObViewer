@@ -8,7 +8,7 @@ var controls;
 var eventHandler;
 var layout = 2;
 var capture = false;
-var clicked = false;
+var clicked = {wasClicked: false};
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 // $('#WebGL').on('mousemove', function(){
@@ -116,15 +116,19 @@ function build(data, layout)
   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
 
   /* Creating event listener */
-  if(eventHandler !== undefined) delete eventHandler;
-  eventHandler = new EventHandler(undefined, scene);
-
-  /* Adding event listeners */
-  document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-  document.addEventListener('dblclick', function(evt){
-    eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
-    !clicked ? clicked = true : clicked = false;
-  }, false);
+  if(eventHandler !== undefined) eventHandler.setScene(scene);
+  else
+  {
+    eventHandler = new EventHandler(undefined, scene);
+    /* Adding event listeners */
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
+    document.addEventListener('dblclick', function(evt){
+      eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
+      // !clicked ? clicked = true : clicked = false;
+    }, false);
+  }
+  // if(eventHandler !== undefined) delete eventHandler;
+  // eventHandler = new EventHandler(undefined, scene);
 
   // console.log(renderer.info);
   animate();

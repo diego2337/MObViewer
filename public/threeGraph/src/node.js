@@ -135,7 +135,7 @@ Node.prototype.getCircle = function()
 /**
  * Setter for circle.
  * @public
- * @param THREE.Mesh type object.
+ * @param {Object} circle THREE.Mesh type object.
  */
 Node.prototype.setCircle = function(circle)
 {
