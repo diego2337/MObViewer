@@ -42,13 +42,19 @@ function displayGraphInfo(jason)
 }
 
 /**
+ * @desc Find maximum
+ */
+
+/**
   * Render a bipartite graph given a .json file
   * param:
   *    - data: string graph to be parsed into JSON notation and rendered;
   *    - layout: graph layout. Default is 2 (bipartite horizontal)
   */
-function build(data, layout)
+function build(data, layout, min, max)
 {
+  min = ecmaStandard(min, 10);
+  max = ecmaStandard(max, 70);
   lay = ecmaStandard(layout, 2);
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
@@ -58,7 +64,7 @@ function build(data, layout)
 
   /* Instantiating Graph */
   if(graph !== undefined) delete graph;
-  graph = new Graph(jason, 10, 70);
+  graph = new Graph(jason, min, max);
 
   if(renderer == undefined)
   {

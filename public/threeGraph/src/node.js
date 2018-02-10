@@ -40,7 +40,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
         /* Use feature scaling to fit nodes */
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
         // circleGeometry.scale(x, x, x);
-        // this.circleGeometry = new THREE.CircleGeometry(x, 100);
+        this.circleGeometry = new THREE.CircleGeometry(x, 100);
         this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
 
         /* Store number of nodes from each layer */
@@ -67,8 +67,8 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     }
     finally
     {
-        this.circle = new THREE.Mesh(circleGeometry, this.meshBasicMaterial);
-        this.circle.scale.set(x, x, x);
+        this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
+        // this.circle.scale.set(x, x, x);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
         this.circle.geometry.computeBoundingBox();
@@ -220,19 +220,20 @@ Node.prototype.buildRadial = function(theta)
  */
 Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal)
 {
+    var x, y;
     if(horizontal)
     {
       /* Separate vertical lines according to number of layers */
       if(index >= firstLayer)
       {
-          var y = alpha;
+          y = alpha;
           // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
           index = lastLayer;
           // index = Math.round(index / lastLayer) + lastIndex;
       }
       else
       {
-          var y = alpha * (-1);
+          y = alpha * (-1);
       }
       x = index * theta;
       this.circle.position.set(x, y, 0);
@@ -242,14 +243,14 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
       /* Separate vertical lines according to number of layers */
       if(index >= firstLayer)
       {
-          var x = alpha;
+          x = alpha;
           // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
           index = lastLayer;
           // index = Math.round(index / lastLayer) + lastIndex;
       }
       else
       {
-          var x = alpha * (-1);
+          x = alpha * (-1);
       }
       y = index * theta;
       this.circle.position.set(x, y, 0);

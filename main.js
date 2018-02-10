@@ -27,6 +27,76 @@ function addNumberOfEdgesToJSON(data)
   return data;
 }
 
+/**
+ * @desc Find and add maximum and minimum edge weights at edge set.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function addMinAndMaxEdge(data)
+{
+  var max = 1, min = 1000000000;
+  var jason = JSON.parse(data);
+  for(var i = 0; i < jason.links.length; i++)
+  {
+    /** Check if weight exists */
+    if(jason.links[i].weight != undefined)
+    {
+      if(jason.links[i].weight > max)
+      {
+        max = jason.links[i].weight;
+      }
+      if(jason.links[i].weight < min)
+      {
+        min = jason.links[i].weight;
+      }
+    }
+  }
+  /** Store in .json edges weights */
+  jason.graphInfo[0].maxEdgeWeight = max;
+  jason.graphInfo[0].minEdgeWeight = min;
+  return JSON.stringify(jason);
+}
+
+/**
+ * @desc Find and add maximum and minimum node weights at node set.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function addMinAndMaxNode(data)
+{
+  var max = 1, min = 1000000000;
+  var jason = JSON.parse(data);
+  for(var i = 0; i < jason.nodes.length; i++)
+  {
+    /** Check if weight exists */
+    if(jason.nodes[i].weight != undefined)
+    {
+      if(jason.nodes[i].weight > max)
+      {
+        max = jason.nodes[i].weight;
+      }
+      if(jason.nodes[i].weight < min)
+      {
+        min = jason.nodes[i].weight;
+      }
+    }
+  }
+  /** Store in .json nodes weights */
+  jason.graphInfo[0].maxNodeWeight = max;
+  jason.graphInfo[0].minNodeWeight = min;
+  return JSON.stringify(jason);
+}
+
+/**
+ * @desc Add necessary values for .json.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function addValues(data)
+{
+  return addMinAndMaxEdge(addMinAndMaxNode(addNumberOfEdgesToJSON(data)));
+}
+
 /* Check to see which operating system version is being used, for assigning either '/' or '\' for folder paths */
 function addFolderPath()
 {
@@ -73,7 +143,7 @@ app.post('/upload', function(req, res){
                                                   /* Store graph size */
                                                   graphSize = JSON.parse(data).graphInfo[0].vlayer;
                                                   /* Send data to client */
-                                                  res.end(addNumberOfEdgesToJSON(data));
+                                                  res.end(addValues(data));
                                                 }
                                               });
                                             } else {
@@ -96,7 +166,7 @@ app.post('/upload', function(req, res){
                                     /* Store graph size */
                                     graphSize = JSON.parse(data).graphInfo[0].vlayer;
                                     /* Send data to client */
-                                    res.end(addNumberOfEdgesToJSON(data));
+                                    res.end(addValues(data));
                                   }
                                 });
                               } else {
@@ -135,7 +205,7 @@ app.post('/slide', function(req, res){
       else
       {
         /* Send data to client */
-        res.end(addNumberOfEdgesToJSON(data));
+        res.end(addValues(data));
       }
     });
   }
@@ -156,15 +226,21 @@ app.post('/slide', function(req, res){
             var pyPath = "mob" + folderChar;
             var pyProg = "coarsening.py";
             var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -e gml" ;
-            console.log(req.body.firstSet);
-            req.body.firstSet == 1 ? pyParams = pyParams + " -l 0 -m 1 0 " : pyParams = pyParams + " -l 1 -m 0 1";
+            if(req.body.coarsening == 0 || req.body.coarseningSecondSet == 0)
+            {
+              req.body.firstSet == 1 ? pyParams = pyParams + " -l 0 -m 1 0 " : pyParams = pyParams + " -l 1 -m 0 1 ";
+            }
+            else
+            {
+              pyParams = pyParams + " -m 1 1 ";
+            }
             // console.log("pyParams: " + pyParams);
             /* Execute python scripts */
             /* Execute coarsening with a given reduction factor */
             nodeCmd.get('python ' + pyPath + pyProg + " " + pyParams, function(data, err, stderr) {
                               if (!err) {
-                                console.log("O que foi executado: ");
-                                console.log('python ' + pyPath + pyProg + " " + pyParams);
+                                // console.log("O que foi executado: ");
+                                // console.log('python ' + pyPath + pyProg + " " + pyParams);
                                 /* Execute .gml to .json conversion */
                                 nodeCmd.get('python ' + pyPath + 'gmlToJson2.py uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + ".json", function(data, err, stderr){
                                   if(!err) {
@@ -178,7 +254,7 @@ app.post('/slide', function(req, res){
                                       else
                                       {
                                         /* Send data to client */
-                                        res.end(addNumberOfEdgesToJSON(data));
+                                        res.end(addValues(data));
                                       }
                                     });
                                   } else {
@@ -197,7 +273,7 @@ app.post('/slide', function(req, res){
       else /* File exists*/
       {
         /* Send data to client */
-        res.end(addNumberOfEdgesToJSON(data));
+        res.end(addValues(data));
       }
     });
   }
@@ -219,7 +295,7 @@ app.post('/switch', function(req, res){
     else
     {
       /* Send data to client */
-      res.end(addNumberOfEdgesToJSON(data));
+      res.end(addValues(data));
     }
   });
 });

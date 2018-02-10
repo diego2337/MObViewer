@@ -360,7 +360,7 @@ var Graph = function(graph, min, max)
            this.nodes = [];
            for(var i = 0; i < graph.nodes.length; i++)
            {
-               this.nodes[i] = new Node(graph.nodes[i], min, max, this.circleGeometry, this.meshBasicMaterial);
+               this.nodes[i] = new Node(graph.nodes[i], this.graphInfo.minNodeWeight, this.graphInfo.maxNodeWeight, this.circleGeometry, this.meshBasicMaterial);
            }
            // graph.nodes.forEach(function(d, i){
            //     this.nodes[i] = new Node(d);
@@ -376,7 +376,7 @@ var Graph = function(graph, min, max)
            this.edges = [];
            for(var i = 0; i < graph.links.length; i++)
            {
-               this.edges[i] = new Edge(graph.links[i], 0, 100, this.lineBasicMaterial);
+               this.edges[i] = new Edge(graph.links[i], this.graphInfo.minEdgeWeight, this.graphInfo.maxEdgeWeight, this.lineBasicMaterial);
            }
            // graph.edges.forEach(function(d, i){
            //     this.edges[i] = new Edge(d);
@@ -803,7 +803,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
         /* Use feature scaling to fit nodes */
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
         // circleGeometry.scale(x, x, x);
-        // this.circleGeometry = new THREE.CircleGeometry(x, 100);
+        this.circleGeometry = new THREE.CircleGeometry(x, 100);
         this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
 
         /* Store number of nodes from each layer */
@@ -830,8 +830,8 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     }
     finally
     {
-        this.circle = new THREE.Mesh(circleGeometry, this.meshBasicMaterial);
-        this.circle.scale.set(x, x, x);
+        this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
+        // this.circle.scale.set(x, x, x);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
         this.circle.geometry.computeBoundingBox();
@@ -983,19 +983,20 @@ Node.prototype.buildRadial = function(theta)
  */
 Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal)
 {
+    var x, y;
     if(horizontal)
     {
       /* Separate vertical lines according to number of layers */
       if(index >= firstLayer)
       {
-          var y = alpha;
+          y = alpha;
           // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
           index = lastLayer;
           // index = Math.round(index / lastLayer) + lastIndex;
       }
       else
       {
-          var y = alpha * (-1);
+          y = alpha * (-1);
       }
       x = index * theta;
       this.circle.position.set(x, y, 0);
@@ -1005,14 +1006,14 @@ Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, th
       /* Separate vertical lines according to number of layers */
       if(index >= firstLayer)
       {
-          var x = alpha;
+          x = alpha;
           // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
           index = lastLayer;
           // index = Math.round(index / lastLayer) + lastIndex;
       }
       else
       {
-          var x = alpha * (-1);
+          x = alpha * (-1);
       }
       y = index * theta;
       this.circle.position.set(x, y, 0);
@@ -1079,13 +1080,19 @@ function displayGraphInfo(jason)
 }
 
 /**
+ * @desc Find maximum
+ */
+
+/**
   * Render a bipartite graph given a .json file
   * param:
   *    - data: string graph to be parsed into JSON notation and rendered;
   *    - layout: graph layout. Default is 2 (bipartite horizontal)
   */
-function build(data, layout)
+function build(data, layout, min, max)
 {
+  min = ecmaStandard(min, 10);
+  max = ecmaStandard(max, 70);
   lay = ecmaStandard(layout, 2);
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
@@ -1095,7 +1102,7 @@ function build(data, layout)
 
   /* Instantiating Graph */
   if(graph !== undefined) delete graph;
-  graph = new Graph(jason, 10, 70);
+  graph = new Graph(jason, min, max);
 
   if(renderer == undefined)
   {

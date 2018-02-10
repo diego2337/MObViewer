@@ -45,7 +45,7 @@ var Graph = function(graph, min, max)
            this.nodes = [];
            for(var i = 0; i < graph.nodes.length; i++)
            {
-               this.nodes[i] = new Node(graph.nodes[i], min, max, this.circleGeometry, this.meshBasicMaterial);
+               this.nodes[i] = new Node(graph.nodes[i], this.graphInfo.minNodeWeight, this.graphInfo.maxNodeWeight, this.circleGeometry, this.meshBasicMaterial);
            }
            // graph.nodes.forEach(function(d, i){
            //     this.nodes[i] = new Node(d);
@@ -61,7 +61,7 @@ var Graph = function(graph, min, max)
            this.edges = [];
            for(var i = 0; i < graph.links.length; i++)
            {
-               this.edges[i] = new Edge(graph.links[i], 0, 100, this.lineBasicMaterial);
+               this.edges[i] = new Edge(graph.links[i], this.graphInfo.minEdgeWeight, this.graphInfo.maxEdgeWeight, this.lineBasicMaterial);
            }
            // graph.edges.forEach(function(d, i){
            //     this.edges[i] = new Edge(d);
