@@ -43,7 +43,7 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     }
     catch(err)
     {
-        throw "Constructor must have nodeObject type as first parameter! ";
+        throw "Constructor must have nodeObject type as first parameter! " + err;
     }
     finally
     {
@@ -153,8 +153,9 @@ Node.prototype.setCircle = function(circle)
  * @param {int} alpha Value for spacing of parallel lines.
  * @param {int} theta Used to define distance of nodes.
  * @param {int} layout Used for checking if layout is either vertical bipartite (0) or horizontal bipartite (1).
+ * @param {int} isFirstLayer Boolean to check if first layer is being constructed.
  */
-Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, layout)
+Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, layout, isFirstLayer)
 {
     switch(layout)
     {
@@ -164,11 +165,11 @@ Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, 
             break;
         /** Bipartite layout - horizontal */
         case 2:
-            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 1);
+            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 1, isFirstLayer);
             break;
         /** Bipartite layout - vertical */
         case 3:
-            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 0);
+            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 0, isFirstLayer);
             break;
         default:
             break;
@@ -200,19 +201,21 @@ Node.prototype.buildRadial = function(theta)
  * @param {int} theta sed to define distance of nodes.
  * @param {int} horizontal Boolean to check if layout is bipartite horizontal or vertical.
  */
-Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal)
+Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal, isFirstLayer)
 {
     /* Separate vertical lines according to number of layers */
-    if(index >= firstLayer)
+    // if(index >= firstLayer)
+    if(isFirstLayer != 1)
     {
         var y = alpha;
-        index = lastLayer;
+        // index = lastLayer;
     }
     else
     {
         var y = alpha * (-1);
     }
     x = index * theta;
+    console.log(y);
     horizontal ? this.circle.position.set(x, y, 0) : this.circle.position.set(y, x, 0);
 }
 

@@ -34,8 +34,8 @@ var Graph = function(graph, min, max)
        this.graphInfo.max = ecmaStandard(max, 10);
        this.theta = 0;
        /** Define geometry and material in graph class for optimization - one actor only (graph), with only one mesh */
-       this.circleGeometry = new THREE.CircleGeometry(1, 32);
-       this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+      //  this.circleGeometry = new THREE.CircleGeometry(1, 32);
+      //  this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
        if(graph.nodes instanceof Array)
        {
            this.nodes = [];
@@ -57,7 +57,7 @@ var Graph = function(graph, min, max)
    }
    catch(err)
    {
-       throw "Unexpected error ocurred at line " + err.lineNumber + ", in function Graph. " + err;
+       throw "Unexpected error ocurred. " + err;
    }
 }
 
@@ -272,16 +272,20 @@ Graph.prototype.buildGraph = function(scene, layout)
   try
   {
     var scale;
+    var isFirstLayer = 1;
     /* From D3, use a scaling function for radial placement */
     scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
     /* Build nodes' meshes */
-    var j = 0;
+    var j = 0, pos = (-1 * (this.firstLayer / 2.0));
+    console.log("this.nodes.length: " + this.nodes.length);
     for(var i = 0; i < this.nodes.length; i++)
     {
       if(i == this.firstLayer)
       {
-        this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
+        isFirstLayer = 0;
+        // this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
+        pos = -1 * Math.floor(this.lastLayer / 2);
         j = parseInt(j) + parseInt(1);
       }
       else if(i > this.firstLayer)
@@ -290,7 +294,8 @@ Graph.prototype.buildGraph = function(scene, layout)
       }
       //  if(i == 0) this.setMinNode(parseInt(i*this.theta));
       //  if(i == this.nodes.length - 1) this.setMaxNode(parseInt(i*this.theta));
-      this.nodes[i].buildNode(i, this.firstLayer, j, 20, this.theta, layout);
+      this.nodes[i].buildNode(pos, this.firstLayer, j, 20, this.theta, layout, isFirstLayer);
+      pos = pos + 1;
       if(scene !== undefined) scene.add(this.nodes[i].getCircle());
     }
     for(var i = 0; i < this.edges.length; i++)
