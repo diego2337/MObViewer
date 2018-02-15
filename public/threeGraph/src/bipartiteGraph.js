@@ -148,6 +148,8 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     /** y represents space between two layers, while theta space between each vertice of each layer */
     var y = -20, theta = 3;
     /** Build nodes' meshes */
+    var meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+    // var circleGeometry = new THREE.CircleGeometry(1, 32);
     for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
     {
       if(i == this.firstLayer)
@@ -160,16 +162,14 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       var circleSize = (graph.nodes[i].weight - graph.graphInfo[0].minNodeWeight)/(graph.graphInfo[0].maxNodeWeight-graph.graphInfo[0].minNodeWeight);
       /** Creating geometry and material for meshes */
       var circleGeometry = new THREE.CircleGeometry(circleSize, 32);
-      var meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
       /** Give mesh name the same as its id */
       var circleMesh = new THREE.Mesh(circleGeometry, meshBasicMaterial);
       circleMesh.name = graph.nodes[i].id;
+      circleMesh.renderOrder = 1;
       /** Build node */
       var x = pos * theta;
       circleMesh.position.set(x, y, 0);
       scene.add(circleMesh);
-      circleGeometry.dispose();
-      meshBasicMaterial.dispose();
     }
 
     /** Creating geometry for edges */
@@ -179,6 +179,8 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     {
       var sourcePos = scene.getObjectByName(graph.links[i].source, true);
       var targetPos = scene.getObjectByName(graph.links[i].target, true);
+      // var sourcePos = {position: {x:Math.random(), y:Math.random(), z:0}};
+      // var targetPos = {position:{x:Math.random(), y:Math.random(), z:0}};
       var v1 = new THREE.Vector3(sourcePos.position.x, sourcePos.position.y, sourcePos.position.z);
       var v2 = new THREE.Vector3(targetPos.position.x, targetPos.position.y, targetPos.position.z);
       geometry.vertices.push(v1);

@@ -148,6 +148,8 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     /** y represents space between two layers, while theta space between each vertice of each layer */
     var y = -20, theta = 3;
     /** Build nodes' meshes */
+    var meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+    // var circleGeometry = new THREE.CircleGeometry(1, 32);
     for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
     {
       if(i == this.firstLayer)
@@ -160,16 +162,14 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       var circleSize = (graph.nodes[i].weight - graph.graphInfo[0].minNodeWeight)/(graph.graphInfo[0].maxNodeWeight-graph.graphInfo[0].minNodeWeight);
       /** Creating geometry and material for meshes */
       var circleGeometry = new THREE.CircleGeometry(circleSize, 32);
-      var meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
       /** Give mesh name the same as its id */
       var circleMesh = new THREE.Mesh(circleGeometry, meshBasicMaterial);
       circleMesh.name = graph.nodes[i].id;
+      circleMesh.renderOrder = 1;
       /** Build node */
       var x = pos * theta;
       circleMesh.position.set(x, y, 0);
       scene.add(circleMesh);
-      circleGeometry.dispose();
-      meshBasicMaterial.dispose();
     }
 
     /** Creating geometry for edges */
@@ -179,6 +179,8 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     {
       var sourcePos = scene.getObjectByName(graph.links[i].source, true);
       var targetPos = scene.getObjectByName(graph.links[i].target, true);
+      // var sourcePos = {position: {x:Math.random(), y:Math.random(), z:0}};
+      // var targetPos = {position:{x:Math.random(), y:Math.random(), z:0}};
       var v1 = new THREE.Vector3(sourcePos.position.x, sourcePos.position.y, sourcePos.position.z);
       var v2 = new THREE.Vector3(targetPos.position.x, targetPos.position.y, targetPos.position.z);
       geometry.vertices.push(v1);
@@ -1185,48 +1187,38 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     /* Unhighlight any already highlighted element */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        var element = graph.getElementById(this.highlightedElements[i]);
-        var alreadyHighlighted = false;
-        for(var j = 0; j < this.neighbors.length; j++)
+        // var element = graph.getElementById(this.highlightedElements[i]);
+        var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        if(element != undefined)
         {
-          var el = undefined;
-          if(this.neighbors[j] instanceof Node)
-            el = this.neighbors[j].circle.name;
-          else if(this.neighbors[j] instanceof Edge)
-            el = this.neighbors[j].edgeObject.id;
-          if(element === graph.getElementById(el))
-            alreadyHighlighted = true;
+          element.material.color.setHex(0x000000);
         }
-        if(!alreadyHighlighted)
-          element.unhighlight();
-        if(element instanceof Node)
-        {
-            graph.setNodeById(this.highlightedElements[i], element);
-        }
-        else
-        {
-            graph.setEdgeById(this.highlightedElements[i], element);
-        }
+        // var alreadyHighlighted = false;
+        // for(var j = 0; j < this.neighbors.length; j++)
+        // {
+        //   var el = undefined;
+        //   if(this.neighbors[j] instanceof Node)
+        //     el = this.neighbors[j].circle.name;
+        //   else if(this.neighbors[j] instanceof Edge)
+        //     el = this.neighbors[j].edgeObject.id;
+        //   if(element === graph.getElementById(el))
+        //     alreadyHighlighted = true;
+        // }
+        // if(!alreadyHighlighted)
+        //   element.unhighlight();
         this.highlightedElements.splice(i, 1);
     }
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
-        var element = graph.getElementById(intersection.object.name);
-        element.highlight();
-        if(element instanceof Node)
-        {
-            graph.setNodeById(intersection.object.name, element);
-            document.getElementById("graphID").innerHTML = element.circle.name;
-            if(element.circle.description !== undefined)
-              document.getElementById("graphDescription").innerHTML = element.circle.description;
-            else
-              document.getElementById("graphDescription").innerHTML = "No description found.";
-        }
+        // var element = graph.getElementById(intersection.object.name);
+        var element = this.scene.getObjectByName(intersection.object.name);
+        element.material.color.setHex(0xFF0000);
+        document.getElementById("graphID").innerHTML = element.name;
+        if(element.description !== undefined)
+          document.getElementById("graphDescription").innerHTML = element.description;
         else
-        {
-            graph.setEdgeById(intersection.object.name, element);
-        }
+          document.getElementById("graphDescription").innerHTML = "No description found.";
         this.highlightedElements.push(intersection.object.name);
     }
 }
@@ -1240,16 +1232,9 @@ EventHandler.prototype.mouseOutEvent = function(graph)
 {
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        var element = graph.getElementById(this.highlightedElements[i]);
-        element.unhighlight();
-        if(element instanceof Node)
-        {
-            graph.setNodeById(this.highlightedElements[i], element);
-        }
-        else
-        {
-            graph.setEdgeById(this.highlightedElements[i], element);
-        }
+        // var element = graph.getElementById(this.highlightedElements[i]);
+        var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        element.material.color.setHex(0x000000);
     }
 
     /* Clearing array of highlighted elements */

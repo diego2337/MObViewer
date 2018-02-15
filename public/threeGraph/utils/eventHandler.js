@@ -155,48 +155,38 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     /* Unhighlight any already highlighted element */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        var element = graph.getElementById(this.highlightedElements[i]);
-        var alreadyHighlighted = false;
-        for(var j = 0; j < this.neighbors.length; j++)
+        // var element = graph.getElementById(this.highlightedElements[i]);
+        var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        if(element != undefined)
         {
-          var el = undefined;
-          if(this.neighbors[j] instanceof Node)
-            el = this.neighbors[j].circle.name;
-          else if(this.neighbors[j] instanceof Edge)
-            el = this.neighbors[j].edgeObject.id;
-          if(element === graph.getElementById(el))
-            alreadyHighlighted = true;
+          element.material.color.setHex(0x000000);
         }
-        if(!alreadyHighlighted)
-          element.unhighlight();
-        if(element instanceof Node)
-        {
-            graph.setNodeById(this.highlightedElements[i], element);
-        }
-        else
-        {
-            graph.setEdgeById(this.highlightedElements[i], element);
-        }
+        // var alreadyHighlighted = false;
+        // for(var j = 0; j < this.neighbors.length; j++)
+        // {
+        //   var el = undefined;
+        //   if(this.neighbors[j] instanceof Node)
+        //     el = this.neighbors[j].circle.name;
+        //   else if(this.neighbors[j] instanceof Edge)
+        //     el = this.neighbors[j].edgeObject.id;
+        //   if(element === graph.getElementById(el))
+        //     alreadyHighlighted = true;
+        // }
+        // if(!alreadyHighlighted)
+        //   element.unhighlight();
         this.highlightedElements.splice(i, 1);
     }
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
-        var element = graph.getElementById(intersection.object.name);
-        element.highlight();
-        if(element instanceof Node)
-        {
-            graph.setNodeById(intersection.object.name, element);
-            document.getElementById("graphID").innerHTML = element.circle.name;
-            if(element.circle.description !== undefined)
-              document.getElementById("graphDescription").innerHTML = element.circle.description;
-            else
-              document.getElementById("graphDescription").innerHTML = "No description found.";
-        }
+        // var element = graph.getElementById(intersection.object.name);
+        var element = this.scene.getObjectByName(intersection.object.name);
+        element.material.color.setHex(0xFF0000);
+        document.getElementById("graphID").innerHTML = element.name;
+        if(element.description !== undefined)
+          document.getElementById("graphDescription").innerHTML = element.description;
         else
-        {
-            graph.setEdgeById(intersection.object.name, element);
-        }
+          document.getElementById("graphDescription").innerHTML = "No description found.";
         this.highlightedElements.push(intersection.object.name);
     }
 }
@@ -210,16 +200,9 @@ EventHandler.prototype.mouseOutEvent = function(graph)
 {
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        var element = graph.getElementById(this.highlightedElements[i]);
-        element.unhighlight();
-        if(element instanceof Node)
-        {
-            graph.setNodeById(this.highlightedElements[i], element);
-        }
-        else
-        {
-            graph.setEdgeById(this.highlightedElements[i], element);
-        }
+        // var element = graph.getElementById(this.highlightedElements[i]);
+        var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        element.material.color.setHex(0x000000);
     }
 
     /* Clearing array of highlighted elements */
