@@ -37,25 +37,6 @@ var BipartiteGraph = function(graph, min, max)
 }
 
 /**
- * Get element by id.
- * @public
- * @param {int} id Element id.
- * @returns {Object} Either Node or Edge type object.
- */
-BipartiteGraph.prototype.getElementById = function(id)
-{
-   var identification = id.slice(0,1);
-   if(identification == "e") /* edge */
-   {
-       return this.getEdgeById(id);
-   }
-   else /* node */
-   {
-       return this.getNodeById(id);
-   }
-}
-
-/**
  * Get nodes from graph.
  * @public
  * @returns {Array} Node type array.
@@ -63,35 +44,6 @@ BipartiteGraph.prototype.getElementById = function(id)
 BipartiteGraph.prototype.getNodes = function()
 {
    return this.nodes;
-}
-
-/**
- * Get specific node from graph by id.
- * @public
- * @param {int} id Node id.
- * @returns {Object} Node type object.
- */
-BipartiteGraph.prototype.getNodeById = function(id)
-{
-   return this.getNodeByIndex(this.findNode(id));
-}
-
-/**
- * Find node by id.
- * @public
- * @param {int} id Node id.
- * @returns index of node, or -1 if node wasn't found.
- */
-BipartiteGraph.prototype.findNode = function(id)
-{
-   for(var i = 0; i < this.nodes.length; i++)
-   {
-       if(this.nodes[i].nodeObject.id == id)
-       {
-           return i;
-       }
-   }
-   return -1;
 }
 
 /**
@@ -106,54 +58,33 @@ BipartiteGraph.prototype.getNodeByIndex = function(i)
 }
 
 /**
- * Get number of nodes from graph.
+ * Get number of nodes from entire bipartite graph.
  * @public
  * @returns Length of nodes.
  */
-BipartiteGraph.prototype.getNumberOfNodes = function()
+BipartiteGraph.prototype.getTotalNumberOfNodes = function()
 {
    return this.nodes.length;
 }
 
 /**
- * Set node by id.
+ * Get number of nodes from first layer of bipartite graph.
  * @public
- * @param {int} id Node id.
- * @param {Object} node Object to be assigned.
+ * @returns Number of nodes from first layer.
  */
-BipartiteGraph.prototype.setNodeById = function(id, node)
+BipartiteGraph.prototype.getNumberOfNodesFromFirstLayer = function()
 {
-   var index = this.findNode(id);
-   this.nodes[index].setNode(node);
+   return this.firstLayer.length;
 }
 
 /**
- * Get specific edge from graph by id.
+ * Get number of nodes from second layer of bipartite graph.
  * @public
- * @param {int} id Edge id.
- * @returns {Object} Edge type object.
+ * @returns Number of nodes from second layer.
  */
-BipartiteGraph.prototype.getEdgeById = function(id)
+BipartiteGraph.prototype.getNumberOfNodesFromSecondLayer = function()
 {
-   return this.getEdgeByIndex(this.findEdge(id));
-}
-
-/**
- * Find edge by id.
- * @public
- * @param {int} id Edge id.
- * @returns index of edge, or -1 if edge wasn't found.
- */
-BipartiteGraph.prototype.findEdge = function(id)
-{
-   for(var i = 0; i < this.edges.length; i++)
-   {
-       if(this.edges[i].edgeObject.id == id)
-       {
-           return i;
-       }
-   }
-   return -1;
+   return this.lastLayer.length;
 }
 
 /**
@@ -178,43 +109,11 @@ BipartiteGraph.prototype.getNumberOfEdges = function()
 }
 
 /**
- * Set edge by id.
+ * Find node's neighbors.
  * @public
- * @param {int} id Edge id.
- * @param {Object} node Object to be assigned.
+ * @param {Object} node Node from which neighbors will be found.
+ * @returns List of neighbors for given node.
  */
-BipartiteGraph.prototype.setEdgeById = function(id, edge)
-{
-   var index = this.findEdge(id);
-   this.edges[index].setEdge(edge);
-}
-
-// /**
-// * Highlight edges from highlighted graph
-// * param:
-// *    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
-// */
-// BipartiteGraph.prototype.highlightEdges = function(highlightedElements)
-// {
-//   for(var i = 0; i < highlightedElements.length; i++)
-//   {
-//       if(highlightedElements[i] instanceof Node)
-//       {
-//
-//       }
-//       else if(highlightedElements[i] instanceof Edge)
-//       {
-//
-//       }
-//   }
-// }
-
-/**
-* Find node's neighbors.
-* @public
-* @param {Object} node Node from which neighbors will be found.
-* @returns List of neighbors for given node.
-*/
 BipartiteGraph.prototype.findNeighbors = function(node)
 {
   var neighbors = [];
@@ -235,56 +134,70 @@ BipartiteGraph.prototype.findNeighbors = function(node)
 /**
  * Builds graph in the scene. All necessary node and edge calculations are performed, then these elements are added as actors
  * @public
+ * @param {Object} graph Object containing .json graph file.
  * @param {Object} scene The scene in which the graph will be built.
- * @param {int} layout BipartiteGraph layout.
+ * @param {int} layout Graph layout.
  */
-BipartiteGraph.prototype.buildBipartiteGraph = function(scene, layout)
+BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
 {
-
   layout = ecmaStandard(layout, 2);
   scene = ecmaStandard(scene, undefined);
   this.theta = 3;
   try
   {
-    var scale;
-    /* From D3, use a scaling function for radial placement */
-    scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
-
-    /* Build nodes' meshes */
-    var j = 0;
-    for(var i = 0; i < this.nodes.length; i++)
+    /** y represents space between two layers, while theta space between each vertice of each layer */
+    var y = -20, theta = 3;
+    /** Build nodes' meshes */
+    for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
     {
       if(i == this.firstLayer)
       {
-        this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
-        j = parseInt(j) + parseInt(1);
+        pos = -1 * Math.floor(this.lastLayer / 2);
+        y = y * (-1);
       }
-      else if(i > this.firstLayer)
-      {
-        j = parseInt(j) + parseInt(1);
-      }
-      //  if(i == 0) this.setMinNode(parseInt(i*this.theta));
-      //  if(i == this.nodes.length - 1) this.setMaxNode(parseInt(i*this.theta));
-      this.nodes[i].buildNode(i, this.firstLayer, j, 20, this.theta, layout);
-      if(scene !== undefined) scene.add(this.nodes[i].getCircle());
+      /** Using feature scale for node sizes */
+      if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = 1;
+      var circleSize = (graph.nodes[i].weight - graph.graphInfo[0].minNodeWeight)/(graph.graphInfo[0].maxNodeWeight-graph.graphInfo[0].minNodeWeight);
+      /** Creating geometry and material for meshes */
+      var circleGeometry = new THREE.CircleGeometry(circleSize, 32);
+      var meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+      /** Give mesh name the same as its id */
+      var circleMesh = new THREE.Mesh(circleGeometry, meshBasicMaterial);
+      circleMesh.name = graph.nodes[i].id;
+      /** Build node */
+      var x = pos * theta;
+      circleMesh.position.set(x, y, 0);
+      scene.add(circleMesh);
+      circleGeometry.dispose();
+      meshBasicMaterial.dispose();
     }
-    for(var i = 0; i < this.edges.length; i++)
+
+    /** Creating geometry for edges */
+    var geometry = new THREE.Geometry();
+    /** Build edges mesh */
+    for(var i = 0; i < graph.links.length; i++)
     {
-      this.edges[i].buildEdge(this.geometry, this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target));
+      var sourcePos = scene.getObjectByName(graph.links[i].source, true);
+      var targetPos = scene.getObjectByName(graph.links[i].target, true);
+      var v1 = new THREE.Vector3(sourcePos.position.x, sourcePos.position.y, sourcePos.position.z);
+      var v2 = new THREE.Vector3(targetPos.position.x, targetPos.position.y, targetPos.position.z);
+      geometry.vertices.push(v1);
+      geometry.vertices.push(v2);
     }
-    if(scene !== undefined)
-    {
-      // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
-      // scene.add(lineSegment);
-      var line = new MeshLine();
-      line.setGeometry(this.geometry);
-      line.setGeometry(this.geometry, function(p){
-        return 0.3;
-      });
-      var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-      var lineMesh = new THREE.Mesh(line.geometry, material);
-      scene.add(lineMesh);
-    }
+
+    /** Build edges */
+    // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+    // scene.add(lineSegment);
+    var line = new THREE.MeshLine();
+    line.setGeometry(geometry);
+    line.setGeometry(geometry, function(p){
+      return 0.3;
+    });
+    var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+    var lineMesh = new THREE.Mesh(line.geometry, material);
+    scene.add(lineMesh);
+    geometry.dispose();
+    material.dispose();
   }
   catch(err)
   {
@@ -948,7 +861,7 @@ Node.prototype.unhighlight = function()
     this.circle.material.color.setHex(0x000000);
 }
 
-/* Global variables */
+var bipartiteGraph/* Global variables */
 var renderer;
 var graph;
 var scene;
@@ -966,17 +879,17 @@ var clicked = {wasClicked: false};
 //   if(eventHandler !== undefined)
 //   {
 //     var highlightedElements = eventHandler.getHighlightedElements();
-//     if(graph !== undefined)
+//     if(bipartiteGraph !== undefined)
 //     {
-//         graph.highlightEdges(highlightedElements);
+//         bipartiteGraph.highlightEdges(highlightedElements);
 //     }
 //   }
 // });
 
 /**
- * Display graph info on HTML page.
+ * Display bipartiteGraph info on HTML page.
  * @public
- * @param {JSON} jason .json file representing graph.
+ * @param {JSON} jason .json file representing bipartiteGraph.
  */
 function displayGraphInfo(jason)
 {
@@ -1003,12 +916,12 @@ function build(data, layout)
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
 
-  /* Display graph info */
+  /* Display bipartite graph info */
   displayGraphInfo(jason);
 
   /* Instantiating Graph */
-  if(graph !== undefined) delete graph;
-  graph = new Graph(jason, 10, 70);
+  if(bipartiteGraph !== undefined) delete bipartiteGraph;
+  bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
   if(renderer == undefined)
   {
@@ -1034,8 +947,8 @@ function build(data, layout)
   if(scene !== undefined) delete scene;
   scene = new THREE.Scene();
 
-  /* Build graph */
-  graph.buildGraph(scene, lay);
+  /* Build bipartiteGraph */
+  bipartiteGraph.buildGraph(jason, scene, lay);
 
   /* Create the camera and associate it with the scene */
   if(camera !== undefined) delete camera;
@@ -1076,9 +989,9 @@ function build(data, layout)
       camera.updateProjectionMatrix();
       renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
     }, false);
-    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, bipartiteGraph);}, false);
     document.addEventListener('dblclick', function(evt){
-      eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
+      eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
       // !clicked ? clicked = true : clicked = false;
     }, false);
   }

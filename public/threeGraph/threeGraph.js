@@ -1,4 +1,4 @@
-/* Global variables */
+var bipartiteGraph/* Global variables */
 var renderer;
 var graph;
 var scene;
@@ -16,17 +16,17 @@ var clicked = {wasClicked: false};
 //   if(eventHandler !== undefined)
 //   {
 //     var highlightedElements = eventHandler.getHighlightedElements();
-//     if(graph !== undefined)
+//     if(bipartiteGraph !== undefined)
 //     {
-//         graph.highlightEdges(highlightedElements);
+//         bipartiteGraph.highlightEdges(highlightedElements);
 //     }
 //   }
 // });
 
 /**
- * Display graph info on HTML page.
+ * Display bipartiteGraph info on HTML page.
  * @public
- * @param {JSON} jason .json file representing graph.
+ * @param {JSON} jason .json file representing bipartiteGraph.
  */
 function displayGraphInfo(jason)
 {
@@ -53,12 +53,12 @@ function build(data, layout)
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
 
-  /* Display graph info */
+  /* Display bipartite graph info */
   displayGraphInfo(jason);
 
   /* Instantiating Graph */
-  if(graph !== undefined) delete graph;
-  graph = new Graph(jason, 10, 70);
+  if(bipartiteGraph !== undefined) delete bipartiteGraph;
+  bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
   if(renderer == undefined)
   {
@@ -84,8 +84,8 @@ function build(data, layout)
   if(scene !== undefined) delete scene;
   scene = new THREE.Scene();
 
-  /* Build graph */
-  graph.buildGraph(scene, lay);
+  /* Build bipartiteGraph */
+  bipartiteGraph.buildGraph(jason, scene, lay);
 
   /* Create the camera and associate it with the scene */
   if(camera !== undefined) delete camera;
@@ -126,9 +126,9 @@ function build(data, layout)
       camera.updateProjectionMatrix();
       renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
     }, false);
-    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, bipartiteGraph);}, false);
     document.addEventListener('dblclick', function(evt){
-      eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
+      eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
       // !clicked ? clicked = true : clicked = false;
     }, false);
   }
