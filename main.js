@@ -57,8 +57,8 @@ function addMinAndMaxEdge(data)
     }
   }
   /** Store in .json edges weights */
-  jason.graphInfo[0].maxEdgeWeight = max;
-  jason.graphInfo[0].minEdgeWeight = min;
+  jason.graphInfo[0].maxEdgeWeight = parseInt(max);
+  jason.graphInfo[0].minEdgeWeight = parseInt(min);
   return JSON.stringify(jason);
 }
 

@@ -1,4 +1,4 @@
-var bipartiteGraph/* Global variables */
+var bipartiteGraph /* Global variables */
 var renderer;
 var graph;
 var scene;
@@ -60,32 +60,57 @@ function build(data, layout)
   if(bipartiteGraph !== undefined) delete bipartiteGraph;
   bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
-  if(renderer == undefined)
+  // if(renderer == undefined)
+  // {
+  //     /* Get the size of the inner window (content area) to create a full size renderer */
+  //     canvasWidth = (document.getElementById("WebGL").clientWidth);
+  //     canvasHeight = (document.getElementById("WebGL").clientHeight);
+  //     /* Create a new WebGL renderer */
+  //     renderer = new THREE.WebGLRenderer({antialias:true});
+  //     /* Set the background color of the renderer to black, with full opacity */
+  //     renderer.setClearColor("rgb(255, 255, 255)", 1);
+  //     /* Set the renderers size to the content area size */
+  //     renderer.setSize(canvasWidth, canvasHeight);
+  // }
+  // else
+  // {
+  //     renderer.clear();
+  // }
+
+  if(renderer !== undefined)
   {
-      /* Get the size of the inner window (content area) to create a full size renderer */
-      canvasWidth = (document.getElementById("WebGL").clientWidth);
-      canvasHeight = (document.getElementById("WebGL").clientHeight);
-      /* Create a new WebGL renderer */
-      renderer = new THREE.WebGLRenderer({antialias:true});
-      /* Set the background color of the renderer to black, with full opacity */
-      renderer.setClearColor("rgb(255, 255, 255)", 1);
-      /* Set the renderers size to the content area size */
-      renderer.setSize(canvasWidth, canvasHeight);
+    var element = document.getElementById("WebGL");
+    element.parentNode.removeChild(element);
+    delete renderer;
   }
-  else
-  {
-      renderer.clear();
-  }
+  /* Get the size of the inner window (content area) to create a full size renderer */
+  canvasWidth = (document.getElementById("WebGL").clientWidth);
+  canvasHeight = (document.getElementById("WebGL").clientHeight);
+  /* Create a new WebGL renderer */
+  renderer = new THREE.WebGLRenderer({antialias:true});
+  /* Set the background color of the renderer to black, with full opacity */
+  renderer.setClearColor("rgb(255, 255, 255)", 1);
+  /* Set the renderers size to the content area size */
+  renderer.setSize(canvasWidth, canvasHeight);
 
   /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
 
   /* Create scene */
-  if(scene !== undefined) delete scene;
+  if(scene !== undefined)
+  {
+    for(var i = scene.children.length - 1; i >= 0; i--)
+    {
+      scene.remove(scene.children[i]);
+    }
+    delete scene;
+  }
   scene = new THREE.Scene();
 
   /* Build bipartiteGraph */
   bipartiteGraph.buildGraph(jason, scene, lay);
+
+  delete jason;
 
   /* Create the camera and associate it with the scene */
   if(camera !== undefined) delete camera;

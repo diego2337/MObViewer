@@ -156,11 +156,11 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
         // var element = graph.getElementById(this.highlightedElements[i]);
-        var element = this.scene.getObjectByName(this.highlightedElements[i], true);
-        if(element != undefined)
-        {
-          element.material.color.setHex(0x000000);
-        }
+        // var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        // if(element != undefined)
+        // {
+        //   element.material.color.setHex(0x000000);
+        // }
         // var alreadyHighlighted = false;
         // for(var j = 0; j < this.neighbors.length; j++)
         // {
@@ -174,20 +174,38 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         // }
         // if(!alreadyHighlighted)
         //   element.unhighlight();
+        var endPoint = this.highlightedElements[i] + 32;
+        var element = this.scene.getObjectByName("MainMesh", true);
+        for(var j = this.highlightedElements[i]; j < endPoint; j++)
+        {
+          element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        element.geometry.colorsNeedUpdate = true;
         this.highlightedElements.splice(i, 1);
     }
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
+
+      // console.log(intersection);
+      intersection.face.color.setRGB(0.0, 1.0, 0.0);
+      /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
+      var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
+      for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
+      {
+          intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
+      }
+      intersection.object.geometry.colorsNeedUpdate = true;
+      this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
         // var element = graph.getElementById(intersection.object.name);
-        var element = this.scene.getObjectByName(intersection.object.name);
-        element.material.color.setHex(0xFF0000);
-        document.getElementById("graphID").innerHTML = element.name;
-        if(element.description !== undefined)
-          document.getElementById("graphDescription").innerHTML = element.description;
-        else
-          document.getElementById("graphDescription").innerHTML = "No description found.";
-        this.highlightedElements.push(intersection.object.name);
+        // var element = this.scene.getObjectByName(intersection.object.name);
+        // element.material.color.setHex(0xFF0000);
+        // document.getElementById("graphID").innerHTML = element.name;
+        // if(element.description !== undefined)
+        //   document.getElementById("graphDescription").innerHTML = element.description;
+        // else
+        //   document.getElementById("graphDescription").innerHTML = "No description found.";
+        // this.highlightedElements.push(intersection.object.name);
     }
 }
 
@@ -201,8 +219,8 @@ EventHandler.prototype.mouseOutEvent = function(graph)
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
         // var element = graph.getElementById(this.highlightedElements[i]);
-        var element = this.scene.getObjectByName(this.highlightedElements[i], true);
-        element.material.color.setHex(0x000000);
+        // var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        // element.material.color.setHex(0x000000);
     }
 
     /* Clearing array of highlighted elements */

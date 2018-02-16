@@ -147,9 +147,18 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
   {
     /** y represents space between two layers, while theta space between each vertice of each layer */
     var y = -20, theta = 3;
-    /** Build nodes' meshes */
-    var meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
-    // var circleGeometry = new THREE.CircleGeometry(1, 32);
+    /** Build nodes */
+    /** Creating geometry and material for nodes */
+    var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+    var circleGeometry = new THREE.CircleGeometry(1, 32);
+    /** Color vertexes */
+    for(var k = 0; k < circleGeometry.faces.length; k++)
+    {
+      circleGeometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
+    }
+    /** Create single geometry which will contain all geometries */
+    var singleGeometry = new THREE.Geometry();
+    // singleGeometry.name = "MainGeometry";
     for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
     {
       if(i == this.firstLayer)
@@ -157,49 +166,88 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
         pos = -1 * Math.floor(this.lastLayer / 2);
         y = y * (-1);
       }
-      /** Using feature scale for node sizes */
-      if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = 1;
-      var circleSize = (graph.nodes[i].weight - graph.graphInfo[0].minNodeWeight)/(graph.graphInfo[0].maxNodeWeight-graph.graphInfo[0].minNodeWeight);
-      /** Creating geometry and material for meshes */
-      var circleGeometry = new THREE.CircleGeometry(circleSize, 32);
-      /** Give mesh name the same as its id */
-      var circleMesh = new THREE.Mesh(circleGeometry, meshBasicMaterial);
-      circleMesh.name = graph.nodes[i].id;
-      circleMesh.renderOrder = 1;
-      /** Build node */
       var x = pos * theta;
-      circleMesh.position.set(x, y, 0);
-      scene.add(circleMesh);
+      if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = 1;
+      var circleSize = (parseInt(graph.nodes[i].weight) - parseInt(graph.graphInfo[0].minNodeWeight))/((parseInt(graph.graphInfo[0].maxNodeWeight)-parseInt(graph.graphInfo[0].minNodeWeight))+1);
+      if(circleSize == 0) circleSize = 1;
+      /** Using feature scale for node sizes */
+      circleGeometry.scale(circleSize, circleSize, 1);
+      /** Give geometry name the same as its id */
+      circleGeometry.name = graph.nodes[i].id;
+      /** Translate geometry for its coordinates */
+      circleGeometry.translate(x, y, 0);
+      /** Merge into singleGeometry */
+      singleGeometry.merge(circleGeometry);
+      /** Return geometry for reusing */
+      circleGeometry.translate(-x, -y, 0);
+      circleGeometry.name = "";
+      circleGeometry.scale((1/circleSize), (1/circleSize), 1);
     }
+    /** Create one mesh from single geometry and add it to scene */
+    mesh = new THREE.Mesh(singleGeometry, material);
+    mesh.name = "MainMesh";
+    scene.add(mesh);
 
-    /** Creating geometry for edges */
-    var geometry = new THREE.Geometry();
-    /** Build edges mesh */
-    for(var i = 0; i < graph.links.length; i++)
-    {
-      var sourcePos = scene.getObjectByName(graph.links[i].source, true);
-      var targetPos = scene.getObjectByName(graph.links[i].target, true);
-      // var sourcePos = {position: {x:Math.random(), y:Math.random(), z:0}};
-      // var targetPos = {position:{x:Math.random(), y:Math.random(), z:0}};
-      var v1 = new THREE.Vector3(sourcePos.position.x, sourcePos.position.y, sourcePos.position.z);
-      var v2 = new THREE.Vector3(targetPos.position.x, targetPos.position.y, targetPos.position.z);
-      geometry.vertices.push(v1);
-      geometry.vertices.push(v2);
-    }
-
-    /** Build edges */
-    // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
-    // scene.add(lineSegment);
-    var line = new THREE.MeshLine();
-    line.setGeometry(geometry);
-    line.setGeometry(geometry, function(p){
-      return 0.3;
-    });
-    var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-    var lineMesh = new THREE.Mesh(line.geometry, material);
-    scene.add(lineMesh);
-    geometry.dispose();
+    singleGeometry.dispose();
+    circleGeometry.dispose();
     material.dispose();
+
+
+    // /** y represents space between two layers, while theta space between each vertice of each layer */
+    // var y = -20, theta = 3;
+    // /** Build nodes' meshes */
+    // var meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+    // // var circleGeometry = new THREE.CircleGeometry(1, 32);
+    // for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
+    // {
+    //   if(i == this.firstLayer)
+    //   {
+    //     pos = -1 * Math.floor(this.lastLayer / 2);
+    //     y = y * (-1);
+    //   }
+    //   /** Using feature scale for node sizes */
+    //   if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = 1;
+    //   var circleSize = (graph.nodes[i].weight - graph.graphInfo[0].minNodeWeight)/(graph.graphInfo[0].maxNodeWeight-graph.graphInfo[0].minNodeWeight);
+    //   /** Creating geometry and material for meshes */
+    //   var circleGeometry = new THREE.CircleGeometry(circleSize, 32);
+    //   /** Give mesh name the same as its id */
+    //   var circleMesh = new THREE.Mesh(circleGeometry, meshBasicMaterial);
+    //   circleMesh.name = graph.nodes[i].id;
+    //   circleMesh.renderOrder = 1;
+    //   /** Build node */
+    //   var x = pos * theta;
+    //   circleMesh.position.set(x, y, 0);
+    //   scene.add(circleMesh);
+    // }
+
+    // /** Creating geometry for edges */
+    // var geometry = new THREE.Geometry();
+    // /** Build edges mesh */
+    // for(var i = 0; i < graph.links.length; i++)
+    // {
+    //   var sourcePos = scene.getObjectByName(graph.links[i].source, true);
+    //   var targetPos = scene.getObjectByName(graph.links[i].target, true);
+    //   // var sourcePos = {position: {x:Math.random(), y:Math.random(), z:0}};
+    //   // var targetPos = {position:{x:Math.random(), y:Math.random(), z:0}};
+    //   var v1 = new THREE.Vector3(sourcePos.position.x, sourcePos.position.y, sourcePos.position.z);
+    //   var v2 = new THREE.Vector3(targetPos.position.x, targetPos.position.y, targetPos.position.z);
+    //   geometry.vertices.push(v1);
+    //   geometry.vertices.push(v2);
+    // }
+    //
+    // /** Build edges */
+    // // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+    // // scene.add(lineSegment);
+    // var line = new THREE.MeshLine();
+    // line.setGeometry(geometry);
+    // line.setGeometry(geometry, function(p){
+    //   return 0.3;
+    // });
+    // var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+    // var lineMesh = new THREE.Mesh(line.geometry, material);
+    // scene.add(lineMesh);
+    // geometry.dispose();
+    // material.dispose();
   }
   catch(err)
   {
@@ -863,7 +911,7 @@ Node.prototype.unhighlight = function()
     this.circle.material.color.setHex(0x000000);
 }
 
-var bipartiteGraph/* Global variables */
+var bipartiteGraph /* Global variables */
 var renderer;
 var graph;
 var scene;
@@ -925,32 +973,55 @@ function build(data, layout)
   if(bipartiteGraph !== undefined) delete bipartiteGraph;
   bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
-  if(renderer == undefined)
+  // if(renderer == undefined)
+  // {
+  //     /* Get the size of the inner window (content area) to create a full size renderer */
+  //     canvasWidth = (document.getElementById("WebGL").clientWidth);
+  //     canvasHeight = (document.getElementById("WebGL").clientHeight);
+  //     /* Create a new WebGL renderer */
+  //     renderer = new THREE.WebGLRenderer({antialias:true});
+  //     /* Set the background color of the renderer to black, with full opacity */
+  //     renderer.setClearColor("rgb(255, 255, 255)", 1);
+  //     /* Set the renderers size to the content area size */
+  //     renderer.setSize(canvasWidth, canvasHeight);
+  // }
+  // else
+  // {
+  //     renderer.clear();
+  // }
+
+  if(renderer !== undefined)
   {
-      /* Get the size of the inner window (content area) to create a full size renderer */
-      canvasWidth = (document.getElementById("WebGL").clientWidth);
-      canvasHeight = (document.getElementById("WebGL").clientHeight);
-      /* Create a new WebGL renderer */
-      renderer = new THREE.WebGLRenderer({antialias:true});
-      /* Set the background color of the renderer to black, with full opacity */
-      renderer.setClearColor("rgb(255, 255, 255)", 1);
-      /* Set the renderers size to the content area size */
-      renderer.setSize(canvasWidth, canvasHeight);
+      delete renderer;
   }
-  else
-  {
-      renderer.clear();
-  }
+  /* Get the size of the inner window (content area) to create a full size renderer */
+  canvasWidth = (document.getElementById("WebGL").clientWidth);
+  canvasHeight = (document.getElementById("WebGL").clientHeight);
+  /* Create a new WebGL renderer */
+  renderer = new THREE.WebGLRenderer({antialias:true});
+  /* Set the background color of the renderer to black, with full opacity */
+  renderer.setClearColor("rgb(255, 255, 255)", 1);
+  /* Set the renderers size to the content area size */
+  renderer.setSize(canvasWidth, canvasHeight);
 
   /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
 
   /* Create scene */
-  if(scene !== undefined) delete scene;
+  if(scene !== undefined)
+  {
+    for(var i = scene.children.length - 1; i >= 0; i--)
+    {
+      scene.remove(scene.children[i]);
+    }
+    delete scene;
+  }
   scene = new THREE.Scene();
 
   /* Build bipartiteGraph */
   bipartiteGraph.buildGraph(jason, scene, lay);
+
+  delete jason;
 
   /* Create the camera and associate it with the scene */
   if(camera !== undefined) delete camera;
@@ -1188,11 +1259,11 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
         // var element = graph.getElementById(this.highlightedElements[i]);
-        var element = this.scene.getObjectByName(this.highlightedElements[i], true);
-        if(element != undefined)
-        {
-          element.material.color.setHex(0x000000);
-        }
+        // var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        // if(element != undefined)
+        // {
+        //   element.material.color.setHex(0x000000);
+        // }
         // var alreadyHighlighted = false;
         // for(var j = 0; j < this.neighbors.length; j++)
         // {
@@ -1206,20 +1277,38 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         // }
         // if(!alreadyHighlighted)
         //   element.unhighlight();
+        var endPoint = this.highlightedElements[i] + 32;
+        var element = this.scene.getObjectByName("MainMesh", true);
+        for(var j = this.highlightedElements[i]; j < endPoint; j++)
+        {
+          element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        element.geometry.colorsNeedUpdate = true;
         this.highlightedElements.splice(i, 1);
     }
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
+
+      // console.log(intersection);
+      intersection.face.color.setRGB(0.0, 1.0, 0.0);
+      /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
+      var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
+      for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
+      {
+          intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
+      }
+      intersection.object.geometry.colorsNeedUpdate = true;
+      this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
         // var element = graph.getElementById(intersection.object.name);
-        var element = this.scene.getObjectByName(intersection.object.name);
-        element.material.color.setHex(0xFF0000);
-        document.getElementById("graphID").innerHTML = element.name;
-        if(element.description !== undefined)
-          document.getElementById("graphDescription").innerHTML = element.description;
-        else
-          document.getElementById("graphDescription").innerHTML = "No description found.";
-        this.highlightedElements.push(intersection.object.name);
+        // var element = this.scene.getObjectByName(intersection.object.name);
+        // element.material.color.setHex(0xFF0000);
+        // document.getElementById("graphID").innerHTML = element.name;
+        // if(element.description !== undefined)
+        //   document.getElementById("graphDescription").innerHTML = element.description;
+        // else
+        //   document.getElementById("graphDescription").innerHTML = "No description found.";
+        // this.highlightedElements.push(intersection.object.name);
     }
 }
 
@@ -1233,8 +1322,8 @@ EventHandler.prototype.mouseOutEvent = function(graph)
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
         // var element = graph.getElementById(this.highlightedElements[i]);
-        var element = this.scene.getObjectByName(this.highlightedElements[i], true);
-        element.material.color.setHex(0x000000);
+        // var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        // element.material.color.setHex(0x000000);
     }
 
     /* Clearing array of highlighted elements */
