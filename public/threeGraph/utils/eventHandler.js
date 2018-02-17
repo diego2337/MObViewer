@@ -187,7 +187,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     if(intersection != undefined)
     {
 
-      // console.log(intersection);
+      console.log(intersection);
       intersection.face.color.setRGB(0.0, 1.0, 0.0);
       /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
       var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;

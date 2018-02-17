@@ -19,7 +19,7 @@ app.set('views', __dirname+'/public/views');
 app.set('view engine', 'html');
 
 /**
- * Add number of edges to .json string being created.
+ * @desc Add number of edges to .json string being created.
  * @public
  * @param {string} data - .json string.
  * @returns {string} .json string containing number of edges.
@@ -28,6 +28,26 @@ function addNumberOfEdgesToJSON(data)
 {
   var jason = JSON.parse(data);
   jason.graphInfo[0].edges = jason.links.length.toString();
+  data = JSON.stringify(jason);
+  return data;
+}
+
+/**
+ * @desc Sort "links" property of .json string.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function sortJSON(data)
+{
+  var jason = JSON.parse(data);
+  // jason.links.sort(function(a, b){
+  //   // return (a["source"] > b["source"]) ? 1 : ((a["source"] < b["source"]) ? -1 : 0);
+  //   if(a["source"] < a["target"])
+  //   {
+  //
+  //   }
+  //   else if(a["source"] > )
+  // });
   data = JSON.stringify(jason);
   return data;
 }
@@ -131,7 +151,7 @@ function readJsonFile(path, fs, res)
     else
     {
       /* Store graph size */
-      if(graphSize.length == 0) console.log("Entre uma vez somente pfvr"), graphSize = JSON.parse(data).graphInfo[0].vlayer;
+      if(graphSize.length == 0) graphSize = JSON.parse(data).graphInfo[0].vlayer;
       /* Send data to client */
       res.end(addValues(data));
     }

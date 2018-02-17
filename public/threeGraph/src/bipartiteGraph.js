@@ -147,6 +147,8 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
   {
     /** y represents space between two layers, while theta space between each vertice of each layer */
     var y = -20, theta = 3;
+    /** Array to store (x,y,z) coordinates of nodes */
+    var positions = [];
     /** Build nodes */
     /** Creating geometry and material for nodes */
     var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
@@ -167,15 +169,18 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
         y = y * (-1);
       }
       var x = pos * theta;
-      if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = 1;
+      if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = parseInt(graph.graphInfo[0].minNodeWeight);
       var circleSize = (parseInt(graph.nodes[i].weight) - parseInt(graph.graphInfo[0].minNodeWeight))/((parseInt(graph.graphInfo[0].maxNodeWeight)-parseInt(graph.graphInfo[0].minNodeWeight))+1);
-      if(circleSize == 0) circleSize = 1;
+      if(circleSize == 0) circleSize = parseInt(graph.graphInfo[0].minNodeWeight);
+      // circleSize = circleSize + 0.3;
       /** Using feature scale for node sizes */
       circleGeometry.scale(circleSize, circleSize, 1);
       /** Give geometry name the same as its id */
       circleGeometry.name = graph.nodes[i].id;
       /** Translate geometry for its coordinates */
       circleGeometry.translate(x, y, 0);
+      /** Push coordinates to array */
+      positions.push({x: x, y: y, z: 0});
       /** Merge into singleGeometry */
       singleGeometry.merge(circleGeometry);
       /** Return geometry for reusing */
@@ -186,11 +191,37 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     /** Create one mesh from single geometry and add it to scene */
     mesh = new THREE.Mesh(singleGeometry, material);
     mesh.name = "MainMesh";
+    /** Alter render order so that node mesh will always be drawn on top of edges */
+    mesh.renderOrder = 1;
     scene.add(mesh);
 
     singleGeometry.dispose();
     circleGeometry.dispose();
     material.dispose();
+
+    /** Build edges */
+    var edgeGeometry = new THREE.Geometry();
+    for(var i = 0; i < graph.links.length; i++)
+    {
+      var sourcePos = positions[graph.links[i].source];
+      var targetPos = positions[graph.links[i].target];
+      var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+      var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+      edgeGeometry.vertices.push(v1);
+      edgeGeometry.vertices.push(v2);
+    }
+
+    var line = new THREE.MeshLine();
+    line.setGeometry(edgeGeometry);
+    line.setGeometry(edgeGeometry, function(p){
+      return 0.3;
+    });
+    var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+    var lineMesh = new THREE.Mesh(line.geometry, material);
+    scene.add(lineMesh);
+
+    material.dispose();
+    edgeGeometry.dispose();
 
 
     // /** y represents space between two layers, while theta space between each vertice of each layer */
