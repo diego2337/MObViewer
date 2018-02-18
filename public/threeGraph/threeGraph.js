@@ -41,6 +41,57 @@ function displayGraphInfo(jason)
   document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
 }
 
+function disposeNode (node)
+{
+    if (node instanceof THREE.Mesh)
+    {
+        if (node.geometry)
+        {
+            node.geometry.dispose ();
+        }
+
+        if (node.material)
+        {
+            if (node.material instanceof THREE.MeshFaceMaterial)
+            {
+                $.each (node.material.materials, function (idx, mtrl)
+                {
+                    if (mtrl.map)           mtrl.map.dispose ();
+                    if (mtrl.lightMap)      mtrl.lightMap.dispose ();
+                    if (mtrl.bumpMap)       mtrl.bumpMap.dispose ();
+                    if (mtrl.normalMap)     mtrl.normalMap.dispose ();
+                    if (mtrl.specularMap)   mtrl.specularMap.dispose ();
+                    if (mtrl.envMap)        mtrl.envMap.dispose ();
+
+                    mtrl.dispose ();    // disposes any programs associated with the material
+                });
+            }
+            else
+            {
+                if (node.material.map)          node.material.map.dispose ();
+                if (node.material.lightMap)     node.material.lightMap.dispose ();
+                if (node.material.bumpMap)      node.material.bumpMap.dispose ();
+                if (node.material.normalMap)    node.material.normalMap.dispose ();
+                if (node.material.specularMap)  node.material.specularMap.dispose ();
+                if (node.material.envMap)       node.material.envMap.dispose ();
+
+                node.material.dispose ();   // disposes any programs associated with the material
+            }
+        }
+    }
+}   // disposeNode
+
+function disposeHierarchy (node, callback)
+{
+    for (var i = node.children.length - 1; i >= 0; i--)
+    {
+        var child = node.children[i];
+        disposeHierarchy (child, callback);
+        callback (child);
+    }
+}
+
+
 /**
   * Render a bipartite graph, given a .json file.
   * @public
@@ -60,38 +111,39 @@ function build(data, layout)
   if(bipartiteGraph !== undefined) delete bipartiteGraph;
   bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
-  // if(renderer == undefined)
-  // {
-  //     /* Get the size of the inner window (content area) to create a full size renderer */
-  //     canvasWidth = (document.getElementById("WebGL").clientWidth);
-  //     canvasHeight = (document.getElementById("WebGL").clientHeight);
-  //     /* Create a new WebGL renderer */
-  //     renderer = new THREE.WebGLRenderer({antialias:true});
-  //     /* Set the background color of the renderer to black, with full opacity */
-  //     renderer.setClearColor("rgb(255, 255, 255)", 1);
-  //     /* Set the renderers size to the content area size */
-  //     renderer.setSize(canvasWidth, canvasHeight);
-  // }
-  // else
-  // {
-  //     renderer.clear();
-  // }
-
-  if(renderer !== undefined)
+  if(renderer == undefined)
   {
-    var element = document.getElementById("WebGL");
-    element.parentNode.removeChild(element);
-    delete renderer;
+      /* Get the size of the inner window (content area) to create a full size renderer */
+      canvasWidth = (document.getElementById("WebGL").clientWidth);
+      canvasHeight = (document.getElementById("WebGL").clientHeight);
+      /* Create a new WebGL renderer */
+      renderer = new THREE.WebGLRenderer({antialias:true});
+      /* Set the background color of the renderer to black, with full opacity */
+      renderer.setClearColor("rgb(255, 255, 255)", 1);
+      /* Set the renderers size to the content area size */
+      renderer.setSize(canvasWidth, canvasHeight);
   }
-  /* Get the size of the inner window (content area) to create a full size renderer */
-  canvasWidth = (document.getElementById("WebGL").clientWidth);
-  canvasHeight = (document.getElementById("WebGL").clientHeight);
-  /* Create a new WebGL renderer */
-  renderer = new THREE.WebGLRenderer({antialias:true});
-  /* Set the background color of the renderer to black, with full opacity */
-  renderer.setClearColor("rgb(255, 255, 255)", 1);
-  /* Set the renderers size to the content area size */
-  renderer.setSize(canvasWidth, canvasHeight);
+  else
+  {
+      renderer.setRenderTarget(null);
+      renderer.clear();
+  }
+
+  // if(renderer !== undefined)
+  // {
+  //   var element = document.getElementById("WebGL");
+  //   element.parentNode.removeChild(element);
+  //   delete renderer;
+  // }
+  // /* Get the size of the inner window (content area) to create a full size renderer */
+  // canvasWidth = (document.getElementById("WebGL").clientWidth);
+  // canvasHeight = (document.getElementById("WebGL").clientHeight);
+  // /* Create a new WebGL renderer */
+  // renderer = new THREE.WebGLRenderer({antialias:true});
+  // /* Set the background color of the renderer to black, with full opacity */
+  // renderer.setClearColor("rgb(255, 255, 255)", 1);
+  // /* Set the renderers size to the content area size */
+  // renderer.setSize(canvasWidth, canvasHeight);
 
   /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
@@ -99,13 +151,17 @@ function build(data, layout)
   /* Create scene */
   if(scene !== undefined)
   {
-    for(var i = scene.children.length - 1; i >= 0; i--)
-    {
-      scene.remove(scene.children[i]);
-    }
-    delete scene;
+    // for(var i = scene.children.length - 1; i >= 0; i--)
+    // {
+    //   scene.remove(scene.children[i]);
+    // }
+    disposeHierarchy(scene, disposeNode);
+    // delete scene;
   }
-  scene = new THREE.Scene();
+  else
+  {
+    scene = new THREE.Scene();
+  }
 
   /* Build bipartiteGraph */
   bipartiteGraph.buildGraph(jason, scene, lay);
@@ -140,23 +196,38 @@ function build(data, layout)
 
   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
 
-  /* Creating event listener */
-  if(eventHandler !== undefined) eventHandler.setScene(scene);
-  else
+  /** Creating event listener */
+  if(eventHandler === undefined)
   {
-    eventHandler = new EventHandler(undefined, scene);
+    eventHandler = new EventHandler(undefined);
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
       camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
     }, false);
-    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, bipartiteGraph);}, false);
-    document.addEventListener('dblclick', function(evt){
-      eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
-      // !clicked ? clicked = true : clicked = false;
-    }, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, scene);}, false);
+    // document.addEventListener('dblclick', function(evt){
+    //   eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+    //   // !clicked ? clicked = true : clicked = false;
+    // }, false);
   }
+  // if(eventHandler !== undefined) eventHandler.setScene(scene);
+  // else
+  // {
+  //   eventHandler = new EventHandler(undefined, scene);
+  //   /* Adding event listeners */
+  //   document.addEventListener('resize', function(evt){
+  //     camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
+  //     camera.updateProjectionMatrix();
+  //     renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
+  //   }, false);
+  //   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, bipartiteGraph);}, false);
+  //   document.addEventListener('dblclick', function(evt){
+  //     eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+  //     // !clicked ? clicked = true : clicked = false;
+  //   }, false);
+  // }
 
   // console.log(renderer.info);
   animate();

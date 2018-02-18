@@ -172,7 +172,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = parseInt(graph.graphInfo[0].minNodeWeight);
       var circleSize = (parseInt(graph.nodes[i].weight) - parseInt(graph.graphInfo[0].minNodeWeight))/((parseInt(graph.graphInfo[0].maxNodeWeight)-parseInt(graph.graphInfo[0].minNodeWeight))+1);
       if(circleSize == 0) circleSize = parseInt(graph.graphInfo[0].minNodeWeight);
-      circleSize = circleSize + 0.3;
+      // circleSize = circleSize + 0.3;
       /** Using feature scale for node sizes */
       circleGeometry.scale(circleSize, circleSize, 1);
       /** Give geometry name the same as its id */
@@ -985,6 +985,57 @@ function displayGraphInfo(jason)
   document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
 }
 
+function disposeNode (node)
+{
+    if (node instanceof THREE.Mesh)
+    {
+        if (node.geometry)
+        {
+            node.geometry.dispose ();
+        }
+
+        if (node.material)
+        {
+            if (node.material instanceof THREE.MeshFaceMaterial)
+            {
+                $.each (node.material.materials, function (idx, mtrl)
+                {
+                    if (mtrl.map)           mtrl.map.dispose ();
+                    if (mtrl.lightMap)      mtrl.lightMap.dispose ();
+                    if (mtrl.bumpMap)       mtrl.bumpMap.dispose ();
+                    if (mtrl.normalMap)     mtrl.normalMap.dispose ();
+                    if (mtrl.specularMap)   mtrl.specularMap.dispose ();
+                    if (mtrl.envMap)        mtrl.envMap.dispose ();
+
+                    mtrl.dispose ();    // disposes any programs associated with the material
+                });
+            }
+            else
+            {
+                if (node.material.map)          node.material.map.dispose ();
+                if (node.material.lightMap)     node.material.lightMap.dispose ();
+                if (node.material.bumpMap)      node.material.bumpMap.dispose ();
+                if (node.material.normalMap)    node.material.normalMap.dispose ();
+                if (node.material.specularMap)  node.material.specularMap.dispose ();
+                if (node.material.envMap)       node.material.envMap.dispose ();
+
+                node.material.dispose ();   // disposes any programs associated with the material
+            }
+        }
+    }
+}   // disposeNode
+
+function disposeHierarchy (node, callback)
+{
+    for (var i = node.children.length - 1; i >= 0; i--)
+    {
+        var child = node.children[i];
+        disposeHierarchy (child, callback);
+        callback (child);
+    }
+}
+
+
 /**
   * Render a bipartite graph, given a .json file.
   * @public
@@ -1004,38 +1055,39 @@ function build(data, layout)
   if(bipartiteGraph !== undefined) delete bipartiteGraph;
   bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
-  // if(renderer == undefined)
-  // {
-  //     /* Get the size of the inner window (content area) to create a full size renderer */
-  //     canvasWidth = (document.getElementById("WebGL").clientWidth);
-  //     canvasHeight = (document.getElementById("WebGL").clientHeight);
-  //     /* Create a new WebGL renderer */
-  //     renderer = new THREE.WebGLRenderer({antialias:true});
-  //     /* Set the background color of the renderer to black, with full opacity */
-  //     renderer.setClearColor("rgb(255, 255, 255)", 1);
-  //     /* Set the renderers size to the content area size */
-  //     renderer.setSize(canvasWidth, canvasHeight);
-  // }
-  // else
-  // {
-  //     renderer.clear();
-  // }
-
-  if(renderer !== undefined)
+  if(renderer == undefined)
   {
-    var element = document.getElementById("WebGL");
-    element.parentNode.removeChild(element);
-    delete renderer;
+      /* Get the size of the inner window (content area) to create a full size renderer */
+      canvasWidth = (document.getElementById("WebGL").clientWidth);
+      canvasHeight = (document.getElementById("WebGL").clientHeight);
+      /* Create a new WebGL renderer */
+      renderer = new THREE.WebGLRenderer({antialias:true});
+      /* Set the background color of the renderer to black, with full opacity */
+      renderer.setClearColor("rgb(255, 255, 255)", 1);
+      /* Set the renderers size to the content area size */
+      renderer.setSize(canvasWidth, canvasHeight);
   }
-  /* Get the size of the inner window (content area) to create a full size renderer */
-  canvasWidth = (document.getElementById("WebGL").clientWidth);
-  canvasHeight = (document.getElementById("WebGL").clientHeight);
-  /* Create a new WebGL renderer */
-  renderer = new THREE.WebGLRenderer({antialias:true});
-  /* Set the background color of the renderer to black, with full opacity */
-  renderer.setClearColor("rgb(255, 255, 255)", 1);
-  /* Set the renderers size to the content area size */
-  renderer.setSize(canvasWidth, canvasHeight);
+  else
+  {
+      renderer.setRenderTarget(null);
+      renderer.clear();
+  }
+
+  // if(renderer !== undefined)
+  // {
+  //   var element = document.getElementById("WebGL");
+  //   element.parentNode.removeChild(element);
+  //   delete renderer;
+  // }
+  // /* Get the size of the inner window (content area) to create a full size renderer */
+  // canvasWidth = (document.getElementById("WebGL").clientWidth);
+  // canvasHeight = (document.getElementById("WebGL").clientHeight);
+  // /* Create a new WebGL renderer */
+  // renderer = new THREE.WebGLRenderer({antialias:true});
+  // /* Set the background color of the renderer to black, with full opacity */
+  // renderer.setClearColor("rgb(255, 255, 255)", 1);
+  // /* Set the renderers size to the content area size */
+  // renderer.setSize(canvasWidth, canvasHeight);
 
   /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
@@ -1043,13 +1095,17 @@ function build(data, layout)
   /* Create scene */
   if(scene !== undefined)
   {
-    for(var i = scene.children.length - 1; i >= 0; i--)
-    {
-      scene.remove(scene.children[i]);
-    }
-    delete scene;
+    // for(var i = scene.children.length - 1; i >= 0; i--)
+    // {
+    //   scene.remove(scene.children[i]);
+    // }
+    disposeHierarchy(scene, disposeNode);
+    // delete scene;
   }
-  scene = new THREE.Scene();
+  else
+  {
+    scene = new THREE.Scene();
+  }
 
   /* Build bipartiteGraph */
   bipartiteGraph.buildGraph(jason, scene, lay);
@@ -1084,23 +1140,38 @@ function build(data, layout)
 
   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
 
-  /* Creating event listener */
-  if(eventHandler !== undefined) eventHandler.setScene(scene);
-  else
+  /** Creating event listener */
+  if(eventHandler === undefined)
   {
-    eventHandler = new EventHandler(undefined, scene);
+    eventHandler = new EventHandler(undefined);
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
       camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
     }, false);
-    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, bipartiteGraph);}, false);
-    document.addEventListener('dblclick', function(evt){
-      eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
-      // !clicked ? clicked = true : clicked = false;
-    }, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, scene);}, false);
+    // document.addEventListener('dblclick', function(evt){
+    //   eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+    //   // !clicked ? clicked = true : clicked = false;
+    // }, false);
   }
+  // if(eventHandler !== undefined) eventHandler.setScene(scene);
+  // else
+  // {
+  //   eventHandler = new EventHandler(undefined, scene);
+  //   /* Adding event listeners */
+  //   document.addEventListener('resize', function(evt){
+  //     camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
+  //     camera.updateProjectionMatrix();
+  //     renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
+  //   }, false);
+  //   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, bipartiteGraph);}, false);
+  //   document.addEventListener('dblclick', function(evt){
+  //     eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+  //     // !clicked ? clicked = true : clicked = false;
+  //   }, false);
+  // }
 
   // console.log(renderer.info);
   animate();
@@ -1142,14 +1213,13 @@ var ecmaStandard = function(variable, defaultValue)
 /**
  * Constructor
  * params:
- *    - raycaster: defined raycaster, defaults to creating a new one;
- *    - scene: scene in which the events will be manipulated.
+ *    - raycaster: defined raycaster, defaults to creating a new one.
  */
-var EventHandler = function(raycaster, scene)
+var EventHandler = function(raycaster)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
     this.raycaster.linePrecision = 0.3;
-    this.scene = ecmaStandard(scene, new THREE.Scene());
+    // this.scene = ecmaStandard(scene, new THREE.Scene());
     this.highlightedElements = [];
     this.neighbors = [];
 }
@@ -1170,21 +1240,21 @@ EventHandler.prototype.setRaycaster = function(raycaster)
     this.raycaster = raycaster;
 }
 
-/**
- * Getter for scene
- */
-EventHandler.prototype.getScene = function()
-{
-    return this.scene;
-}
-
-/**
- * Setter for scene
- */
-EventHandler.prototype.setScene = function(scene)
-{
-    this.scene = scene;
-}
+// /**
+//  * Getter for scene
+//  */
+// EventHandler.prototype.getScene = function()
+// {
+//     return this.scene;
+// }
+//
+// /**
+//  * Setter for scene
+//  */
+// EventHandler.prototype.setScene = function(scene)
+// {
+//     this.scene = scene;
+// }
 
 /**
  * Getter for highlighted elements
@@ -1207,57 +1277,57 @@ EventHandler.prototype.setHighlightedElements = function(highlighted)
 /**
  * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
  * params:
- *    - clicked: boolean to indicate if element has already been clicked;
- *    - evt: event dispatcher;
- *    - graph: graph, containing objects to be intersected.
+ *    - clicked: boolean to indicate if element has already been clicked.
+ *    - evt: event dispatcher.
+ *    - scene: scene for raycaster.
  */
-EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
-{
-  if(!clicked.wasClicked)
-  {
-    /* Find highlighted vertex and highlight its neighbors */
-    for(var i = 0; i < this.highlightedElements.length; i++)
-    {
-      var element = graph.getElementById(this.highlightedElements[i]);
-      if(element instanceof Node)
-      {
-        /* Search neighbors */
-        this.neighbors = graph.findNeighbors(element);
-        /* Add itself for highlighting */
-        this.neighbors.push(element);
-        /* Remove itself so it won't unhighlight as soon as mouse moves out */
-        this.highlightedElements.splice(i, 1);
-        /* Highlight neighbors */
-        for(var j = 0; j < this.neighbors.length; j++)
-        {
-          if(this.neighbors[j] instanceof Node)
-          {
-            this.neighbors[j].highlight();
-            clicked.wasClicked = true;
-          }
-        }
-      }
-    }
-  }
-  else if(clicked.wasClicked)
-  {
-    clicked.wasClicked = false;
-    /* An element was already clicked and its neighbors highlighted; unhighlight all */
-    for(var i = 0; i < this.neighbors.length; i++)
-    {
-      var element = undefined;
-      if(this.neighbors[i] instanceof Node)
-      {
-        element = graph.getElementById(String(this.neighbors[i].circle.name));
-        element.unhighlight();
-      }
-      else if(this.neighbors[i] instanceof Edge)
-        element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
-    }
-    /* Clearing array of neighbors */
-    this.neighbors = [];
-  }
-}
+// EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, scene)
+// {
+//   if(!clicked.wasClicked)
+//   {
+//     /* Find highlighted vertex and highlight its neighbors */
+//     for(var i = 0; i < this.highlightedElements.length; i++)
+//     {
+//       var element = graph.getElementById(this.highlightedElements[i]);
+//       if(element instanceof Node)
+//       {
+//         /* Search neighbors */
+//         this.neighbors = graph.findNeighbors(element);
+//         /* Add itself for highlighting */
+//         this.neighbors.push(element);
+//         /* Remove itself so it won't unhighlight as soon as mouse moves out */
+//         this.highlightedElements.splice(i, 1);
+//         /* Highlight neighbors */
+//         for(var j = 0; j < this.neighbors.length; j++)
+//         {
+//           if(this.neighbors[j] instanceof Node)
+//           {
+//             this.neighbors[j].highlight();
+//             clicked.wasClicked = true;
+//           }
+//         }
+//       }
+//     }
+//   }
+//   else if(clicked.wasClicked)
+//   {
+//     clicked.wasClicked = false;
+//     /* An element was already clicked and its neighbors highlighted; unhighlight all */
+//     for(var i = 0; i < this.neighbors.length; i++)
+//     {
+//       var element = undefined;
+//       if(this.neighbors[i] instanceof Node)
+//       {
+//         element = graph.getElementById(String(this.neighbors[i].circle.name));
+//         element.unhighlight();
+//       }
+//       else if(this.neighbors[i] instanceof Edge)
+//         element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
+//     }
+//     /* Clearing array of neighbors */
+//     this.neighbors = [];
+//   }
+// }
 
 /**
  * Handles mouse move. If mouse hovers over element, invoke highlighting
@@ -1266,7 +1336,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
  *    - renderer: WebGL renderer, containing DOM element's offsets;
  *    - graph: graph, containing objects to be intersected.
  */
-EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
+EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
 {
     /* Get canvas element and adjust x and y to element offset */
     var canvas = renderer.domElement.getBoundingClientRect();
@@ -1279,20 +1349,20 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     var mouseY = -(y / renderer.domElement.clientHeight) * 2 + 1;
 
     var mouse = new THREE.Vector2(mouseX, mouseY);
-    var camera = this.scene.getObjectByName("camera", true);
+    var camera = scene.getObjectByName("camera", true);
 
     /* Setting raycaster starting from camera */
     this.raycaster.setFromCamera(mouse, camera);
 
     /* Execute ray tracing */
-    var intersects = this.raycaster.intersectObjects(this.scene.children, true);
+    var intersects = this.raycaster.intersectObjects(scene.children, true);
     var intersection = intersects[0];
 
     /* Unhighlight any already highlighted element */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
         // var element = graph.getElementById(this.highlightedElements[i]);
-        // var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        // var element = scene.getObjectByName(this.highlightedElements[i], true);
         // if(element != undefined)
         // {
         //   element.material.color.setHex(0x000000);
@@ -1311,7 +1381,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
         // if(!alreadyHighlighted)
         //   element.unhighlight();
         var endPoint = this.highlightedElements[i] + 32;
-        var element = this.scene.getObjectByName("MainMesh", true);
+        var element = scene.getObjectByName("MainMesh", true);
         for(var j = this.highlightedElements[i]; j < endPoint; j++)
         {
           element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
@@ -1334,7 +1404,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
       intersection.object.geometry.colorsNeedUpdate = true;
       this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
         // var element = graph.getElementById(intersection.object.name);
-        // var element = this.scene.getObjectByName(intersection.object.name);
+        // var element = scene.getObjectByName(intersection.object.name);
         // element.material.color.setHex(0xFF0000);
         // document.getElementById("graphID").innerHTML = element.name;
         // if(element.description !== undefined)
@@ -1355,7 +1425,7 @@ EventHandler.prototype.mouseOutEvent = function(graph)
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
         // var element = graph.getElementById(this.highlightedElements[i]);
-        // var element = this.scene.getObjectByName(this.highlightedElements[i], true);
+        // var element = scene.getObjectByName(this.highlightedElements[i], true);
         // element.material.color.setHex(0x000000);
     }
 

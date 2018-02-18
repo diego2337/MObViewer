@@ -33,26 +33,6 @@ function addNumberOfEdgesToJSON(data)
 }
 
 /**
- * @desc Sort "links" property of .json string.
- * @param {string} data .json string containing graph data.
- * @returns {string} data .json string containing graph data.
- */
-function sortJSON(data)
-{
-  var jason = JSON.parse(data);
-  // jason.links.sort(function(a, b){
-  //   // return (a["source"] > b["source"]) ? 1 : ((a["source"] < b["source"]) ? -1 : 0);
-  //   if(a["source"] < a["target"])
-  //   {
-  //
-  //   }
-  //   else if(a["source"] > )
-  // });
-  data = JSON.stringify(jason);
-  return data;
-}
-
-/**
  * @desc Find and add maximum and minimum edge weights at edge set.
  * @param {string} data .json string containing graph data.
  * @returns {string} data .json string containing graph data.
@@ -175,6 +155,8 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, res
   nodeCmd.get('python mob' + folderChar + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
     if(!err)
     {
+      console.log("aqui oh");
+      console.log('python mob' + folderChar + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol');
       // console.log("data from python script " + data);
       /* Build python parameters string */
       var pyPath = "mob" + folderChar;
