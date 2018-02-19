@@ -146,7 +146,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
   try
   {
     /** y represents space between two layers, while theta space between each vertice of each layer */
-    var y = -25, theta = 5;
+    var y = -25, theta = parseInt(graph.graphInfo[0].maxNodeWeight)+3;
     /** Array to store (x,y,z) coordinates of nodes */
     var positions = [];
     /** Build nodes */
@@ -206,35 +206,57 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     material = null;
 
     /** Build edges */
-    var edgeGeometry = new THREE.Geometry();
-    for(var i = 0; i < graph.links.length; i++)
+    if(graph.links)
     {
-      var sourcePos = positions[graph.links[i].source];
-      var targetPos = positions[graph.links[i].target];
-      var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
-      var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
-      edgeGeometry.vertices.push(v1);
-      edgeGeometry.vertices.push(v2);
+      var edgeGeometry = new THREE.Geometry();
+      for(var i = 0; i < graph.links.length; i++)
+      {
+        /** Normalize edge weight */
+        if(graph.links[i].weight == undefined) graph.links[i].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
+        var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[i].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
+        if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
+
+        /** Calculate path */
+        var sourcePos = positions[graph.links[i].source];
+        var targetPos = positions[graph.links[i].target];
+        var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+        var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+        edgeGeometry.vertices.push(v1);
+        edgeGeometry.vertices.push(v2);
+      }
+      for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+      {
+        edgeGeometry.colors[i] = new THREE.Color(0x8D9091);
+        edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+      }
+      edgeGeometry.colorsNeedUpdate = true;
+
+
+      /** Create one LineSegments and add it to scene */
+      var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+      var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+      scene.add(lineSegments);
+
+      edgeGeometry.dispose();
+      edgeGeometry = null;
+      edgeMaterial.dispose();
+      edgeMaterial = null;
+
+      // var line = new THREE.MeshLine();
+      // line.setGeometry(edgeGeometry);
+      // line.setGeometry(edgeGeometry, function(p){
+      //   return 0.3;
+      // });
+      // var edgeMaterial = new THREE.MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+      // var lineMesh = new THREE.Mesh(line.geometry, edgeMaterial);
+      // scene.add(lineMesh);
+      // edgeMaterial.dispose();
+      // edgeGeometry.dispose();
+      // edgeMaterial = null;
+      // edgeGeometry = null;
+      // line = null;
+      // lineMesh = null;
     }
-
-    var line = new THREE.MeshLine();
-    line.setGeometry(edgeGeometry);
-    line.setGeometry(edgeGeometry, function(p){
-      return 0.3;
-    });
-    var edgeMaterial = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-    var lineMesh = new THREE.Mesh(line.geometry, edgeMaterial);
-    scene.add(lineMesh);
-
-    edgeMaterial.dispose();
-    edgeGeometry.dispose();
-
-    edgeMaterial = null;
-    edgeGeometry = null;
-
-    line = null;
-    lineMesh = null;
-
 
     // /** y represents space between two layers, while theta space between each vertice of each layer */
     // var y = -20, theta = 3;

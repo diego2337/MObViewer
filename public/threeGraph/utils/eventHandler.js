@@ -187,15 +187,22 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
     {
 
       console.log(intersection);
-      intersection.face.color.setRGB(0.0, 1.0, 0.0);
-      /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
-      var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
-      for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
+      if(intersection.face) /** Intersection with vertice */
       {
-          intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
+        intersection.face.color.setRGB(0.0, 1.0, 0.0);
+        /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
+        var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
+        for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
+        {
+            intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
+        }
+        intersection.object.geometry.colorsNeedUpdate = true;
+        this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
       }
-      intersection.object.geometry.colorsNeedUpdate = true;
-      this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
+      else /** Intersection with edge */
+      {
+
+      }
         // var element = graph.getElementById(intersection.object.name);
         // var element = scene.getObjectByName(intersection.object.name);
         // element.material.color.setHex(0xFF0000);
