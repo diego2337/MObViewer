@@ -47,7 +47,8 @@ function disposeNode (node)
     {
         if (node.geometry)
         {
-            node.geometry.dispose ();
+            node.geometry.dispose();
+            node.geometry = null;
         }
 
         if (node.material)
@@ -56,28 +57,32 @@ function disposeNode (node)
             {
                 $.each (node.material.materials, function (idx, mtrl)
                 {
-                    if (mtrl.map)           mtrl.map.dispose ();
-                    if (mtrl.lightMap)      mtrl.lightMap.dispose ();
-                    if (mtrl.bumpMap)       mtrl.bumpMap.dispose ();
-                    if (mtrl.normalMap)     mtrl.normalMap.dispose ();
-                    if (mtrl.specularMap)   mtrl.specularMap.dispose ();
-                    if (mtrl.envMap)        mtrl.envMap.dispose ();
+                    if (mtrl.map)           mtrl.map.dispose(), mtrl.map = null;
+                    if (mtrl.lightMap)      mtrl.lightMap.dispose(), mtrl.lightMap = null;
+                    if (mtrl.bumpMap)       mtrl.bumpMap.dispose(), mtrl.bumpMap = null;
+                    if (mtrl.normalMap)     mtrl.normalMap.dispose(), mtrl.normalMap = null;
+                    if (mtrl.specularMap)   mtrl.specularMap.dispose(), mtrl.specularMap = null;
+                    if (mtrl.envMap)        mtrl.envMap.dispose(), mtrl.envMap = null;
 
-                    mtrl.dispose ();    // disposes any programs associated with the material
+                    mtrl.dispose();    // disposes any programs associated with the material
+                    mtrl = null;
                 });
             }
             else
             {
-                if (node.material.map)          node.material.map.dispose ();
-                if (node.material.lightMap)     node.material.lightMap.dispose ();
-                if (node.material.bumpMap)      node.material.bumpMap.dispose ();
-                if (node.material.normalMap)    node.material.normalMap.dispose ();
-                if (node.material.specularMap)  node.material.specularMap.dispose ();
-                if (node.material.envMap)       node.material.envMap.dispose ();
+                if (node.material.map)          node.material.map.dispose(), node.material.map = null;
+                if (node.material.lightMap)     node.material.lightMap.dispose(), node.material.lightMap = null;
+                if (node.material.bumpMap)      node.material.bumpMap.dispose(), node.material.bumpMap = null;
+                if (node.material.normalMap)    node.material.normalMap.dispose(), node.material.normalMap = null;
+                if (node.material.specularMap)  node.material.specularMap.dispose(), node.material.specularMap = null;
+                if (node.material.envMap)       node.material.envMap.dispose(), node.material.envMap = null;
 
-                node.material.dispose ();   // disposes any programs associated with the material
+                node.material.dispose();   // disposes any programs associated with the material
+                node.material = null;
             }
         }
+
+        node = null;
     }
 }   // disposeNode
 
@@ -129,10 +134,26 @@ function build(data, layout)
       renderer.clear();
   }
 
+  /* Create scene */
+  if(scene !== undefined)
+  {
+    disposeHierarchy(scene, disposeNode);
+    for(var i = scene.children.length - 1; i >= 0; i--)
+    {
+      scene.remove(scene.children[i]);
+    }
+    // delete scene;
+  }
+  else
+  {
+    scene = new THREE.Scene();
+  }
+
   // if(renderer !== undefined)
   // {
-  //   var element = document.getElementById("WebGL");
-  //   element.parentNode.removeChild(element);
+  //   // var element = document.getElementsByTagName("canvas");
+  //   // element[0].parentNode.removeChild(element[0]);
+  //   document.getElementById("WebGL").removeChild(renderer.domElement);
   //   delete renderer;
   // }
   // /* Get the size of the inner window (content area) to create a full size renderer */
@@ -147,21 +168,6 @@ function build(data, layout)
 
   /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
-
-  /* Create scene */
-  if(scene !== undefined)
-  {
-    // for(var i = scene.children.length - 1; i >= 0; i--)
-    // {
-    //   scene.remove(scene.children[i]);
-    // }
-    disposeHierarchy(scene, disposeNode);
-    // delete scene;
-  }
-  else
-  {
-    scene = new THREE.Scene();
-  }
 
   /* Build bipartiteGraph */
   bipartiteGraph.buildGraph(jason, scene, lay);

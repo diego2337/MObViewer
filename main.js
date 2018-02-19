@@ -146,23 +146,29 @@ function readJsonFile(path, fs, res)
  * @param {string} pyName Multilevel paradigm program name.
  * @param {string} pyCoarsening Reduction factor coarsening given by user.
  * @param {Object} fs FileSystem API module.
+ * @param {Object} req header sent via HTTP from HTML page, from Express API module callback 'post'.
  * @param {Object} res header to be sent via HTTP for HTML page, from Express API module callback 'post'.
  * @returns {string} if any error occurs during file read, return it via console; otherwise return nothing.
  */
-function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, res)
+function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req, res)
 {
   /* Convert .json file to .ncol */
   nodeCmd.get('python mob' + folderChar + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
     if(!err)
     {
-      console.log("aqui oh");
-      console.log('python mob' + folderChar + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol');
       // console.log("data from python script " + data);
       /* Build python parameters string */
       var pyPath = "mob" + folderChar;
       var pyProg = "coarsening.py";
-      var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -m 1 1 " + " -e gml" ;
-      // console.log("pyParams: " + pyParams);
+      var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -e gml" ;
+      if(req.body.coarsening == 0 || req.body.coarseningSecondSet == 0)
+      {
+        req.body.firstSet == 1 ? pyParams = pyParams + " -l 0 -m 1 0 " : pyParams = pyParams + " -l 1 -m 0 1 ";
+      }
+      else
+      {
+        pyParams = pyParams + " -m 1 1 ";
+      }
       /** Execute python scripts */
       /** Execute coarsening with a given reduction factor */
       nodeCmd.get('python ' + pyPath + pyProg + " " + pyParams, function(data, err, stderr) {
@@ -290,7 +296,7 @@ app.post('/slide', function(req, res) {
     fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data) {
       if(err) /* File doesn't exist */
       {
-        createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, res);
+        createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req, res);
       }
       else /* File exists*/
       {

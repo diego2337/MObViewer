@@ -146,7 +146,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
   try
   {
     /** y represents space between two layers, while theta space between each vertice of each layer */
-    var y = -20, theta = 3;
+    var y = -25, theta = 5;
     /** Array to store (x,y,z) coordinates of nodes */
     var positions = [];
     /** Build nodes */
@@ -170,9 +170,9 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       }
       var x = pos * theta;
       if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = parseInt(graph.graphInfo[0].minNodeWeight);
-      var circleSize = (parseInt(graph.nodes[i].weight) - parseInt(graph.graphInfo[0].minNodeWeight))/((parseInt(graph.graphInfo[0].maxNodeWeight)-parseInt(graph.graphInfo[0].minNodeWeight))+1);
+      var circleSize = (5.0 - 1.0) * ( (parseInt(graph.nodes[i].weight) - parseInt(graph.graphInfo[0].minNodeWeight))/((parseInt(graph.graphInfo[0].maxNodeWeight)-parseInt(graph.graphInfo[0].minNodeWeight))+1) ) + 1.0;
       if(circleSize == 0) circleSize = parseInt(graph.graphInfo[0].minNodeWeight);
-      // circleSize = circleSize + 0.3;
+      // circleSize = circleSize * 5;
       /** Using feature scale for node sizes */
       circleGeometry.scale(circleSize, circleSize, 1);
       /** Give geometry name the same as its id */
@@ -195,9 +195,15 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     mesh.renderOrder = 1;
     scene.add(mesh);
 
+    mesh = null;
+
     singleGeometry.dispose();
     circleGeometry.dispose();
     material.dispose();
+
+    singleGeometry = null;
+    circleGeometry = null;
+    material = null;
 
     /** Build edges */
     var edgeGeometry = new THREE.Geometry();
@@ -216,12 +222,18 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     line.setGeometry(edgeGeometry, function(p){
       return 0.3;
     });
-    var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-    var lineMesh = new THREE.Mesh(line.geometry, material);
+    var edgeMaterial = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+    var lineMesh = new THREE.Mesh(line.geometry, edgeMaterial);
     scene.add(lineMesh);
 
-    material.dispose();
+    edgeMaterial.dispose();
     edgeGeometry.dispose();
+
+    edgeMaterial = null;
+    edgeGeometry = null;
+
+    line = null;
+    lineMesh = null;
 
 
     // /** y represents space between two layers, while theta space between each vertice of each layer */
