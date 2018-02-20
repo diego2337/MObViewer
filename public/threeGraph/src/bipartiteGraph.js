@@ -146,7 +146,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
   try
   {
     /** y represents space between two layers, while theta space between each vertice of each layer */
-    var y = -25, theta = parseInt(graph.graphInfo[0].maxNodeWeight)+3;
+    var y = -25, theta = 5;
     /** Array to store (x,y,z) coordinates of nodes */
     var positions = [];
     /** Build nodes */
