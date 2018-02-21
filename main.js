@@ -180,7 +180,29 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
             if(!err)
             {
               // console.log("data from python script " + data);
-              readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', fs, res);
+              /** Set weights properly using .cluster file generated from multilevel paradigm */
+              // console.log('python ' + pyPath + 'setWeights.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  pyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.cluster');
+              nodeCmd.get('python ' + pyPath + 'setWeights.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  pyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.cluster', function(data, err, stderr) {
+                if(!err)
+                {
+                  // console.log("data from python script " + data);
+                  /** Rename new file to original coarsened file */
+                  nodeCmd.get('mv uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + 'Weighted.json uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', function(data, err, stderr) {
+                    if(!err)
+                    {
+                      readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', fs, res);
+                    }
+                    else
+                    {
+                      console.log("bash script cmd error: " + err);
+                    }
+                  });
+                }
+                else
+                {
+                  console.log("python script cmd error: " + err);
+                }
+              });
             }
             else
             {
