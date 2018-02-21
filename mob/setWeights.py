@@ -101,4 +101,3 @@ if __name__ == "__main__":
             i = i + 1
         newCoarsenedJson.write(line)
         line = coarsenedJson.readline()
-        print "soh pra saber se esta processando mesmo " + str(i)
