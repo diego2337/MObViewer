@@ -131,7 +131,7 @@ function readJsonFile(path, fs, res)
     else
     {
       /* Store graph size */
-      if(graphSize.length == 0) graphSize = JSON.parse(data).graphInfo[0].vlayer;
+      if(graphSize.length == 0) JSON.parse(data).graphInfo[0].vlayer != undefined ? graphSize = JSON.parse(data).graphInfo[0].vlayer : graphSize = JSON.parse(data).graphInfo[0].vertices;
       /* Send data to client */
       res.end(addValues(data));
     }
@@ -176,7 +176,7 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
         {
           // console.log("data from python script " + data);
           /* Execute .gml to .json conversion */
-          nodeCmd.get('python ' + pyPath + 'gmlToJson2.py uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + ".json", function(data, err, stderr) {
+          nodeCmd.get('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + ".json", function(data, err, stderr) {
             if(!err)
             {
               // console.log("data from python script " + data);
@@ -208,6 +208,7 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 app.post('/upload', function(req, res) {
+  graphSize = [];
   var folderChar = addFolderPath();
   /* Create an incoming form object */
   var form = new formidable.IncomingForm();
@@ -229,7 +230,7 @@ app.post('/upload', function(req, res) {
           if(file.name.split(".")[1] === "gml")
           {
             /** Convert to .json and move it to upload folder with same name */
-            nodeCmd.get('python mob' + folderChar + 'gmlToJson2.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
+            nodeCmd.get('python mob' + folderChar + 'gmlToJson3.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
                               if (!err)
                               {
                                 /** Python script executed successfully; read .json file */

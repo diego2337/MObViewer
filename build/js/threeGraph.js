@@ -23,6 +23,13 @@ var BipartiteGraph = function(graph, min, max)
            this.lastLayer = this.graphInfo.vlayer.split(" ");
            this.lastLayer = this.lastLayer[this.lastLayer.length-1];
        }
+       else if(this.graphInfo.vertices != undefined)
+       {
+           this.firstLayer = this.graphInfo.vertices.split(" ");
+           this.firstLayer = this.firstLayer[0];
+           this.lastLayer = this.graphInfo.vertices.split(" ");
+           this.lastLayer = this.lastLayer[this.lastLayer.length-1];
+       }
        else
        {
            this.firstLayer = this.lastLayer =  Math.floor(graph.nodes.length / 2);
@@ -1010,13 +1017,13 @@ function displayGraphInfo(jason)
 {
   // console.log(jason);
   /* Display number of vertices */
-  document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
   /* Display number of edges */
   document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
   /* Display number of vertices in first set */
-  document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
+  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) : document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0])
   /* Display number of vertices in second set */
-  document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[1])
 }
 
 function disposeNode (node)

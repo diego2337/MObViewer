@@ -31,6 +31,12 @@ def removeTrash(line, junkCharacters):
         else:
             if(firstOccurenceOfWord):
                 space = True
+        i = i + 1
+    return ''.join(newLine)
+
+# Close current program state, by adding tabs with braces
+def closeCurrentState(jason, tabs):
+    jason.write("\n " + tabs + "}")
 
 if __name__ == '__main__':
     # Variable declarations #
@@ -39,12 +45,14 @@ if __name__ == '__main__':
     #   - INTROSTATE: writing graph information such as if it's directed, number of vertice for each layer, number of levels and current level.
     #   - NODESTATE: defines initial node state, where braces are opened.
     #   - NODEWRITESTATE: defines an already opened node object being written.
+    #   - NODEENDSTATE: defines a possible closing node object.
     #   - EDGESTATE: defines initial edge state, where braces are opened.
     #   - EDGEWRITESTATE: defines an already opened edge object being written.
+    #   - EDGEENDSTATE: defines a possible closing edge object.
     #   - FINAL: end of program, close braces and finish execution.
     stateVariable = "START"
     justChanged = True
-    junkCharacters = [' ', '\n', '\r', '\"']
+    junkCharacters = [chr(9), ' ', '\n', '\r', '\"']
     # tabs: variable to trace how many tabs must be applied.
     tabs = ""
     # Step 1: Open .gml file for reading and .json file for writing. #
@@ -57,13 +65,20 @@ if __name__ == '__main__':
     # Step 2: Step through file, line by line #
     for line in arquivo:
         # Cutting of '\n'
-        line = line[0:-1]
+        # line = line[0:-1]
+        # i = 0
+        # arr = []
+        # while i < len(line):
+        #     arr.append(ord(line[i]))
+        #     i = i + 1
+        # print arr
+        line = removeTrash(line, junkCharacters)
         if(stateVariable is "START"): # Program is in START
             if(line == "graph"): # Found keyword to change state
                 tabs = "\t"
                 jason.write("{\n" + tabs)
                 jason.write("\"graphInfo\": [\n" + tabs + "{\n")
-                tabs = "\t\t"
+                tabs = tabs + "\t"
                 jason.write(tabs)
             if(line == "["):
                 # Change states
@@ -71,28 +86,140 @@ if __name__ == '__main__':
                 justChanged = True
         elif(stateVariable is "INTROSTATE"): # Program is in INTROSTATE
             if(line == "node"): # End of INTROSTATE
+                tabs = tabs[0:-1]
+                closeCurrentState(jason, tabs)
+                # Close brackets and create a node object
+                jason.write("\n" + tabs + "],\n" + tabs + "\"nodes\": [")
                 stateVariable = "NODESTATE"
                 justChanged = True
             elif(line == "edge"): # End of INTROSTATE
+                tabs = tabs[0:-1]
+                closeCurrentState(jason, tabs)
+                # Close brackets and create a link object
+                jason.write("\n" + tabs + "],\n" + tabs + "\"links\": [")
                 stateVariable = "EDGESTATE"
                 justChanged = True
             else: # Line has information
-                line = removeTrash(line, junkCharacters)
+                # line = removeTrash(line, junkCharacters)
+                # print line
                 if(justChanged):
                     justChanged = False
-                    jason.write("\"" + line.split(" ")[0] + "\": \"" + ''.join(line.split(" ")[1:-1]) + "\"")
+                    # jason.write("\"" + line.split(" ")[0] + "\": \"" + ''.join(line.split(" ")[1:]) + "\"")
+                    jason.write("\"" + line.split(" ")[0] + "\": \"")
+                    i = 1
+                    while i < len(line.split(" ")):
+                        jason.write(line.split(" ")[i])
+                        if((i+1) != len(line.split(" "))):
+                            jason.write(" ")
+                        i = i + 1
+                    jason.write("\"")
                 else:
-                    jason.write(",\n" + tabs + "\"" + line.split(" ")[0] + "\": \"" + ''.join(line.split(" ")[1:-1]) + "\"\n")
+                    # jason.write(",\n" + tabs + "\"" + line.split(" ")[0] + "\": \"" + ''.join(line.split(" ")[1:]) + "\"\n")
+                    jason.write(",\n" + tabs + "\"" + line.split(" ")[0] + "\": \"")
+                    i = 1
+                    while i < len(line.split(" ")):
+                        jason.write(line.split(" ")[i])
+                        if((i+1) != len(line.split(" "))):
+                            jason.write(" ")
+                        i = i + 1
+                    jason.write("\"")
         elif(stateVariable is "NODESTATE"): # Program is in NODESTATE
-            break;
+            if(line == "]"): # End of NODESTATE
+                # End of .gml file
+                print "Node object must have at least id value. No information given. Program exiting with -1"
+                exit(-1)
+            elif(line != "node"): # End of NODESTATE
+                if(justChanged):
+                    justChanged = False
+                    jason.write("\n" + tabs + "{")
+                else:
+                    jason.write(",\n" + tabs + "{")
+                tabs = tabs + "\t"
+                stateVariable = "NODEWRITESTATE"
+                justChanged = True
         elif(stateVariable is "NODEWRITESTATE"): # Program is in NODEWRITESTATE
-            break;
+            if(line == "]"): # End of NODEWRITESTATE
+                # Change to NODEENDSTATE
+                stateVariable = "NODEENDSTATE"
+            else: # Line has information
+                if(justChanged):
+                    justChanged = False
+                    jason.write("\n" + tabs + "\"" + line.split(" ")[0] + "\": \"")
+                else:
+                    jason.write(",\n" + tabs + "\"" + line.split(" ")[0] + "\": \"")
+                i = 1
+                while i < len(line.split(" ")):
+                    jason.write(line.split(" ")[i])
+                    if((i+1) != len(line.split(" "))):
+                        jason.write(" ")
+                    i = i + 1
+                jason.write("\"")
+        elif(stateVariable is "NODEENDSTATE"): # Program is in NODEENDSTATE
+            if(line == "]"): # End of NODEENDSTATE
+                tabs = tabs[0:-1]
+                closeCurrentState(jason, tabs)
+                stateVariable = "FINAL"
+            elif(line == "node"): # End of NODEENDSTATE
+                tabs = tabs[0:-1]
+                closeCurrentState(jason, tabs)
+                stateVariable = "NODESTATE"
+            elif(line == "edge"): # End of NODEENDSTATE
+                tabs = tabs[0:-1]
+                closeCurrentState(jason, tabs)
+                jason.write("\n" + tabs + "],\n" + tabs + "\"links\": [")
+                stateVariable = "EDGESTATE"
+                justChanged = True
         elif(stateVariable is "EDGESTATE"): # Program is in EDGESTATE
-            break;
+            if(line == "]"): # End of EDGESTATE
+                # End of .gml file
+                print "Edge object must have at least id value. No information given. Program exiting with -1"
+                exit(-1)
+            elif(line != "edge"): # End of EDGESTATE
+                if(justChanged):
+                    justChanged = False
+                    jason.write("\n" + tabs + "{")
+                else:
+                    jason.write(",\n" + tabs + "{")
+                tabs = tabs + "\t"
+                stateVariable = "EDGEWRITESTATE"
+                justChanged = True
         elif(stateVariable is "EDGEWRITESTATE"): # Program is in EDGEWRITESTATE
-            break;
-        elif(stateVariable is "FINAL"): # Program is in FINAL
-            break;
+            if(line == "]"): # End of EDGEWRITESTATE
+                # Skip line
+                stateVariable = "EDGEENDSTATE"
+            else: # Line has information
+                if(justChanged):
+                    justChanged = False
+                    jason.write("\n" + tabs + "\"" + line.split(" ")[0] + "\": \"")
+                else:
+                    jason.write(",\n" + tabs + "\"" + line.split(" ")[0] + "\": \"")
+                i = 1
+                while i < len(line.split(" ")):
+                    jason.write(line.split(" ")[i])
+                    if((i+1) != len(line.split(" "))):
+                        jason.write(" ")
+                    i = i + 1
+                jason.write("\"")
+        elif(stateVariable is "EDGEENDSTATE"): # Program is in EDGEENDSTATE
+            if(line == "]"): # End of EDGEENDSTATE
+                tabs = tabs[0:-1]
+                closeCurrentState(jason, tabs)
+                stateVariable = "FINAL"
+            elif(line == "edge"): # End of EDGEENDSTATE
+                tabs = tabs[0:-1]
+                closeCurrentState(jason, tabs)
+                stateVariable = "EDGESTATE"
+            elif(line == "node"): # End of EDGEENDSTATE
+                tabs = tabs[0:-1]
+                closeCurrentState(jason, tabs)
+                jason.write("\n" + tabs + "],\n" + tabs + "\"nodes\": [")
+                stateVariable = "NODESTATE"
+                justChanged = True
+
+        if(stateVariable is "FINAL"): # Program is in FINAL
+            jason.write("\n" + tabs + "]")
+            tabs = tabs[0:-1]
+            jason.write("\n" + tabs + "}")
 
     jason.close()
     arquivo.close()

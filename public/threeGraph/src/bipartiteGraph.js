@@ -23,6 +23,13 @@ var BipartiteGraph = function(graph, min, max)
            this.lastLayer = this.graphInfo.vlayer.split(" ");
            this.lastLayer = this.lastLayer[this.lastLayer.length-1];
        }
+       else if(this.graphInfo.vertices != undefined)
+       {
+           this.firstLayer = this.graphInfo.vertices.split(" ");
+           this.firstLayer = this.firstLayer[0];
+           this.lastLayer = this.graphInfo.vertices.split(" ");
+           this.lastLayer = this.lastLayer[this.lastLayer.length-1];
+       }
        else
        {
            this.firstLayer = this.lastLayer =  Math.floor(graph.nodes.length / 2);
