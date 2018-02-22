@@ -11,7 +11,7 @@
 var EventHandler = function(raycaster)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
-    this.raycaster.linePrecision = 0.3;
+    this.raycaster.linePrecision = 0.1;
     // this.scene = ecmaStandard(scene, new THREE.Scene());
     this.highlightedElements = [];
     this.neighbors = [];

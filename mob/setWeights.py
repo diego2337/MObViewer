@@ -7,6 +7,7 @@
 ####################################################
 
 import argparse
+import os
 
 # Removes any unnecessary characters from line, defined by 'junkCharacters', returning a new line.
 def removeTrash(line, junkCharacters):
@@ -35,10 +36,14 @@ def findVerticeWeight(arquivo, vertice):
     while(line != ""):
         line = removeTrash(line, junkCharacters)
         if(line.split(" ")[0] == "id" and int(line.split(" ")[-1]) == vertice):
-            while(line != "" and line.split(" ")[0] != "weight"):
+            while(line != "" and line.split(" ")[0] != "}" and line.split(" ")[0] != "weight"):
                 line = arquivo.readline()
                 line = removeTrash(line, junkCharacters)
-            return float(line.split(" ")[-1])
+            # If line has closing brace, it means no weight was found; use 1.0 for weight
+            if(line.split(" ")[0] != "}"):
+                return float(line.split(" ")[-1])
+            else:
+                return 1.0
         line = arquivo.readline()
     return 1.0
 
@@ -81,8 +86,9 @@ if __name__ == "__main__":
         for j in range(len(clusteredVertices[i].split(" "))):
             # print clusteredVertices[i].split(" ")[j]
             # junkCharacters = [chr(9), ' ', '\n', '\r', '\"', ',']
-            originalJson.seek(0)
+            originalJson.seek(i)
             weight[-1] = weight[-1] + findVerticeWeight(originalJson, int(clusteredVertices[i].split(" ")[j]))
+            print weight
 
     # Step 4 - open newCoarsenedJson, and start writing .json with new weights #
     junkCharacters = [chr(9), ' ', '\n', '\r', '\"', ',']
@@ -101,3 +107,10 @@ if __name__ == "__main__":
             i = i + 1
         newCoarsenedJson.write(line)
         line = coarsenedJson.readline()
+
+    # Step 5 - Close files and exit program cleanly #
+    originalJson.close()
+    coarsenedJson.close()
+    newCoarsenedJson.close()
+
+    os._exit(1)
