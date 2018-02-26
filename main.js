@@ -353,7 +353,7 @@ app.post('/switch', function(req, res){
  */
 app.get('/', function(req, res){
   // res.sendFile(path.join(__dirname, 'public/views/index.html'));
-  res.sendFile(path.join(__dirname, 'public/views/index.html'));
+  res.sendFile(path.join(__dirname, 'public/views/aNewIndex.html'));
 });
 
 /** Main function to trigger server */
