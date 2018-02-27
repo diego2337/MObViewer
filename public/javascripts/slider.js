@@ -10,8 +10,8 @@
   */
 function showValue()
 {
-  document.getElementById("output1").innerHTML = document.getElementById("multilevelCoarsener").value;
-  document.getElementById("output2").innerHTML = document.getElementById("multilevelCoarsener2").value;
+  // document.getElementById("output1").innerHTML = document.getElementById("multilevelCoarsener").value;
+  // document.getElementById("output2").innerHTML = document.getElementById("multilevelCoarsener2").value;
 }
 
 /**

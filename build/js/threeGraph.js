@@ -1017,13 +1017,13 @@ function displayGraphInfo(jason)
 {
   // console.log(jason);
   /* Display number of vertices */
-  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
-  /* Display number of edges */
-  document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
-  /* Display number of vertices in first set */
-  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) : document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0])
-  /* Display number of vertices in second set */
-  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[1])
+  // jason.graphInfo[0].vlayer !== undefined ? document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  // /* Display number of edges */
+  // document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
+  // /* Display number of vertices in first set */
+  // jason.graphInfo[0].vlayer !== undefined ? document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) : document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0])
+  // /* Display number of vertices in second set */
+  // jason.graphInfo[0].vlayer !== undefined ? document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[1])
 }
 
 function disposeNode (node)
