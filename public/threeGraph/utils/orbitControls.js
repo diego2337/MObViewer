@@ -206,6 +206,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 				lastQuaternion.copy( scope.object.quaternion );
 				zoomChanged = false;
 
+				/** Get camera depth */
+				cameraPos = scope.object.position.z;
 				return true;
 
 			}
@@ -433,7 +435,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 		/* Reset camera to initial position */
 		scope.reset();
 		/* Apply pan */
-		pan((graph.getNumberOfNodes())/2, 0);
+		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
+		pan(panSize*5*1.4, 0);
 		scope.update();
 	});
 
@@ -442,7 +445,15 @@ THREE.OrbitControls = function ( object, domElement ) {
 		/* Reset camera to initial position */
 		scope.reset();
 		/* Apply pan */
-		pan(-(graph.getNumberOfNodes())*4, 0);
+		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
+		pan(-panSize*5*1.4, 0);
+		scope.update();
+	});
+
+	/* Reset */
+	$('#resetButton').on('click', function(){
+		scope.reset();
+		scope.object.position.z = 70;
 		scope.update();
 	});
 

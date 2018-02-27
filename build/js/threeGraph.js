@@ -36,6 +36,7 @@ var BipartiteGraph = function(graph, min, max)
        }
        this.graphInfo.min = ecmaStandard(min, 0);
        this.graphInfo.max = ecmaStandard(max, 10);
+       this.graphSize = parseInt(this.firstLayer)+parseInt(this.lastLayer);
    }
    catch(err)
    {
@@ -184,16 +185,50 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       circleGeometry.scale(circleSize, circleSize, 1);
       /** Give geometry name the same as its id */
       circleGeometry.name = graph.nodes[i].id;
-      /** Translate geometry for its coordinates */
-      circleGeometry.translate(x, y, 0);
-      /** Push coordinates to array */
-      positions.push({x: x, y: y, z: 0});
-      /** Merge into singleGeometry */
-      singleGeometry.merge(circleGeometry);
-      /** Return geometry for reusing */
-      circleGeometry.translate(-x, -y, 0);
+      if(layout == 3)
+      {
+        /** Translate geometry for its coordinates */
+        circleGeometry.translate(y, x, 0);
+        /** Push coordinates to array */
+        positions.push({x: y, y: x, z: 0});
+        /** Merge into singleGeometry */
+        singleGeometry.merge(circleGeometry);
+        /** Return geometry for reusing */
+        circleGeometry.translate(-y, -x, 0);
+      }
+      else
+      {
+        /** Translate geometry for its coordinates */
+        circleGeometry.translate(x, y, 0);
+        /** Push coordinates to array */
+        positions.push({x: x, y: y, z: 0});
+        /** Merge into singleGeometry */
+        singleGeometry.merge(circleGeometry);
+        /** Return geometry for reusing */
+        circleGeometry.translate(-x, -y, 0);
+        circleGeometry.arrayOfProperties = [];
+      }
       circleGeometry.name = "";
       circleGeometry.scale((1/circleSize), (1/circleSize), 1);
+    }
+    /** Populate vertices with additional .json information */
+    for(var i = 0, j = 0; i < singleGeometry.faces.length && j < graph.nodes.length; i = i + 32, j++)
+    {
+      for(var property in graph.nodes[j])
+      {
+        if(graph.nodes[j].hasOwnProperty(property))
+        {
+          if(singleGeometry.faces[i].properties === undefined)
+          {
+            singleGeometry.faces[i].properties = '';
+          }
+          else
+          {
+            singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ' ';
+          }
+          singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + graph.nodes[j][property];
+        }
+      }
     }
     /** Create one mesh from single geometry and add it to scene */
     mesh = new THREE.Mesh(singleGeometry, material);
@@ -994,6 +1029,7 @@ var eventHandler;
 var layout = 2;
 var capture = false;
 var clicked = {wasClicked: false};
+var cameraPos = 70;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 // $('#WebGL').on('mousemove', function(){
@@ -1104,8 +1140,8 @@ function build(data, layout)
   if(renderer == undefined)
   {
       /* Get the size of the inner window (content area) to create a full size renderer */
-      canvasWidth = (document.getElementById("WebGL").clientWidth);
-      canvasHeight = (document.getElementById("WebGL").clientHeight);
+      canvasWidth = (document.getElementById("mainSection").clientWidth);
+      canvasHeight = (document.getElementById("mainSection").clientHeight);
       /* Create a new WebGL renderer */
       renderer = new THREE.WebGLRenderer({antialias:true});
       /* Set the background color of the renderer to black, with full opacity */
@@ -1162,7 +1198,7 @@ function build(data, layout)
   /* Create the camera and associate it with the scene */
   if(camera !== undefined) delete camera;
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 2000);
-  camera.position.set(0, 0, 70);
+  camera.position.set(0, 0, cameraPos);
   camera.lookAt(scene.position);
   camera.name = "camera";
   scene.add(camera);
@@ -1695,6 +1731,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 				lastQuaternion.copy( scope.object.quaternion );
 				zoomChanged = false;
 
+				/** Get camera depth */
+				cameraPos = scope.object.position.z;
 				return true;
 
 			}
@@ -1922,7 +1960,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 		/* Reset camera to initial position */
 		scope.reset();
 		/* Apply pan */
-		pan((graph.getNumberOfNodes())/2, 0);
+		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
+		pan(panSize*5*1.4, 0);
 		scope.update();
 	});
 
@@ -1931,7 +1970,15 @@ THREE.OrbitControls = function ( object, domElement ) {
 		/* Reset camera to initial position */
 		scope.reset();
 		/* Apply pan */
-		pan(-(graph.getNumberOfNodes())*4, 0);
+		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
+		pan(-panSize*5*1.4, 0);
+		scope.update();
+	});
+
+	/* Reset */
+	$('#resetButton').on('click', function(){
+		scope.reset();
+		scope.object.position.z = 70;
 		scope.update();
 	});
 

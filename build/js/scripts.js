@@ -59,9 +59,17 @@ $('#showVertexInfoCollapsed').on('click', function(){
 function layoutUpdate()
 {
   if(layout == 2)
+  {
     layout = 3;
+    document.getElementById("panLeft").disabled = "disabled";
+    document.getElementById("panRight").disabled = "disabled";
+  }
   else if(layout == 3)
+  {
     layout = 2;
+    document.getElementById("panLeft").disabled = "";
+    document.getElementById("panRight").disabled = "";
+  }
 }
 
 /** Change from horizontal layout to vertical layout */
@@ -115,15 +123,15 @@ $('#saveFileButton').on('click', function(){
   */
 function showValue()
 {
-  // document.getElementById("output1").innerHTML = document.getElementById("multilevelCoarsener").value;
-  // document.getElementById("output2").innerHTML = document.getElementById("multilevelCoarsener2").value;
+  document.getElementById("output1").innerHTML = document.getElementById("multilevelCoarsener").value;
+  document.getElementById("output2").innerHTML = document.getElementById("multilevelCoarsener2").value;
 }
 
 /**
  * Build graph on screen using three.js.
  * @public
  */
-function graphUpdate(data){
+function graphUpdate(data, layout){
   // console.log("Graph update successful");
   /* Render updated graph */
   build(data, layout);

@@ -68,14 +68,114 @@
           <a href="#fixed-tab-3" class="mdl-layout__tab">Settings</a>
         </div>
       </header>
-      <main class="mdl-layout__content">
+      <div id="settingsDrawer" class="mdl-layout__drawer">
+        <span class="mdl-layout-title">Settings</span>
+        <ul class="mdl-list">
+            <!-- <li class="mdl-list__item">
+              <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
+                Graph name:
+              </span>
+              <span id="graphName" class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content"></span>
+            </li> -->
+            <li class="mdl-list__item">
+              <span class="mdl-color-text--black-50 mdl-list__item-primary-content">
+                Reset:
+              </span>
+              <button id="resetButton" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                <i class="material-icons">visibility</i>
+                <div class="lower-case mdl-tooltip" for="resetButton">
+                    Reset camera to default position.
+                </div>
+              </button>
+            </li>
+            <li class="mdl-list__item">
+              <span class="mdl-color-text--black-50 mdl-list__item-primary-content">
+                Zoom:
+              </span>
+              <button id="zoomIn" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                <i class="material-icons">add</i>
+                <div class="lower-case mdl-tooltip" for="zoomIn">
+                    Zoom in.
+                </div>
+              </button>
+              <button id="zoomOut" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                <i class="material-icons">remove</i>
+                <div class="lower-case mdl-tooltip" for="zoomOut">
+                    Zoom out.
+                </div>
+              </button>
+            </li>
+            <li class="mdl-list__item">
+              <span class="mdl-color-text--black-50 mdl-list__item-primary-content">
+                Pan:
+              </span>
+              <button id="panLeft" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                <i class="material-icons">keyboard_arrow_left</i>
+                <div class="lower-case mdl-tooltip" for="panLeft">
+                    Pan all the way to leftmost<br>part of bipartite graph.
+                </div>
+              </button>
+              <button id="panRight" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                <i class="material-icons">keyboard_arrow_right</i>
+                <div class="lower-case mdl-tooltip" for="panRight">
+                    Pan all the way to rightmost<br>part of bipartite graph.
+                </div>
+              </button>
+            </li>
+            <li class="mdl-list__item">
+              <span class="mdl-color-text--black-50 mdl-list__item-primary-content">
+                Graph layout:
+              </span>
+              <button id="switchLayout" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphConfigurationCollapsed">
+                <i class="material-icons">loop</i>
+                <div class="lower-case mdl-tooltip" for="switchLayout">
+                    Switch to either vertical or horizontal bipartite graph layout.
+                </div>
+              </button>
+            </li>
+            <li class="mdl-list__item">
+              <button id="saveImgButton" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored">
+                <span class="mdl-color-text--white ">Save .png...</span>
+                <!-- <i class="material-icons">launch</i> -->
+              </button>
+            </li>
+            <li class="mdl-list__item">
+              <button id="saveFileButton" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored">
+                <span class="mdl-color-text--white ">Save .json...</span>
+                <!-- <i class="material-icons">launch</i> -->
+              </button>
+            </li>
+            <hr>
+            <h6>Multilevel options</h6>
+            <ul class="mdl-list">
+              <li class="mdl-list__item">
+                <h7>Slider for first layer:</h7>
+                <span id="output1"></span>
+              </li>
+              <li class="mdl-list__item">
+                <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener" value="0" name="multilevelCoarsenerSlider" tabindex="0">
+              </li>
+              <li class="mdl-list__item">
+                <h7>Slider for second layer:</h7>
+                <span id="output2"></span>
+              </li>
+              <li class="mdl-list__item">
+                <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener2" value="0"  tabindex="0">
+              </li>
+            </ul>
+            <a id="downloadAnchorElem" class="no-display"></a>
+          </ul>
+      </div>
+      <main id="mainSection" class="mdl-layout__content">
         <section class="mdl-layout__tab-panel is-active" id="fixed-tab-1">
-          <div class="page-content">
-            <div id="WebGL">
-              <div class="mdl-cell mdl-cell--4-col"></div>
-              <div id="progressBar" class="hidden-visibility mdl-progress mdl-js-progress mdl-progress__indeterminate">
+          <div class="page-content outer-div">
+            <div id="WebGL" class="middle-div">
+              <div id="progressBar" class="hidden-visibility inner-div margin-zero-auto mdl-progress mdl-js-progress mdl-progress__indeterminate">
                 <h6 >Loading graph...</h6>
               </div>
+            </div>
+            <div class="lower-case mdl-tooltip" for="WebGL">
+                Tooltip test
             </div>
           </div>
         </section>

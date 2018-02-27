@@ -9,6 +9,7 @@ var eventHandler;
 var layout = 2;
 var capture = false;
 var clicked = {wasClicked: false};
+var cameraPos = 70;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 // $('#WebGL').on('mousemove', function(){
@@ -119,8 +120,8 @@ function build(data, layout)
   if(renderer == undefined)
   {
       /* Get the size of the inner window (content area) to create a full size renderer */
-      canvasWidth = (document.getElementById("WebGL").clientWidth);
-      canvasHeight = (document.getElementById("WebGL").clientHeight);
+      canvasWidth = (document.getElementById("mainSection").clientWidth);
+      canvasHeight = (document.getElementById("mainSection").clientHeight);
       /* Create a new WebGL renderer */
       renderer = new THREE.WebGLRenderer({antialias:true});
       /* Set the background color of the renderer to black, with full opacity */
@@ -177,7 +178,7 @@ function build(data, layout)
   /* Create the camera and associate it with the scene */
   if(camera !== undefined) delete camera;
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 2000);
-  camera.position.set(0, 0, 70);
+  camera.position.set(0, 0, cameraPos);
   camera.lookAt(scene.position);
   camera.name = "camera";
   scene.add(camera);

@@ -36,6 +36,7 @@ var BipartiteGraph = function(graph, min, max)
        }
        this.graphInfo.min = ecmaStandard(min, 0);
        this.graphInfo.max = ecmaStandard(max, 10);
+       this.graphSize = parseInt(this.firstLayer)+parseInt(this.lastLayer);
    }
    catch(err)
    {
@@ -184,16 +185,50 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       circleGeometry.scale(circleSize, circleSize, 1);
       /** Give geometry name the same as its id */
       circleGeometry.name = graph.nodes[i].id;
-      /** Translate geometry for its coordinates */
-      circleGeometry.translate(x, y, 0);
-      /** Push coordinates to array */
-      positions.push({x: x, y: y, z: 0});
-      /** Merge into singleGeometry */
-      singleGeometry.merge(circleGeometry);
-      /** Return geometry for reusing */
-      circleGeometry.translate(-x, -y, 0);
+      if(layout == 3)
+      {
+        /** Translate geometry for its coordinates */
+        circleGeometry.translate(y, x, 0);
+        /** Push coordinates to array */
+        positions.push({x: y, y: x, z: 0});
+        /** Merge into singleGeometry */
+        singleGeometry.merge(circleGeometry);
+        /** Return geometry for reusing */
+        circleGeometry.translate(-y, -x, 0);
+      }
+      else
+      {
+        /** Translate geometry for its coordinates */
+        circleGeometry.translate(x, y, 0);
+        /** Push coordinates to array */
+        positions.push({x: x, y: y, z: 0});
+        /** Merge into singleGeometry */
+        singleGeometry.merge(circleGeometry);
+        /** Return geometry for reusing */
+        circleGeometry.translate(-x, -y, 0);
+        circleGeometry.arrayOfProperties = [];
+      }
       circleGeometry.name = "";
       circleGeometry.scale((1/circleSize), (1/circleSize), 1);
+    }
+    /** Populate vertices with additional .json information */
+    for(var i = 0, j = 0; i < singleGeometry.faces.length && j < graph.nodes.length; i = i + 32, j++)
+    {
+      for(var property in graph.nodes[j])
+      {
+        if(graph.nodes[j].hasOwnProperty(property))
+        {
+          if(singleGeometry.faces[i].properties === undefined)
+          {
+            singleGeometry.faces[i].properties = '';
+          }
+          else
+          {
+            singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ' ';
+          }
+          singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + graph.nodes[j][property];
+        }
+      }
     }
     /** Create one mesh from single geometry and add it to scene */
     mesh = new THREE.Mesh(singleGeometry, material);

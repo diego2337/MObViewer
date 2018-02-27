@@ -1,3 +1,26 @@
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
 .float-left {
   float: left;
 }
