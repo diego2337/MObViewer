@@ -154,7 +154,10 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
   try
   {
     /** y represents space between two layers, while theta space between each vertice of each layer */
-    var y = -25, theta = 5;
+    // var y = -25;
+    var y = -document.getElementById("mainSection").clientHeight/4;
+    // var theta = graph.graphInfo[0].maxNodeWeight*1.2;
+    var theta = 5;
     /** Array to store (x,y,z) coordinates of nodes */
     var positions = [];
     /** Build nodes */
@@ -224,7 +227,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
           }
           else
           {
-            singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ' ';
+            singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ';';
           }
           singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + graph.nodes[j][property];
         }
@@ -253,10 +256,10 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       var edgeGeometry = new THREE.Geometry();
       for(var i = 0; i < graph.links.length; i++)
       {
-        /** Normalize edge weight */
-        if(graph.links[i].weight == undefined) graph.links[i].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
-        var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[i].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
-        if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
+        // /** Normalize edge weight */
+        // if(graph.links[i].weight == undefined) graph.links[i].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
+        // var edgeSize = (5.0 - 3.0) * ( (parseInt(graph.links[i].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 3.0;
+        // if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
 
         /** Calculate path */
         var sourcePos = positions[graph.links[i].source];
@@ -266,9 +269,17 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
         edgeGeometry.vertices.push(v1);
         edgeGeometry.vertices.push(v2);
       }
-      for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+      for(var i = 0, j = 0; i < edgeGeometry.vertices.length && j < graph.links.length; i = i + 2, j++)
       {
-        edgeGeometry.colors[i] = new THREE.Color(0x8D9091);
+        /** Normalize edge weight */
+        if(graph.links[j].weight == undefined) graph.links[j].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
+        // var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
+        var edgeSize = Math.abs( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+0.2) );
+        edgeSize = (5.0 - 1.0) * edgeSize + 1.0;
+        if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
+        var linearScale = d3.scaleLinear().domain([1.000, 5.000]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
+        // edgeGeometry.colors[i] = new THREE.Color(0x8D9091);
+        edgeGeometry.colors[i] = new THREE.Color(linearScale(edgeSize));
         edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
       }
       edgeGeometry.colorsNeedUpdate = true;

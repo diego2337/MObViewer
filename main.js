@@ -44,15 +44,15 @@ function addMinAndMaxEdge(data)
   for(var i = 0; i < jason.links.length; i++)
   {
     /** Check if weight exists */
-    if(jason.links[i].weight != undefined)
+    if(parseInt(jason.links[i].weight) != undefined)
     {
-      if(jason.links[i].weight > max)
+      if(parseInt(jason.links[i].weight) > max)
       {
-        max = jason.links[i].weight;
+        max = parseInt(jason.links[i].weight);
       }
-      if(jason.links[i].weight < min)
+      if(parseInt(jason.links[i].weight) < min)
       {
-        min = jason.links[i].weight;
+        min = parseInt(jason.links[i].weight);
       }
     }
   }
@@ -74,15 +74,15 @@ function addMinAndMaxNode(data)
   for(var i = 0; i < jason.nodes.length; i++)
   {
     /** Check if weight exists */
-    if(jason.nodes[i].weight != undefined)
+    if(parseInt(jason.nodes[i].weight) != undefined)
     {
-      if(jason.nodes[i].weight > max)
+      if(parseInt(jason.nodes[i].weight) > max)
       {
-        max = jason.nodes[i].weight;
+        max = parseInt(jason.nodes[i].weight);
       }
-      if(jason.nodes[i].weight < min)
+      if(parseInt(jason.nodes[i].weight) < min)
       {
-        min = jason.nodes[i].weight;
+        min = parseInt(jason.nodes[i].weight);
       }
     }
   }

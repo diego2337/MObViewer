@@ -182,6 +182,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         element.geometry.colorsNeedUpdate = true;
         this.highlightedElements.splice(i, 1);
     }
+    /** Hiding vertex information */
+    document.getElementById("vertexInfo").innerHTML = "";
+    $("#vertexInfoId").css("display", "none");
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
@@ -198,6 +201,30 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         }
         intersection.object.geometry.colorsNeedUpdate = true;
         this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
+        /** Display vertex information */
+        properties = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";");
+        for(var i = 0; i < intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";").length; i++)
+        {
+            if(properties[i].length > 1)
+            {
+              /** if case made specifically for movieLens files */
+              if(properties[i].indexOf("|") != -1)
+              {
+                genres = properties[i].split("|");
+                for(var j = 0; j < genres.length; j++)
+                {
+                  document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + genres[j] + ",<br>";
+                }
+              }
+              else
+              {
+                document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + properties[i] + "<br>";
+                // intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";")[i] + "<br>";
+              }
+            }
+        }
+        // document.getElementById("vertexInfo").innerHTML = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties;
+        $("#vertexInfoId").css("display", "inline");
       }
       else /** Intersection with edge */
       {

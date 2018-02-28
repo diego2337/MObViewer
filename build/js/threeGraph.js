@@ -154,7 +154,10 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
   try
   {
     /** y represents space between two layers, while theta space between each vertice of each layer */
-    var y = -25, theta = 5;
+    // var y = -25;
+    var y = -document.getElementById("mainSection").clientHeight/4;
+    // var theta = graph.graphInfo[0].maxNodeWeight*1.2;
+    var theta = 5;
     /** Array to store (x,y,z) coordinates of nodes */
     var positions = [];
     /** Build nodes */
@@ -224,7 +227,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
           }
           else
           {
-            singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ' ';
+            singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ';';
           }
           singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + graph.nodes[j][property];
         }
@@ -253,10 +256,10 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       var edgeGeometry = new THREE.Geometry();
       for(var i = 0; i < graph.links.length; i++)
       {
-        /** Normalize edge weight */
-        if(graph.links[i].weight == undefined) graph.links[i].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
-        var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[i].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
-        if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
+        // /** Normalize edge weight */
+        // if(graph.links[i].weight == undefined) graph.links[i].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
+        // var edgeSize = (5.0 - 3.0) * ( (parseInt(graph.links[i].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 3.0;
+        // if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
 
         /** Calculate path */
         var sourcePos = positions[graph.links[i].source];
@@ -266,9 +269,17 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
         edgeGeometry.vertices.push(v1);
         edgeGeometry.vertices.push(v2);
       }
-      for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+      for(var i = 0, j = 0; i < edgeGeometry.vertices.length && j < graph.links.length; i = i + 2, j++)
       {
-        edgeGeometry.colors[i] = new THREE.Color(0x8D9091);
+        /** Normalize edge weight */
+        if(graph.links[j].weight == undefined) graph.links[j].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
+        // var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
+        var edgeSize = Math.abs( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+0.2) );
+        edgeSize = (5.0 - 1.0) * edgeSize + 1.0;
+        if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
+        var linearScale = d3.scaleLinear().domain([1.000, 5.000]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
+        // edgeGeometry.colors[i] = new THREE.Color(0x8D9091);
+        edgeGeometry.colors[i] = new THREE.Color(linearScale(edgeSize));
         edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
       }
       edgeGeometry.colorsNeedUpdate = true;
@@ -1029,7 +1040,8 @@ var eventHandler;
 var layout = 2;
 var capture = false;
 var clicked = {wasClicked: false};
-var cameraPos = 70;
+var cameraPos = document.getElementById("mainSection").clientHeight/4;
+// var cameraPos = 70;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 // $('#WebGL').on('mousemove', function(){
@@ -1472,6 +1484,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         element.geometry.colorsNeedUpdate = true;
         this.highlightedElements.splice(i, 1);
     }
+    /** Hiding vertex information */
+    document.getElementById("vertexInfo").innerHTML = "";
+    $("#vertexInfoId").css("display", "none");
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
@@ -1488,6 +1503,30 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         }
         intersection.object.geometry.colorsNeedUpdate = true;
         this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
+        /** Display vertex information */
+        properties = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";");
+        for(var i = 0; i < intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";").length; i++)
+        {
+            if(properties[i].length > 1)
+            {
+              /** if case made specifically for movieLens files */
+              if(properties[i].indexOf("|") != -1)
+              {
+                genres = properties[i].split("|");
+                for(var j = 0; j < genres.length; j++)
+                {
+                  document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + genres[j] + ",<br>";
+                }
+              }
+              else
+              {
+                document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + properties[i] + "<br>";
+                // intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";")[i] + "<br>";
+              }
+            }
+        }
+        // document.getElementById("vertexInfo").innerHTML = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties;
+        $("#vertexInfoId").css("display", "inline");
       }
       else /** Intersection with edge */
       {
@@ -1962,6 +2001,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		/* Apply pan */
 		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
 		pan(panSize*5*1.4, 0);
+		// pan(panSize*2, 0);
 		scope.update();
 	});
 
@@ -1972,13 +2012,14 @@ THREE.OrbitControls = function ( object, domElement ) {
 		/* Apply pan */
 		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
 		pan(-panSize*5*1.4, 0);
+		// pan(-panSize*2, 0);
 		scope.update();
 	});
 
 	/* Reset */
 	$('#resetButton').on('click', function(){
 		scope.reset();
-		scope.object.position.z = 70;
+		scope.object.position.z = document.getElementById("mainSection").clientHeight/4;
 		scope.update();
 	});
 
