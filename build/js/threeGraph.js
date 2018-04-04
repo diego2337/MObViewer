@@ -1246,10 +1246,10 @@ function build(data, layout)
       renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
     }, false);
     document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, scene);}, false);
-    // document.addEventListener('dblclick', function(evt){
-    //   eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
-    //   // !clicked ? clicked = true : clicked = false;
-    // }, false);
+    document.addEventListener('dblclick', function(evt){
+      eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+      // !clicked ? clicked = true : clicked = false;
+    }, false);
   }
   // if(eventHandler !== undefined) eventHandler.setScene(scene);
   // else
@@ -1423,6 +1423,31 @@ EventHandler.prototype.setHighlightedElements = function(highlighted)
 //     this.neighbors = [];
 //   }
 // }
+
+/**
+ * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
+ * params:
+ *    - clicked: boolean to indicate if element has already been clicked.
+ *    - evt: event dispatcher.
+ *    - scene: scene for raycaster.
+ */
+EventHandler.prototype.mouseDoubleClickEvent = function()
+{
+      if(!clicked.wasClicked)
+      {
+        /* Find highlighted vertex and highlight its neighbors */
+        for(var i = 0; i < this.highlightedElements.length; i++)
+        {
+            console.log("this.highlightedElements[i]: ");
+            console.log(this.highlightedElements[i]);
+        }
+      }
+      else if(clicked.wasClicked)
+      {
+        clicked.wasClicked = false;
+        /* An element was already clicked and its neighbors highlighted; unhighlight all */
+      }
+}
 
 /**
  * Handles mouse move. If mouse hovers over element, invoke highlighting

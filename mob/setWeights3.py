@@ -9,6 +9,8 @@
 import argparse
 import json
 import os
+import sys
+from pprint import pprint
 
 # Removes any unnecessary characters from line, defined by 'junkCharacters', returning a new line.
 def removeTrash(line, junkCharacters):
@@ -107,14 +109,20 @@ if __name__ == "__main__":
             i = int(removeTrash(line, junkCharacters).split(" ")[-1])
             newCoarsenedJson.write(line)
             # Write additional information from coarsened nodes inside node
-            for j in range(len(clusteredVertices[i].split(" "))):
-                writingLine = json.dumps(jason['nodes'][int(clusteredVertices[i].split(" ")[j])], indent=4, sort_keys=True)
-                writingLine = writingLine.split("{")[-1].split("}")[0]
-                # if(removeTrash(writingLine, junkCharacters).split(" ")[0] == i):
-                # print "j: " + str(j)
-                # print writingLine
-                writingLine = writingLine[1:-1] + "," + "\n"
-                newCoarsenedJson.write(writingLine)
+            if((clusteredVertices[i].split(" ")[0] is not (clusteredVertices[i].split(" ")[-1]))):
+                for item in jason['nodes'][int(clusteredVertices[i].split(" ")[-1])]:
+                    jason['nodes'][int(clusteredVertices[i].split(" ")[-1])][item] = jason['nodes'][int(clusteredVertices[i].split(" ")[-1])][item] + "/" + jason['nodes'][int(clusteredVertices[i].split(" ")[0])][item]
+            writingLine = json.dumps(jason['nodes'][int(clusteredVertices[i].split(" ")[-1])], indent=4, sort_keys=True)
+            writingLine = writingLine.split("{")[-1].split("}")[0]
+            writingLine = writingLine[1:-1] + "," + "\n"
+            newCoarsenedJson.write(writingLine)
+#            for j in range(len(clusteredVertices[i].split(" "))):
+#                writingLine = json.dumps(jason['nodes'][int(clusteredVertices[i].split(" ")[j])], indent=4, sort_keys=True)
+#                writingLine = writingLine.split("{")[-1].split("}")[0]
+#                 if(removeTrash(writingLine, junkCharacters).split(" ")[0] == i):
+#                 print "j: " + str(j)
+#                writingLine = writingLine[1:-1] + "," + "\n"
+#                newCoarsenedJson.write(writingLine)
             line = coarsenedJson.readline()
             while(line != "" and removeTrash(line, junkCharacters).split(" ")[0] != "weight"):
                 newCoarsenedJson.write(line)

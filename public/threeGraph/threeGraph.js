@@ -215,10 +215,10 @@ function build(data, layout)
       renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
     }, false);
     document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, scene);}, false);
-    // document.addEventListener('dblclick', function(evt){
-    //   eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
-    //   // !clicked ? clicked = true : clicked = false;
-    // }, false);
+    document.addEventListener('dblclick', function(evt){
+      eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+      // !clicked ? clicked = true : clicked = false;
+    }, false);
   }
   // if(eventHandler !== undefined) eventHandler.setScene(scene);
   // else
