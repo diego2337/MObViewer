@@ -122,25 +122,50 @@ BipartiteGraph.prototype.getNumberOfEdges = function()
  * @param {Object} node Node from which neighbors will be found.
  * @returns List of neighbors for given node.
  */
-BipartiteGraph.prototype.findNeighbors = function(node)
+// BipartiteGraph.prototype.findNeighbors = function(node)
+// {
+//   var neighbors = [];
+//   var neighbor = undefined;
+//   for(var i = 0; i < this.edges.length; i++)
+//   {
+//     if(parseInt(this.edges[i].edgeObject.source) == parseInt(node.circle.name))
+//       neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.target)));
+//     else if(parseInt(this.edges[i].edgeObject.target) == parseInt(node.circle.name))
+//       neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.source)));
+//     if(neighbor !== undefined)
+//       neighbors.push(this.edges[i]);
+//     neighbor = undefined;
+//   }
+//   return neighbors;
+// }
+
+/**
+ * Find node's neighbors.
+ * @public
+ * @param {Object} graph Object containing .json graph file.
+ * @param {int} i Index for node stored at 'graph' object.
+ * @returns List of neighbors for given node.
+ */
+BipartiteGraph.prototype.findNeighbors = function(graph, i)
 {
   var neighbors = [];
   var neighbor = undefined;
-  for(var i = 0; i < this.edges.length; i++)
+  for(j = 0; j < graph.links.length; j++)
   {
-    if(parseInt(this.edges[i].edgeObject.source) == parseInt(node.circle.name))
-      neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.target)));
-    else if(parseInt(this.edges[i].edgeObject.target) == parseInt(node.circle.name))
-      neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.source)));
-    if(neighbor !== undefined)
-      neighbors.push(this.edges[i]);
+    if(parseInt(graph.links[j].source) == parseInt(graph.nodes[i].id))
+      neighbor = 1, neighbors.push(parseInt(graph.links[j].target));
+      // neighbor = 1, neighbors.push(graph.getNodeById(parseInt(graph.links[i].target)));
+    else if(parseInt(graph.links[j].target) == parseInt(graph.nodes[i].id))
+      neighbor = 1, neighbors.push(parseInt(graph.links[j].source));
+    // if(neighbor !== undefined)
+    //   neighbors.push(graph.links[j]);
     neighbor = undefined;
   }
   return neighbors;
 }
 
 /**
- * Builds graph in the scene. All necessary node and edge calculations are performed, then these elements are added as actors
+ * Builds graph in the scene. All necessary node and edge calculations are performed, then these elements are added as actors.
  * @public
  * @param {Object} graph Object containing .json graph file.
  * @param {Object} scene The scene in which the graph will be built.
@@ -232,6 +257,8 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
           singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + graph.nodes[j][property];
         }
       }
+      /** Find vertex neighbors */
+      singleGeometry.faces[i].neighbors = singleGeometry.faces[i].neighbors + '' + singleGeometry.faces[i].neighbors + this.findNeighbors(graph, j) + ';';
     }
     /** Create one mesh from single geometry and add it to scene */
     mesh = new THREE.Mesh(singleGeometry, material);
