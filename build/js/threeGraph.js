@@ -150,13 +150,19 @@ BipartiteGraph.prototype.findNeighbors = function(graph, i)
 {
   var neighbors = [];
   var neighbor = undefined;
+  /** Add itself first */
+  neighbors.push(parseInt(graph.nodes[i].id));
   for(j = 0; j < graph.links.length; j++)
   {
     if(parseInt(graph.links[j].source) == parseInt(graph.nodes[i].id))
+    {
       neighbor = 1, neighbors.push(parseInt(graph.links[j].target));
-      // neighbor = 1, neighbors.push(graph.getNodeById(parseInt(graph.links[i].target)));
+    }
     else if(parseInt(graph.links[j].target) == parseInt(graph.nodes[i].id))
+    {
       neighbor = 1, neighbors.push(parseInt(graph.links[j].source));
+    }
+    // neighbor = 1, neighbors.push(graph.getNodeById(parseInt(graph.links[i].target)));
     // if(neighbor !== undefined)
     //   neighbors.push(graph.links[j]);
     neighbor = undefined;
@@ -258,7 +264,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
         }
       }
       /** Find vertex neighbors */
-      singleGeometry.faces[i].neighbors = singleGeometry.faces[i].neighbors + '' + singleGeometry.faces[i].neighbors + this.findNeighbors(graph, j) + ';';
+      singleGeometry.faces[i].neighbors = this.findNeighbors(graph, j);
     }
     /** Create one mesh from single geometry and add it to scene */
     mesh = new THREE.Mesh(singleGeometry, material);
@@ -1462,17 +1468,43 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
 {
       if(!clicked.wasClicked)
       {
+        var element = scene.getObjectByName("MainMesh", true);
         /* Find highlighted vertex and highlight its neighbors */
         for(var i = 0; i < this.highlightedElements.length; i++)
         {
-            console.log("this.highlightedElements[i]: ");
-            console.log(this.highlightedElements[i]);
+          for(var j = 0; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
+          {
+            var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
+            for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
+            {
+                element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
+            }
+            this.neighbors.push(element.geometry.faces[this.highlightedElements[i]].neighbors[j]);
+            clicked.wasClicked = true;
+          }
+          /* Add itself for highlighting */
+          this.neighbors.push(this.highlightedElements[i]/32);
+          /* Remove itself so it won't unhighlight as soon as mouse moves out */
+          this.highlightedElements.splice(i, 1);
         }
+        element.geometry.colorsNeedUpdate = true;
       }
       else if(clicked.wasClicked)
       {
         clicked.wasClicked = false;
         /* An element was already clicked and its neighbors highlighted; unhighlight all */
+        for(var i = 0; i < this.neighbors.length; i++)
+        {
+          var endPoint = (this.neighbors[i] * 32) + 32;
+          var element = scene.getObjectByName("MainMesh", true);
+          for(var j = this.neighbors[i]*32; j < endPoint; j++)
+          {
+            element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
+          }
+          element.geometry.colorsNeedUpdate = true;
+        }
+        /* Clearing array of neighbors */
+        this.neighbors = [];
       }
 }
 

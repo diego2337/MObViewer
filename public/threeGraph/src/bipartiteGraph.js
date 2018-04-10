@@ -150,13 +150,19 @@ BipartiteGraph.prototype.findNeighbors = function(graph, i)
 {
   var neighbors = [];
   var neighbor = undefined;
+  /** Add itself first */
+  neighbors.push(parseInt(graph.nodes[i].id));
   for(j = 0; j < graph.links.length; j++)
   {
     if(parseInt(graph.links[j].source) == parseInt(graph.nodes[i].id))
+    {
       neighbor = 1, neighbors.push(parseInt(graph.links[j].target));
-      // neighbor = 1, neighbors.push(graph.getNodeById(parseInt(graph.links[i].target)));
+    }
     else if(parseInt(graph.links[j].target) == parseInt(graph.nodes[i].id))
+    {
       neighbor = 1, neighbors.push(parseInt(graph.links[j].source));
+    }
+    // neighbor = 1, neighbors.push(graph.getNodeById(parseInt(graph.links[i].target)));
     // if(neighbor !== undefined)
     //   neighbors.push(graph.links[j]);
     neighbor = undefined;
@@ -258,7 +264,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
         }
       }
       /** Find vertex neighbors */
-      singleGeometry.faces[i].neighbors = singleGeometry.faces[i].neighbors + '' + singleGeometry.faces[i].neighbors + this.findNeighbors(graph, j) + ';';
+      singleGeometry.faces[i].neighbors = this.findNeighbors(graph, j);
     }
     /** Create one mesh from single geometry and add it to scene */
     mesh = new THREE.Mesh(singleGeometry, material);
