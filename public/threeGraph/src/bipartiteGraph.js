@@ -149,25 +149,59 @@ BipartiteGraph.prototype.getNumberOfEdges = function()
 BipartiteGraph.prototype.findNeighbors = function(graph, i)
 {
   var neighbors = [];
-  var neighbor = undefined;
+  // var neighbor = undefined;
   /** Add itself first */
   neighbors.push(parseInt(graph.nodes[i].id));
   for(j = 0; j < graph.links.length; j++)
   {
     if(parseInt(graph.links[j].source) == parseInt(graph.nodes[i].id))
     {
-      neighbor = 1, neighbors.push(parseInt(graph.links[j].target));
+      /*neighbor = 1,*/ neighbors.push(parseInt(graph.links[j].target));
     }
     else if(parseInt(graph.links[j].target) == parseInt(graph.nodes[i].id))
     {
-      neighbor = 1, neighbors.push(parseInt(graph.links[j].source));
+      /*neighbor = 1,*/ neighbors.push(parseInt(graph.links[j].source));
     }
     // neighbor = 1, neighbors.push(graph.getNodeById(parseInt(graph.links[i].target)));
     // if(neighbor !== undefined)
     //   neighbors.push(graph.links[j]);
-    neighbor = undefined;
+    // neighbor = undefined;
   }
   return neighbors;
+}
+
+/**
+ * Find edge index in array of vertices, given edge position.
+ * @public
+ * @param {Object} position (x,y,z) positions of an inciding edge.
+ * @param {Array} vertexArray Array of vertexes.
+ * @returns {int} Index of (x,y,z) in array of vertexes.
+ */
+BipartiteGraph.prototype.findEdgePositionIndex = function(position, vertexArray)
+{
+  for(var i = 0; i < vertexArray.length; i++)
+  {
+    if(vertexArray[i].x == position.x && vertexArray[i].y == position.y && vertexArray[i].z == position.z)
+    {
+      return i;
+    }
+  }
+  /** If no matching element was found, return -1 */
+  return -1;
+  // /** Find all occurrences of x inside vertexArray */
+  // var position1 = vertexArray.filter(function(obj){
+  //   return obj.x == position.x;
+  // });
+  // /** Find all occurrences of x inside position1 */
+  // var position2 = position1.filter(function(obj){
+  //   return obj.y == position.y;
+  // });
+  // /** Find all occurrences of x inside position2 */
+  // var position3 = position2.filter(function(obj){
+  //   return obj.z == position.z;
+  // });
+  // /** Return position3 */
+  // return position3;
 }
 
 /**
@@ -265,6 +299,8 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       }
       /** Find vertex neighbors */
       singleGeometry.faces[i].neighbors = this.findNeighbors(graph, j);
+      /** Store vertex position */
+      singleGeometry.faces[i].position = positions[j];
     }
     /** Create one mesh from single geometry and add it to scene */
     mesh = new THREE.Mesh(singleGeometry, material);
@@ -275,11 +311,11 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
 
     mesh = null;
 
-    singleGeometry.dispose();
+
     circleGeometry.dispose();
     material.dispose();
 
-    singleGeometry = null;
+
     circleGeometry = null;
     material = null;
 
@@ -327,6 +363,15 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       edgeGeometry = null;
       edgeMaterial.dispose();
       edgeMaterial = null;
+
+      /** Find all edges indices inside array of vertexes */
+      for(var i = 0; i < singleGeometry.faces.length; i = i + 32)
+      {
+        singleGeometry.faces[i].positionIndex = this.findEdgePositionIndex(singleGeometry.faces[i].position, lineSegments.geometry.vertices);
+      }
+
+      singleGeometry.dispose();
+      singleGeometry = null;
 
       // var line = new THREE.MeshLine();
       // line.setGeometry(edgeGeometry);

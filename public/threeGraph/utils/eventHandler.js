@@ -134,9 +134,16 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
       if(!clicked.wasClicked)
       {
         var element = scene.getObjectByName("MainMesh", true);
-        /* Find highlighted vertex and highlight its neighbors */
+        var lineSegments = scene.getObjectById(8, true);
+        console.log("element:");
+        console.log(element);
+        console.log("lineSegments:");
+        console.log(lineSegments);
+        /** Find highlighted vertex and highlight its neighbors */
         for(var i = 0; i < this.highlightedElements.length; i++)
         {
+          // var startEdge = element.geometry.faces[this.highlightedElements[i]].position;
+          var startPosition = element.geometry.faces[this.highlightedElements[i]].positionIndex;
           for(var j = 0; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
           {
             var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
@@ -146,18 +153,26 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
             }
             this.neighbors.push(element.geometry.faces[this.highlightedElements[i]].neighbors[j]);
             clicked.wasClicked = true;
+            /** Highlight connected edges */
+            // var endEdge = element.geometry.faces[this.highlightedElements[i].neighbors[j] * 32].position;
+            var neighborIndex = element.geometry.faces[this.highlightedElements[i]].neighbors[j] * 32;
+            var endPosition = element.geometry.faces[neighborIndex].positionIndex;
+            /** Find index of end position */
+            // lineSegments.geometry.colors[endPosition].setRGB(1.0, 0.0, 0.0);
           }
-          /* Add itself for highlighting */
+          /** Add itself for highlighting */
           this.neighbors.push(this.highlightedElements[i]/32);
-          /* Remove itself so it won't unhighlight as soon as mouse moves out */
+          lineSegments.geometry.colors[startPosition].setRGB(1.0, 0.0, 0.0);
+          /** Remove itself so it won't unhighlight as soon as mouse moves out */
           this.highlightedElements.splice(i, 1);
         }
         element.geometry.colorsNeedUpdate = true;
+        lineSegments.geometry.colorsNeedUpdate = true;
       }
       else if(clicked.wasClicked)
       {
         clicked.wasClicked = false;
-        /* An element was already clicked and its neighbors highlighted; unhighlight all */
+        /** An element was already clicked and its neighbors highlighted; unhighlight all */
         for(var i = 0; i < this.neighbors.length; i++)
         {
           var endPoint = (this.neighbors[i] * 32) + 32;
@@ -168,7 +183,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
           }
           element.geometry.colorsNeedUpdate = true;
         }
-        /* Clearing array of neighbors */
+        /** Clearing array of neighbors */
         this.neighbors = [];
       }
 }
