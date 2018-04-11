@@ -365,10 +365,10 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       edgeMaterial = null;
 
       /** Find all edges indices inside array of vertexes */
-      for(var i = 0; i < singleGeometry.faces.length; i = i + 32)
-      {
-        singleGeometry.faces[i].positionIndex = this.findEdgePositionIndex(singleGeometry.faces[i].position, lineSegments.geometry.vertices);
-      }
+      // for(var i = 0; i < singleGeometry.faces.length; i = i + 32)
+      // {
+      //   singleGeometry.faces[i].positionIndex = this.findEdgePositionIndex(singleGeometry.faces[i].position, lineSegments.geometry.vertices);
+      // }
 
       singleGeometry.dispose();
       singleGeometry = null;
