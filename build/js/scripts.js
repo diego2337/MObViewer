@@ -1,69 +1,78 @@
 /**
-  * File to watch for actions triggered at main page.
-  * Author: Diego Cintra
+  * @desc File to watch for actions triggered at main page, such as the opening and closing of menus.
+  * @author Diego Cintra
   * Date: 06/12/2017
   */
 
-/* Collapse graph info menu */
+/** Collapse graph info menu */
 $('#showGraphInfoMinimized').on('click', function(){
   $('#graphInfoMinimized').css('display', 'none');
   $('#graphInfoCollapsed').css('display', 'inline');
 });
 
-/* Minimize graph info menu */
+/** Minimize graph info menu */
 $('#showGraphInfoCollapsed').on('click', function(){
   $('#graphInfoMinimized').css('display', 'inline');
   $('#graphInfoCollapsed').css('display', 'none');
 });
 
-/* Collapse graph configuration menu */
+/** Collapse graph configuration menu */
 $('#showGraphConfigurationMinimized').on('click', function(){
   $('#graphConfigurationMinimized').css('display', 'none');
   $('#graphConfigurationCollapsed').css('display', 'inline');
 });
 
-/* Minimize graph configuration menu */
+/** Minimize graph configuration menu */
 $('#showGraphConfigurationCollapsed').on('click', function(){
   $('#graphConfigurationCollapsed').css('display', 'none');
   $('#graphConfigurationMinimized').css('display', 'inline');
 });
 
-/* Collapse multilevel options menu */
+/** Collapse multilevel options menu */
 $('#showMultilevelOptionsMinimized').on('click', function(){
   $('#multilevelOptionsMinimized').css('display', 'none');
   $('#multilevelOptionsCollapsed').css('display', 'inline');
 });
 
-/* Minimize multilevel options menu */
+/** Minimize multilevel options menu */
 $('#showMultilevelOptionsCollapsed').on('click', function(){
   $('#multilevelOptionsCollapsed').css('display', 'none');
   $('#multilevelOptionsMinimized').css('display', 'inline');
 });
 
-/* Collapse vertex info menu */
+/** Collapse vertex info menu */
 $('#showVertexInfoMinimized').on('click', function(){
   $('#vertexInfoMinimized').css('display', 'none');
   $('#vertexInfoCollapsed').css('display', 'inline');
 });
 
-/* Minimize vertex info menu */
+/** Minimize vertex info menu */
 $('#showVertexInfoCollapsed').on('click', function(){
   $('#vertexInfoCollapsed').css('display', 'none');
   $('#vertexInfoMinimized').css('display', 'inline');
 });
 
 /**
-  * Change current layout value
+  * Change current layout value.
+  * @public
   */
 function layoutUpdate()
 {
   if(layout == 2)
+  {
     layout = 3;
+    document.getElementById("panLeft").disabled = "disabled";
+    document.getElementById("panRight").disabled = "disabled";
+  }
   else if(layout == 3)
+  {
     layout = 2;
+    document.getElementById("panLeft").disabled = "";
+    document.getElementById("panRight").disabled = "";
+  }
 }
 
-/* Change from horizontal layout to vertical layout */
+/** Change from horizontal layout to vertical layout */
 $('#switchLayout').on('click', function(){
   $.ajax({
     url: '/switch',
@@ -77,17 +86,17 @@ $('#switchLayout').on('click', function(){
 });
 
 /**
-  * File to watch for clicks in buttons used for saving either .png graph image or .json file.
-  * Author: Diego Cintra
+  * @ File to watch for clicks in buttons used for saving either .png graph image or .json file.
+  * @author Diego Cintra
   * Date: 06/12/2017
   */
 
+/** Trigger image saving when button is clicked */
 $('#saveImgButton').on('click', function (){
   capture = true;
-  // document.getElementById('saveImgButton').href = dataURL;
-  // document.getElementById('saveImg').click();
 });
 
+/** Generate .json file from graph */
 $('#saveFileButton').on('click', function(){
   $.ajax({
     url: '/switch',
@@ -103,37 +112,14 @@ $('#saveFileButton').on('click', function(){
 });
 
 /**
-  * File to watch for changes in slider used for multilevel paradigm.
-  * Author: Diego Cintra
+  * @desc File to watch for changes in slider used for multilevel paradigm.
+  * @author Diego Cintra
   * Date: 15/11/2017
   */
 
 /**
-  * Change min and max values for input type range element in HTML page
-  * Param:
-  *    - data: .json graph uploaded to server-side
-  */
-function changeMinAndMaxValues(data)
-{
-  // console.log("changeMinAndMaxFunction");
-  var d = JSON.parse(data);
-  var numberOfNodes1 = d.graphInfo[0].vlayer.split(" ");
-  $('#multilevelCoarsener').prop({
-    'min': 1,
-    'max': numberOfNodes1[0],
-    'value': numberOfNodes1[0]
-  });
-  $('#multilevelCoarsener2').prop({
-    'min': 1,
-    'max': numberOfNodes1[1],
-    'value': numberOfNodes1[1]
-  });
-  document.getElementById("output1").innerHTML = numberOfNodes1[0];
-  document.getElementById("output2").innerHTML = numberOfNodes1[1];
-}
-
-/**
-  * Outputs current slider value
+  * Outputs current slider value.
+  * @public
   */
 function showValue()
 {
@@ -141,12 +127,21 @@ function showValue()
   document.getElementById("output2").innerHTML = document.getElementById("multilevelCoarsener2").value;
 }
 
-function graphUpdate(data){
-  console.log("Graph update successful");
+/**
+ * Build graph on screen using three.js.
+ * @public
+ */
+function graphUpdate(data, layout){
+  // console.log("Graph update successful");
   /* Render updated graph */
   build(data, layout);
 }
 
+/**
+ * While server-side functions are running, display progress bar.
+ * @public
+ * @return {Object} xhr object for AJAX call.
+ */
 function loadGraph()
 {
   var xhr = new window.XMLHttpRequest();
@@ -180,52 +175,57 @@ function loadGraph()
   return xhr;
 }
 
-/* Apply changes for first layer coarsening */
+/** Apply changes for first layer coarsening */
 $('#multilevelCoarsener').on('change', function(){
   document.getElementById("output1").innerHTML = parseFloat($('#multilevelCoarsener')[0].value);
   /* Perform an AJAX request to server */
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: 1},
-    // data: JSON.parse($('#multilevelCoarsener')[0].value),
+    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
     success: graphUpdate,
     xhr: loadGraph
   });
 });
 
-/* Apply changes for second layer coarsening */
+/** Apply changes for second layer coarsening */
 $('#multilevelCoarsener2').on('change', function(){
   document.getElementById("output2").innerHTML = $('#multilevelCoarsener2')[0].value;
   /* Perform an AJAX request to server */
   $.ajax({
     url: '/slide',
     type: 'POST',
-    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: 0},
-    // data: JSON.parse($('#multilevelCoarsener')[0].value),
+    data: {coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
     success: graphUpdate,
     xhr: loadGraph
   });
 });
 
+/**
+  * @desc File to watch for uploaded files by user.
+  * @author Diego Cintra
+  * Date: 02/02/2018
+  */
+
+/** Trigger upload-input element click */
 $('.upload-btn').on('click', function (){
     $('#upload-input').click();
     $('.progress-bar').text('0%');
     $('.progress-bar').width('0%');
 });
 
+/** Trigger AJAX call to send data server-side */
 $('#upload-input').on('change', function(){
   var files = $(this).get(0).files;
   if (files.length > 0){
-    // create a FormData object which will be sent as the data payload in the
-    // AJAX request
+    /* Create a FormData object which will be sent as the data payload in the AJAX request */
     var formData = new FormData();
 
-    // loop through all the selected files and add them to the formData object
+    /* Loop through all the selected files and add them to the formData object */
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
 
-      // add the files to formData object for the data payload
+      /* Add the files to formData object for the data payload */
       formData.append('uploads[]', file, file.name);
     }
 
@@ -237,45 +237,14 @@ $('#upload-input').on('change', function(){
       contentType: false,
       success: function(data){
           console.log('Upload successful!\n');
-          /* Change slider min & max values */
-          // changeMinAndMaxValues(data);
           /* Show slider's current value */
           showValue();
           /* Hide upload box */
-          $('#uploadBox').css('display', 'none');
-          /* Build the graph after loading .json file */
+          // $('#uploadBox').css('display', 'none');
+          /* Build graph after loading .json file */
           build(data);
-          /* Below won't work - AJAX call works for same page only! */
-          // location.href = '/visualization';
       },
       xhr: loadGraph
-      // xhr: function() {
-      //   // create an XMLHttpRequest
-      //   var xhr = new XMLHttpRequest();
-      //
-      //   // listen to the 'progress' event
-      //   xhr.upload.addEventListener('progress', function(evt) {
-      //
-      //     if (evt.lengthComputable) {
-      //       // calculate the percentage of upload completed
-      //       var percentComplete = evt.loaded / evt.total;
-      //       percentComplete = parseInt(percentComplete * 100);
-      //
-      //       // update the Bootstrap progress bar with the new percentage
-      //       $('.progress-bar').text(percentComplete + '%');
-      //       $('.progress-bar').width(percentComplete + '%');
-      //
-      //       // once the upload reaches 100%, set the progress bar text to done
-      //       if (percentComplete === 100) {
-      //         $('.progress-bar').html('Done');
-      //       }
-      //
-      //     }
-      //
-      //   }, false);
-      //
-      //   return xhr;
-      // }
     });
 
   }

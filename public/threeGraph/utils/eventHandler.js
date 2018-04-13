@@ -1,26 +1,18 @@
 /**
  * Base class for a Event handler, implementing Event interface.
- * Author: Diego S. Cintra
+ * @author Diego S. Cintra
  */
-
-// var THREE = require('../../../node_modules/three/build/three.js');
-// var ecmaStandard = require('../utils/ecmaStandard.js');
 
 /**
  * Constructor
  * params:
- *    - raycaster: defined raycaster, defaults to creating a new one;
- *    - scene: scene in which the events will be manipulated.
+ *    - raycaster: defined raycaster, defaults to creating a new one.
  */
-var EventHandler = function(raycaster, scene)
+var EventHandler = function(raycaster)
 {
-    /* Pre ECMAScript 2015 standardization */
-    // raycaster = typeof raycaster !== 'undefined' ? raycaster : new THREE.Raycaster();
-    // scene = typeof scene !== 'undefined' ? scene : new THREE.Scene();
-    raycaster = ecmaStandard(raycaster, undefined);
-    scene = ecmaStandard(scene, undefined);
-    this.raycaster = new THREE.Raycaster();
-    this.scene = scene;
+    this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
+    this.raycaster.linePrecision = 0.1;
+    // this.scene = ecmaStandard(scene, new THREE.Scene());
     this.highlightedElements = [];
     this.neighbors = [];
 }
@@ -41,21 +33,21 @@ EventHandler.prototype.setRaycaster = function(raycaster)
     this.raycaster = raycaster;
 }
 
-/**
- * Getter for scene
- */
-EventHandler.prototype.getScene = function()
-{
-    return this.scene;
-}
-
-/**
- * Setter for scene
- */
-EventHandler.prototype.setScene = function(scene)
-{
-    this.scene = scene;
-}
+// /**
+//  * Getter for scene
+//  */
+// EventHandler.prototype.getScene = function()
+// {
+//     return this.scene;
+// }
+//
+// /**
+//  * Setter for scene
+//  */
+// EventHandler.prototype.setScene = function(scene)
+// {
+//     this.scene = scene;
+// }
 
 /**
  * Getter for highlighted elements
@@ -78,90 +70,183 @@ EventHandler.prototype.setHighlightedElements = function(highlighted)
 /**
  * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
  * params:
- *    - clicked: boolean to indicate if element has already been clicked;
- *    - evt: event dispatcher;
- *    - graph: graph, containing objects to be intersected.
+ *    - clicked: boolean to indicate if element has already been clicked.
+ *    - evt: event dispatcher.
+ *    - scene: scene for raycaster.
  */
-EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
+// EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, scene)
+// {
+//   if(!clicked.wasClicked)
+//   {
+//     /* Find highlighted vertex and highlight its neighbors */
+//     for(var i = 0; i < this.highlightedElements.length; i++)
+//     {
+//       var element = graph.getElementById(this.highlightedElements[i]);
+//       if(element instanceof Node)
+//       {
+//         /* Search neighbors */
+//         this.neighbors = graph.findNeighbors(element);
+//         /* Add itself for highlighting */
+//         this.neighbors.push(element);
+//         /* Remove itself so it won't unhighlight as soon as mouse moves out */
+//         this.highlightedElements.splice(i, 1);
+//         /* Highlight neighbors */
+//         for(var j = 0; j < this.neighbors.length; j++)
+//         {
+//           if(this.neighbors[j] instanceof Node)
+//           {
+//             this.neighbors[j].highlight();
+//             clicked.wasClicked = true;
+//           }
+//         }
+//       }
+//     }
+//   }
+//   else if(clicked.wasClicked)
+//   {
+//     clicked.wasClicked = false;
+//     /* An element was already clicked and its neighbors highlighted; unhighlight all */
+//     for(var i = 0; i < this.neighbors.length; i++)
+//     {
+//       var element = undefined;
+//       if(this.neighbors[i] instanceof Node)
+//       {
+//         element = graph.getElementById(String(this.neighbors[i].circle.name));
+//         element.unhighlight();
+//       }
+//       else if(this.neighbors[i] instanceof Edge)
+//         element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
+//     }
+//     /* Clearing array of neighbors */
+//     this.neighbors = [];
+//   }
+// }
+
+/**
+ * Find index of pair of vertices that form an edge.
+ * @public
+ * @param {Object} vertexArray Array of vertexes to search for edge.
+ * @param {Object} startEdge (x,y,z) coordinates of starting vertex.
+ * @param {Object} endEdge (x,y,z) coordinates of ending vertex.
+ * @returns {int} Index in vertexArray of edge.
+ */
+EventHandler.prototype.findEdgePairIndex = function(vertexArray, startEdge, endEdge)
 {
-  if(!clicked)
+  for(var i = 0; i < vertexArray.length; i = i + 2)
   {
-    /* Find highlighted vertex and highlight its neighbors */
-    for(var i = 0; i < this.highlightedElements.length; i++)
+    if((vertexArray[i].x == startEdge.x && vertexArray[i].y == startEdge.y && vertexArray[i].z == startEdge.z &&
+       vertexArray[i+1].x == endEdge.x && vertexArray[i+1].y == endEdge.y && vertexArray[i+1].z == endEdge.z))
     {
-      var element = graph.getElementById(this.highlightedElements[i]);
-      if(element instanceof Node)
+      return i;
+    }
+    else if(vertexArray[i].x == endEdge.x && vertexArray[i].y == endEdge.y && vertexArray[i].z == endEdge.z &&
+       vertexArray[i+1].x == startEdge.x && vertexArray[i+1].y == startEdge.y && vertexArray[i+1].z == startEdge.z)
+    {
+      return i+1;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
+ * params:
+ *    - clicked: boolean to indicate if element has already been clicked.
+ *    - evt: event dispatcher.
+ *    - scene: scene for raycaster.
+ */
+EventHandler.prototype.mouseDoubleClickEvent = function()
+{
+      if(!clicked.wasClicked)
       {
-        /* Search neighbors */
-        this.neighbors = graph.findNeighbors(element);
-        /* Add itself for highlighting */
-        this.neighbors.push(element);
-        /* Remove itself so it won't unhighlight as soon as mouse moves out */
-        this.highlightedElements.splice(i, 1);
-        /* Highlight neighbors */
-        for(var j = 0; j < this.neighbors.length; j++)
+        var element = scene.getObjectByName("MainMesh", true);
+        // var lineSegments = scene.getObjectById(8, true);
+        // var lineSegments = scene.children[1];
+        var lineSegments = scene.getObjectByProperty("type", "LineSegments");
+        /** Find highlighted vertex and highlight its neighbors */
+        for(var i = 0; i < this.highlightedElements.length; i++)
         {
-          this.neighbors[j].highlight();
+          /** Add itself for highlighting */
+          this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, edgeColor: {r:0, g:0, b:0}});
+          var startEdge = element.geometry.faces[this.highlightedElements[i]].position;
+          // var startPosition = element.geometry.faces[this.highlightedElements[i]].positionIndex;
+          for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
+          {
+            var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
+            for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
+            {
+                element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
+            }
+            clicked.wasClicked = true;
+            /** Highlight connected edges */
+            var neighborIndex = element.geometry.faces[this.highlightedElements[i]].neighbors[j] * 32;
+            var endEdge = element.geometry.faces[neighborIndex].position;
+            var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
+            /** Find index of end position */
+            // var endPosition = element.geometry.faces[neighborIndex].positionIndex;
+            var originalColor = {r:0, g:0, b:0};
+            if(index != -1)
+            {
+              // originalColor = lineSegments.geometry.colors[index];
+              originalColor.r = lineSegments.geometry.colors[index].r;
+              originalColor.g = lineSegments.geometry.colors[index].g;
+              originalColor.b = lineSegments.geometry.colors[index].b;
+              lineSegments.geometry.colors[index].setRGB(1.0, 0.0, 0.0);
+            }
+            this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], edgeColor: originalColor});
+          }
+          // lineSegments.geometry.colors[startPosition].setRGB(1.0, 0.0, 0.0);
+          // lineSegments.geometry.colors[0].setRGB(1.0, 0.0, 0.0);
+          /** Remove itself so it won't unhighlight as soon as mouse moves out */
+          this.highlightedElements.splice(i, 1);
         }
+        element.geometry.colorsNeedUpdate = true;
+        lineSegments.geometry.colorsNeedUpdate = true;
       }
-    }
-    /* Highlight edges according to neighbors which have been highlighted. Iterate i+3 since positions (x,y,z) are stored as one element each in array */
-    /* Convert from BufferGeometry to Geometry */
-    var auxGeometry = new THREE.Geometry();
-    auxGeometry.fromBufferGeometry(graph.lineMesh.geometry);
-    console.log("converteu?");
-    console.log(auxGeometry);
-    /* Iterate through auxGeometry's faces, changing vertexColors */
-    // /* Highlight edges according to neighbors which have been highlighted. Iterate i+3 since positions (x,y,z) are stored as one element each in array */
-    // if(graph.line.geometry.attributes.color == undefined)
-    //   graph.line.geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(graph.line.attributes.position.array.length), 3));
-    // // console.log("o que te faz entrar no for?");
-    // // console.log(graph.line.geometry.attributes.color);
-    // // console.log(graph.line.geometry.attributes.color.array);
-    // // console.log(graph.line.geometry.attributes.color.array.length);
-    // for(var i = 0; i < graph.line.geometry.attributes.color.array.length; i = i + 3)
-    // {
-    //   /* Iterating through every neighbor */
-    //   for(var j = 0 ; j < this.neighbors.length && this.neighbors[j] instanceof Node; j++)
-    //   {
-    //       /* Position from BufferGeometry matches vertex position; highlight */
-    //       // console.log("vamos la");
-    //       // console.log(graph.line.geometry.attributes.color.array[i]);
-    //       // console.log(graph.line.geometry.attributes.color.array[i+1]);
-    //       // console.log(graph.line.geometry.attributes.color.array[i+2]);
-    //       // console.log(this.neighbors[j].circle.position.x);
-    //       // console.log(this.neighbors[j].circle.position.y);
-    //       // console.log(this.neighbors[j].circle.position.z);
-    //       // console.log("al somav");
-    //       if(graph.line.geometry.attributes.position.array[i] == this.neighbors[j].circle.position.x && graph.line.geometry.attributes.position.array[i+1] == this.neighbors[j].circle.position.y && graph.line.geometry.attributes.position.array[i+2] == this.neighbors[j].circle.position.z)
-    //       {
-    //         var newColor = new THREE.Color(0xffff00);
-    //         graph.line.geometry.attributes.color.array[i] = newColor.r;
-    //         graph.line.geometry.attributes.color.array[i+1] = newColor.g;
-    //         graph.line.geometry.attributes.color.array[i+2] = newColor.b;
-    //         /* Vertex found; leave for loop */
-    //         j = this.neighbors.length + 1;
-    //       }
-    //   }
-    // }
-    // /* Set update for color buffer */
-    // graph.line.geometry.attributes.color.needsUpdate = true;
-  }
-  else if(clicked)
-  {
-    /* An element was already clicked and its neighbors highlighted; unhighlight all */
-    for(var i = 0; i < this.neighbors.length; i++)
-    {
-      var element = undefined;
-      if(this.neighbors[i] instanceof Node)
-        element = graph.getElementById(String(this.neighbors[i].circle.name));
-      else if(this.neighbors[i] instanceof Edge)
-        element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
-      element.unhighlight();
-    }
-    /* Clearing array of neighbors */
-    this.neighbors = [];
-  }
+      else if(clicked.wasClicked)
+      {
+        clicked.wasClicked = false;
+        /** An element was already clicked and its neighbors highlighted; unhighlight all */
+        var element = scene.getObjectByName("MainMesh", true);
+        // var lineSegments = scene.getObjectById(8, true);
+        // var lineSegments = scene.children[1];
+        var lineSegments = scene.getObjectByProperty("type", "LineSegments");
+        var startEdge = element.geometry.faces[this.neighbors[0].vertexInfo*32].position;
+        for(var i = 0; i < this.neighbors.length; i++)
+        {
+          var endPoint = (this.neighbors[i].vertexInfo * 32) + 32;
+          for(var j = this.neighbors[i].vertexInfo*32; j < endPoint; j++)
+          {
+            element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
+          }
+          element.geometry.colorsNeedUpdate = true;
+          if(i != 0)
+          {
+            var endEdge = element.geometry.faces[this.neighbors[i].vertexInfo*32].position;
+            var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
+            if(index != -1)
+            {
+              // lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
+              lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor.r, this.neighbors[i].edgeColor.g, this.neighbors[i].edgeColor.b);
+            }
+            // for(var j = 1; j < element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors.length; j++)
+            // {
+            //   var neighborIndex = element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors[j] * 32;
+            //   var endEdge = element.geometry.faces[neighborIndex].position;
+            //   var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
+            //   if(index != -1)
+            //   {
+            //     console.log("this.neighbors[i].edgeColor:");
+            //     console.log(this.neighbors[i].edgeColor);
+            //     lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
+            //   }
+            // }
+            lineSegments.geometry.colorsNeedUpdate = true;
+          }
+        }
+        /** Clearing array of neighbors */
+        this.neighbors = [];
+      }
 }
 
 /**
@@ -171,18 +256,10 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
  *    - renderer: WebGL renderer, containing DOM element's offsets;
  *    - graph: graph, containing objects to be intersected.
  */
-EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
+EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
 {
-    /* DEBUG - Removes tracking object from scene, if there is any */
-    // if(this.tracker != undefined)
-    // {
-    //     this.scene.remove(this.tracker.getMesh());
-    // }
     /* Get canvas element and adjust x and y to element offset */
     var canvas = renderer.domElement.getBoundingClientRect();
-    // var coords = renderer.domElement.relMouseCoords(evt);
-    // var x = coords.x;
-    // var y = coords.y;
     var x = evt.clientX - canvas.left;
     var y = evt.clientY - canvas.top;
     // console.log("x: " + x + " y: " + y);
@@ -190,84 +267,105 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     /* Adjusting mouse coordinates to NDC [-1, 1] */
     var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
     var mouseY = -(y / renderer.domElement.clientHeight) * 2 + 1;
-    // var mouseX = ((evt.clientX-renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1;
-    // var mouseY = -((evt.clientY-renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1;
 
     var mouse = new THREE.Vector2(mouseX, mouseY);
-    var camera = this.scene.getObjectByName("camera", true);
-
-    /* DEBUG - Adds tracking object */
-    // this.tracker = new Tracker();
-    // this.tracker.followMouse(mouseX, mouseY, camera);
-    // this.scene.add(this.tracker.getMesh());
+    var camera = scene.getObjectByName("camera", true);
 
     /* Setting raycaster starting from camera */
     this.raycaster.setFromCamera(mouse, camera);
 
     /* Execute ray tracing */
-    var intersects = this.raycaster.intersectObjects(this.scene.children, true);
+    var intersects = this.raycaster.intersectObjects(scene.children, true);
     var intersection = intersects[0];
 
     /* Unhighlight any already highlighted element */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        var element = graph.getElementById(this.highlightedElements[i]);
-        var alreadyHighlighted = false;
-        for(var j = 0; j < this.neighbors.length; j++)
+        // var element = graph.getElementById(this.highlightedElements[i]);
+        // var element = scene.getObjectByName(this.highlightedElements[i], true);
+        // if(element != undefined)
+        // {
+        //   element.material.color.setHex(0x000000);
+        // }
+        // var alreadyHighlighted = false;
+        // for(var j = 0; j < this.neighbors.length; j++)
+        // {
+        //   var el = undefined;
+        //   if(this.neighbors[j] instanceof Node)
+        //     el = this.neighbors[j].circle.name;
+        //   else if(this.neighbors[j] instanceof Edge)
+        //     el = this.neighbors[j].edgeObject.id;
+        //   if(element === graph.getElementById(el))
+        //     alreadyHighlighted = true;
+        // }
+        // if(!alreadyHighlighted)
+        //   element.unhighlight();
+        var endPoint = this.highlightedElements[i] + 32;
+        var element = scene.getObjectByName("MainMesh", true);
+        for(var j = this.highlightedElements[i]; j < endPoint; j++)
         {
-          var el = undefined;
-          if(this.neighbors[j] instanceof Node)
-            el = this.neighbors[j].circle.name;
-          else if(this.neighbors[j] instanceof Edge)
-            el = this.neighbors[j].edgeObject.id;
-          if(element === graph.getElementById(el))
-            alreadyHighlighted = true;
+          element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
         }
-        if(!alreadyHighlighted)
-          element.unhighlight();
-        if(element instanceof Node)
-        {
-            // graph.setNodeById(this.highlightedElements[i], element);
-            // d3.select("#name")
-            //     .style("display", "none");
-        }
-        else
-        {
-            graph.setEdgeById(this.highlightedElements[i], element);
-        }
+        element.geometry.colorsNeedUpdate = true;
         this.highlightedElements.splice(i, 1);
     }
+    /** Hiding vertex information */
+    document.getElementById("vertexInfo").innerHTML = "";
+    $("#vertexInfoId").css("display", "none");
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
-        var element = graph.getElementById(intersection.object.name);
-        console.log(element);
-        element.highlight();
-        if(element instanceof Node)
+
+      console.log(intersection);
+      if(intersection.face) /** Intersection with vertice */
+      {
+        intersection.face.color.setRGB(0.0, 1.0, 0.0);
+        /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
+        var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
+        for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
         {
-            graph.setNodeById(intersection.object.name, element);
-            document.getElementById("graphID").innerHTML = element.circle.name;
-            if(element.circle.description !== undefined)
-              document.getElementById("graphDescription").innerHTML = element.circle.description;
-            else
-              document.getElementById("graphDescription").innerHTML = "No description found.";
-            /* Get name of node to display onscreen */
-            // d3.select("#name")
-            //     .text(element.circle.name)
-            //     .attr("font-family", "sans-serif")
-            //     .attr("font-size", "20px")
-            //     .style("display", "inline")
-            //     .style("position", "absolute")
-            //     .style("z-index", "1")
-            //     .style("top", y)
-            //     .style("left", x)
-            //     .attr("fill", "green");
+            intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
         }
-        else
+        intersection.object.geometry.colorsNeedUpdate = true;
+        this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
+        /** Display vertex information */
+        properties = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";");
+        for(var i = 0; i < intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";").length; i++)
         {
-            graph.setEdgeById(intersection.object.name, element);
+            if(properties[i].length > 1)
+            {
+              /** if case made specifically for movieLens files */
+              if(properties[i].indexOf("|") != -1)
+              {
+                genres = properties[i].split("|");
+                for(var j = 0; j < genres.length; j++)
+                {
+                  document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + genres[j] + ",<br>";
+                }
+              }
+              else
+              {
+                document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + properties[i] + "<br>";
+                // intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";")[i] + "<br>";
+              }
+            }
         }
-        this.highlightedElements.push(intersection.object.name);
+        // document.getElementById("vertexInfo").innerHTML = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties;
+        $("#vertexInfoId").css("display", "inline");
+      }
+      else /** Intersection with edge */
+      {
+
+      }
+        // var element = graph.getElementById(intersection.object.name);
+        // var element = scene.getObjectByName(intersection.object.name);
+        // element.material.color.setHex(0xFF0000);
+        // document.getElementById("graphID").innerHTML = element.name;
+        // if(element.description !== undefined)
+        //   document.getElementById("graphDescription").innerHTML = element.description;
+        // else
+        //   document.getElementById("graphDescription").innerHTML = "No description found.";
+        // this.highlightedElements.push(intersection.object.name);
     }
 }
 
@@ -280,16 +378,9 @@ EventHandler.prototype.mouseOutEvent = function(graph)
 {
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        var element = graph.getElementById(this.highlightedElements[i]);
-        element.unhighlight();
-        if(element instanceof Node)
-        {
-            graph.setNodeById(this.highlightedElements[i], element);
-        }
-        else
-        {
-            graph.setEdgeById(this.highlightedElements[i], element);
-        }
+        // var element = graph.getElementById(this.highlightedElements[i]);
+        // var element = scene.getObjectByName(this.highlightedElements[i], true);
+        // element.material.color.setHex(0x000000);
     }
 
     /* Clearing array of highlighted elements */

@@ -1,135 +1,469 @@
-// /* Zoom in */
-// $('#zoomIn').on('click', function(){
-//   /* Creates a jQuery event for mouseWheel */
-//   // var evt = jQuery.Event("wheel", {delta: 650});
-//   // var evt = jQuery.Event("wheel", {delta: 650});
-//   // /* Triggers a mousewheel function */
-//   // $('#WebGL').trigger(evt);
-//   dollyOut( getZoomScale() );
-// });
-//
-// /* Zoom out */
-// $('#zoomOut').on('click', function(){
-//   /* Creates a jQuery event for mouseWheel */
-//   // var evt = jQuery.Event("wheel", {delta: -650});
-//   // /* Triggers a mousewheel function */
-//   // $('#WebGL').trigger(evt);
-//   dollyIn( getZoomScale() );
-// });
-
 /**
-  * Singleton base class for depth of the scene.
-  * Author: Diego S. Cintra
-  */
-
-/**
-  * Constructor
-  * params:
-  *    - z: Depth to be applied to camera.
-  */
-var Depth = function(z)
-{
-  this.z = z;
-}
-
-/**
-  * Getter for depth
-  * - returns: z-coordinate for camera
-  */
-Depth.prototype.getZ = function()
-{
-  return this.z;
-}
-
-/**
-  * Setter for depth
-  * param:
-  *    - z: z-coordinate for camera
-  */
-Depth.prototype.setZ = function(z)
-{
-  this.z = z;
-}
-// var Depth = (function (){
-//
-//         // Instance stores a reference to the Singleton
-//         var instance;
-//
-//         // Singleton
-//         function init(z2)
-//         {
-//             // Private methods and variables
-//             var z = z2;
-//
-//             return{
-//
-//                 // Public methods and variables
-//                 /**
-//                  * Getter of z
-//                  */
-//                 getZ : function()
-//                 {
-//                     return z;
-//                 },
-//
-//                 /**
-//                 * Setter of z
-//                 */
-//                 setZ : function(z)
-//                 {
-//                     this.z = z;
-//                 }
-//
-//             };
-//
-//         };
-//
-//         return{
-//
-//             // Get the Singleton instance if one exists
-//             // or create one if it doesn't
-//             getInstance: function (z2)
-//             {
-//                 if ( !instance ) {
-//                     instance = init(z2);
-//                 }
-//
-//                 return instance;
-//             }
-//
-//         };
-//
-// })();
-
-/**
- * Constructor
- * params:
- *    - z: Depth to be applied in every element of the scene.
+ * @constructor
+ * @param {Object} graph Object containing .json graph file, with:
+ *      - graphInfo: object containing information such as:
+ *              1) if the graph is directed;
+ *              2) which multilevel is;
+ *              3) the number of layers;
+ *              4) n integers, each containing the number of nodes in a layer.
+ *      - nodes: array of Node type;
+ *      - edges: array of Edge type;
+ * @param {int} min The minimal value for feature scaling, applied to nodes and edges. Default is 0.
+ * @param {int} max The maximum value for feature scaling, applied to nodes and edges. Default is 10.
  */
-// function Depth(z)
+var BipartiteGraph = function(graph, min, max)
+{
+   try
+   {
+       this.graphInfo = graph.graphInfo[0];
+       if(this.graphInfo.vlayer != undefined)
+       {
+           this.firstLayer = this.graphInfo.vlayer.split(" ");
+           this.firstLayer = this.firstLayer[0];
+           this.lastLayer = this.graphInfo.vlayer.split(" ");
+           this.lastLayer = this.lastLayer[this.lastLayer.length-1];
+       }
+       else if(this.graphInfo.vertices != undefined)
+       {
+           this.firstLayer = this.graphInfo.vertices.split(" ");
+           this.firstLayer = this.firstLayer[0];
+           this.lastLayer = this.graphInfo.vertices.split(" ");
+           this.lastLayer = this.lastLayer[this.lastLayer.length-1];
+       }
+       else
+       {
+           this.firstLayer = this.lastLayer =  Math.floor(graph.nodes.length / 2);
+       }
+       this.graphInfo.min = ecmaStandard(min, 0);
+       this.graphInfo.max = ecmaStandard(max, 10);
+       this.graphSize = parseInt(this.firstLayer)+parseInt(this.lastLayer);
+   }
+   catch(err)
+   {
+       throw "Unexpected error ocurred at line " + err.lineNumber + ", in function BipartiteGraph. " + err;
+   }
+}
+
+/**
+ * Get nodes from graph.
+ * @public
+ * @returns {Array} Node type array.
+ */
+BipartiteGraph.prototype.getNodes = function()
+{
+   return this.nodes;
+}
+
+/**
+ * Get specific node from graph by index.
+ * @public
+ * @param {int} i Index from array of nodes in "BipartiteGraph" class.
+ * @returns {Object} Either Node found, or string "Node not found.".
+ */
+BipartiteGraph.prototype.getNodeByIndex = function(i)
+{
+   return i != -1 ? this.nodes[i] : "Node not found.";
+}
+
+/**
+ * Get number of nodes from entire bipartite graph.
+ * @public
+ * @returns Length of nodes.
+ */
+BipartiteGraph.prototype.getTotalNumberOfNodes = function()
+{
+   return this.nodes.length;
+}
+
+/**
+ * Get number of nodes from first layer of bipartite graph.
+ * @public
+ * @returns Number of nodes from first layer.
+ */
+BipartiteGraph.prototype.getNumberOfNodesFromFirstLayer = function()
+{
+   return this.firstLayer.length;
+}
+
+/**
+ * Get number of nodes from second layer of bipartite graph.
+ * @public
+ * @returns Number of nodes from second layer.
+ */
+BipartiteGraph.prototype.getNumberOfNodesFromSecondLayer = function()
+{
+   return this.lastLayer.length;
+}
+
+/**
+ * Get specific edge from graph by index.
+ * @public
+ * @param {int} i Index from array of edges in "BipartiteGraph" class.
+ * @returns {Object} Either Edge found, or string "Node not found.".
+ */
+BipartiteGraph.prototype.getEdgeByIndex = function(i)
+{
+   return i != -1 ? this.edges[i] : "Edge not found.";
+}
+
+/**
+ * Get number of edges from graph.
+ * @public
+ * @returns Length of edges.
+ */
+BipartiteGraph.prototype.getNumberOfEdges = function()
+{
+   return this.edges.length;
+}
+
+/**
+ * Find node's neighbors.
+ * @public
+ * @param {Object} node Node from which neighbors will be found.
+ * @returns List of neighbors for given node.
+ */
+// BipartiteGraph.prototype.findNeighbors = function(node)
 // {
-//     this.z = z;
+//   var neighbors = [];
+//   var neighbor = undefined;
+//   for(var i = 0; i < this.edges.length; i++)
+//   {
+//     if(parseInt(this.edges[i].edgeObject.source) == parseInt(node.circle.name))
+//       neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.target)));
+//     else if(parseInt(this.edges[i].edgeObject.target) == parseInt(node.circle.name))
+//       neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.source)));
+//     if(neighbor !== undefined)
+//       neighbors.push(this.edges[i]);
+//     neighbor = undefined;
+//   }
+//   return neighbors;
 // }
 
 /**
- * Constructor
- * params:
- *    - edgeObject: the edge object taken from the JSON file;
- *    - min: min value to be used in feature scaling;
- *    - max: max value to be used in feature scaling;
- *    - geometry: optimized geometry to build line (from three.js);
- *    - lineBasicMaterial: material for geometry (from three.js).
+ * Find node's neighbors.
+ * @public
+ * @param {Object} graph Object containing .json graph file.
+ * @param {int} i Index for node stored at 'graph' object.
+ * @returns List of neighbors for given node.
  */
-// var Edge = function(edgeObject, min, max, geometry, lineBasicMaterial)
+BipartiteGraph.prototype.findNeighbors = function(graph, i)
+{
+  var neighbors = [];
+  // var neighbor = undefined;
+  /** Add itself first */
+  neighbors.push(parseInt(graph.nodes[i].id));
+  for(j = 0; j < graph.links.length; j++)
+  {
+    if(parseInt(graph.links[j].source) == parseInt(graph.nodes[i].id))
+    {
+      /*neighbor = 1,*/ neighbors.push(parseInt(graph.links[j].target));
+    }
+    else if(parseInt(graph.links[j].target) == parseInt(graph.nodes[i].id))
+    {
+      /*neighbor = 1,*/ neighbors.push(parseInt(graph.links[j].source));
+    }
+    // neighbor = 1, neighbors.push(graph.getNodeById(parseInt(graph.links[i].target)));
+    // if(neighbor !== undefined)
+    //   neighbors.push(graph.links[j]);
+    // neighbor = undefined;
+  }
+  return neighbors;
+}
+
+/**
+ * Find edge index in array of vertices, given edge position.
+ * @public
+ * @param {Object} position (x,y,z) positions of an inciding edge.
+ * @param {Array} vertexArray Array of vertexes.
+ * @returns {int} Index of (x,y,z) in array of vertexes.
+ */
+BipartiteGraph.prototype.findEdgePositionIndex = function(position, vertexArray)
+{
+  for(var i = 0; i < vertexArray.length; i++)
+  {
+    if(vertexArray[i].x == position.x && vertexArray[i].y == position.y && vertexArray[i].z == position.z)
+    {
+      return i;
+    }
+  }
+  /** If no matching element was found, return -1 */
+  return -1;
+  // /** Find all occurrences of x inside vertexArray */
+  // var position1 = vertexArray.filter(function(obj){
+  //   return obj.x == position.x;
+  // });
+  // /** Find all occurrences of x inside position1 */
+  // var position2 = position1.filter(function(obj){
+  //   return obj.y == position.y;
+  // });
+  // /** Find all occurrences of x inside position2 */
+  // var position3 = position2.filter(function(obj){
+  //   return obj.z == position.z;
+  // });
+  // /** Return position3 */
+  // return position3;
+}
+
+/**
+ * Builds graph in the scene. All necessary node and edge calculations are performed, then these elements are added as actors.
+ * @public
+ * @param {Object} graph Object containing .json graph file.
+ * @param {Object} scene The scene in which the graph will be built.
+ * @param {int} layout Graph layout.
+ */
+BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
+{
+  layout = ecmaStandard(layout, 2);
+  scene = ecmaStandard(scene, undefined);
+  this.theta = 3;
+  try
+  {
+    /** y represents space between two layers, while theta space between each vertice of each layer */
+    // var y = -25;
+    var y = -document.getElementById("mainSection").clientHeight/4;
+    // var theta = graph.graphInfo[0].maxNodeWeight*1.2;
+    var theta = 5;
+    /** Array to store (x,y,z) coordinates of nodes */
+    var positions = [];
+    /** Build nodes */
+    /** Creating geometry and material for nodes */
+    var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+    var circleGeometry = new THREE.CircleGeometry(1, 32);
+    /** Color vertexes */
+    for(var k = 0; k < circleGeometry.faces.length; k++)
+    {
+      circleGeometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
+    }
+    /** Create single geometry which will contain all geometries */
+    var singleGeometry = new THREE.Geometry();
+    // singleGeometry.name = "MainGeometry";
+    for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
+    {
+      if(i == this.firstLayer)
+      {
+        pos = -1 * Math.floor(this.lastLayer / 2);
+        y = y * (-1);
+      }
+      var x = pos * theta;
+      if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = parseInt(graph.graphInfo[0].minNodeWeight);
+      var circleSize = (5.0 - 1.0) * ( (parseInt(graph.nodes[i].weight) - parseInt(graph.graphInfo[0].minNodeWeight))/((parseInt(graph.graphInfo[0].maxNodeWeight)-parseInt(graph.graphInfo[0].minNodeWeight))+1) ) + 1.0;
+      if(circleSize == 0) circleSize = parseInt(graph.graphInfo[0].minNodeWeight);
+      // circleSize = circleSize * 5;
+      /** Using feature scale for node sizes */
+      circleGeometry.scale(circleSize, circleSize, 1);
+      /** Give geometry name the same as its id */
+      circleGeometry.name = graph.nodes[i].id;
+      if(layout == 3)
+      {
+        /** Translate geometry for its coordinates */
+        circleGeometry.translate(y, x, 0);
+        /** Push coordinates to array */
+        positions.push({x: y, y: x, z: 0});
+        /** Merge into singleGeometry */
+        singleGeometry.merge(circleGeometry);
+        /** Return geometry for reusing */
+        circleGeometry.translate(-y, -x, 0);
+      }
+      else
+      {
+        /** Translate geometry for its coordinates */
+        circleGeometry.translate(x, y, 0);
+        /** Push coordinates to array */
+        positions.push({x: x, y: y, z: 0});
+        /** Merge into singleGeometry */
+        singleGeometry.merge(circleGeometry);
+        /** Return geometry for reusing */
+        circleGeometry.translate(-x, -y, 0);
+        circleGeometry.arrayOfProperties = [];
+      }
+      circleGeometry.name = "";
+      circleGeometry.scale((1/circleSize), (1/circleSize), 1);
+    }
+    /** Populate vertices with additional .json information */
+    for(var i = 0, j = 0; i < singleGeometry.faces.length && j < graph.nodes.length; i = i + 32, j++)
+    {
+      for(var property in graph.nodes[j])
+      {
+        if(graph.nodes[j].hasOwnProperty(property))
+        {
+          if(singleGeometry.faces[i].properties === undefined)
+          {
+            singleGeometry.faces[i].properties = '';
+          }
+          else
+          {
+            singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ';';
+          }
+          singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + graph.nodes[j][property];
+        }
+      }
+      /** Find vertex neighbors */
+      singleGeometry.faces[i].neighbors = this.findNeighbors(graph, j);
+      /** Store vertex position */
+      singleGeometry.faces[i].position = positions[j];
+    }
+    /** Create one mesh from single geometry and add it to scene */
+    mesh = new THREE.Mesh(singleGeometry, material);
+    mesh.name = "MainMesh";
+    /** Alter render order so that node mesh will always be drawn on top of edges */
+    mesh.renderOrder = 1;
+    scene.add(mesh);
+
+    mesh = null;
+
+
+    circleGeometry.dispose();
+    material.dispose();
+
+
+    circleGeometry = null;
+    material = null;
+
+    /** Build edges */
+    if(graph.links)
+    {
+      var edgeGeometry = new THREE.Geometry();
+      for(var i = 0; i < graph.links.length; i++)
+      {
+        // /** Normalize edge weight */
+        // if(graph.links[i].weight == undefined) graph.links[i].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
+        // var edgeSize = (5.0 - 3.0) * ( (parseInt(graph.links[i].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 3.0;
+        // if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
+
+        /** Calculate path */
+        var sourcePos = positions[graph.links[i].source];
+        var targetPos = positions[graph.links[i].target];
+        var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+        var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+        edgeGeometry.vertices.push(v1);
+        edgeGeometry.vertices.push(v2);
+      }
+      for(var i = 0, j = 0; i < edgeGeometry.vertices.length && j < graph.links.length; i = i + 2, j++)
+      {
+        /** Normalize edge weight */
+        if(graph.links[j].weight == undefined) graph.links[j].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
+        // var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
+        var edgeSize = Math.abs( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+0.2) );
+        edgeSize = (5.0 - 1.0) * edgeSize + 1.0;
+        if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
+        var linearScale = d3.scaleLinear().domain([1.000, 5.000]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
+        // edgeGeometry.colors[i] = new THREE.Color(0x8D9091);
+        edgeGeometry.colors[i] = new THREE.Color(linearScale(edgeSize));
+        edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+      }
+      edgeGeometry.colorsNeedUpdate = true;
+
+
+      /** Create one LineSegments and add it to scene */
+      var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+      var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+      scene.add(lineSegments);
+
+      edgeGeometry.dispose();
+      edgeGeometry = null;
+      edgeMaterial.dispose();
+      edgeMaterial = null;
+
+      /** Find all edges indices inside array of vertexes */
+      // for(var i = 0; i < singleGeometry.faces.length; i = i + 32)
+      // {
+      //   singleGeometry.faces[i].positionIndex = this.findEdgePositionIndex(singleGeometry.faces[i].position, lineSegments.geometry.vertices);
+      // }
+
+      singleGeometry.dispose();
+      singleGeometry = null;
+
+      // var line = new THREE.MeshLine();
+      // line.setGeometry(edgeGeometry);
+      // line.setGeometry(edgeGeometry, function(p){
+      //   return 0.3;
+      // });
+      // var edgeMaterial = new THREE.MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+      // var lineMesh = new THREE.Mesh(line.geometry, edgeMaterial);
+      // scene.add(lineMesh);
+      // edgeMaterial.dispose();
+      // edgeGeometry.dispose();
+      // edgeMaterial = null;
+      // edgeGeometry = null;
+      // line = null;
+      // lineMesh = null;
+    }
+
+    // /** y represents space between two layers, while theta space between each vertice of each layer */
+    // var y = -20, theta = 3;
+    // /** Build nodes' meshes */
+    // var meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+    // // var circleGeometry = new THREE.CircleGeometry(1, 32);
+    // for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
+    // {
+    //   if(i == this.firstLayer)
+    //   {
+    //     pos = -1 * Math.floor(this.lastLayer / 2);
+    //     y = y * (-1);
+    //   }
+    //   /** Using feature scale for node sizes */
+    //   if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = 1;
+    //   var circleSize = (graph.nodes[i].weight - graph.graphInfo[0].minNodeWeight)/(graph.graphInfo[0].maxNodeWeight-graph.graphInfo[0].minNodeWeight);
+    //   /** Creating geometry and material for meshes */
+    //   var circleGeometry = new THREE.CircleGeometry(circleSize, 32);
+    //   /** Give mesh name the same as its id */
+    //   var circleMesh = new THREE.Mesh(circleGeometry, meshBasicMaterial);
+    //   circleMesh.name = graph.nodes[i].id;
+    //   circleMesh.renderOrder = 1;
+    //   /** Build node */
+    //   var x = pos * theta;
+    //   circleMesh.position.set(x, y, 0);
+    //   scene.add(circleMesh);
+    // }
+
+    // /** Creating geometry for edges */
+    // var geometry = new THREE.Geometry();
+    // /** Build edges mesh */
+    // for(var i = 0; i < graph.links.length; i++)
+    // {
+    //   var sourcePos = scene.getObjectByName(graph.links[i].source, true);
+    //   var targetPos = scene.getObjectByName(graph.links[i].target, true);
+    //   // var sourcePos = {position: {x:Math.random(), y:Math.random(), z:0}};
+    //   // var targetPos = {position:{x:Math.random(), y:Math.random(), z:0}};
+    //   var v1 = new THREE.Vector3(sourcePos.position.x, sourcePos.position.y, sourcePos.position.z);
+    //   var v2 = new THREE.Vector3(targetPos.position.x, targetPos.position.y, targetPos.position.z);
+    //   geometry.vertices.push(v1);
+    //   geometry.vertices.push(v2);
+    // }
+    //
+    // /** Build edges */
+    // // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+    // // scene.add(lineSegment);
+    // var line = new THREE.MeshLine();
+    // line.setGeometry(geometry);
+    // line.setGeometry(geometry, function(p){
+    //   return 0.3;
+    // });
+    // var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+    // var lineMesh = new THREE.Mesh(line.geometry, material);
+    // scene.add(lineMesh);
+    // geometry.dispose();
+    // material.dispose();
+  }
+  catch(err)
+  {
+     throw "Unexpected error ocurred at line " + err.line + ". " + err;
+  }
+}
+
+/**
+ * @constructor
+ * @param {Object} edgeObject The edge object taken from the JSON file.
+ * @param {int} min Min value to be used in feature scaling.
+ * @param {int} max Max value to be used in feature scaling.
+ * @param {Object} geometry Optimized geometry to build line (from three.js).
+ * @param {Object} lineBasicMaterial Material for geometry (from three.js).
+ */
 var Edge = function(edgeObject, min, max, geometry, lineBasicMaterial)
 {
     /* Pre ECMAScript 2015 standardization */
-    // min = typeof min !== 'undefined' ? min : 0;
-    // max = typeof max !== 'undefined' ? max : 50;
     min = ecmaStandard(min, 0);
     max = ecmaStandard(max, 100);
-    // geometry = typeof geometry !== 'undefined' ? geometry : undefined;
-    // lineBasicMaterial = typeof lineBasicMaterial !== 'undefined' ? lineBasicMaterial : undefined;
     try
     {
         this.edgeObject = edgeObject;
@@ -139,66 +473,20 @@ var Edge = function(edgeObject, min, max, geometry, lineBasicMaterial)
         {
             this.edgeObject.weight = 1;
         }
-
         /* Use feature scaling to fit edges */
         this.edgeRadius = (this.edgeObject.weight - min)/(max-min);
-        lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
-        this.line = new THREE.LineSegments(geometry, lineBasicMaterial);
-        this.line.name = "e" + this.edgeObject.source+this.edgeObject.target;
-        this.line.boundingBox = null;
-        this.line.renderOrder = 0;
-        this.line.matrixAutoUpdate = false;
+        this.line = new MeshLine();
     }
     catch(err)
     {
-        throw "Constructor must have edgeObject type as first parameter! " +
-        " Constructor " +
-            " params: " +
-            "    - edgeObject: the edge object taken from the JSON file; " +
-            "    - min: min value to be used in feature scaling; " +
-            "    - max: max value to be used in feature scaling; " +
-            "    - geometry: a generic geometry (from three.js); " +
-            "    - lineBasicMaterial: line material for the object (from three.js).";
-    }
-    finally
-    {
-        // if(geometry != undefined && lineBasicMaterial == undefined)
-        // {
-        //     this.geometry = geometry;
-        //     this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
-        // }
-        // else if(geometry == undefined && lineBasicMaterial != undefined)
-        // {
-        //     this.geometry = new THREE.Geometry();
-        //     this.lineBasicMaterial = lineBasicMaterial;
-        // }
-        // else if(geometry != undefined && lineBasicMaterial != undefined)
-        // {
-        //     this.geometry = geometry;
-        //     this.lineBasicMaterial = lineBasicMaterial;
-        // }
-        // else
-        // {
-        //     this.geometry = new THREE.Geometry();
-        //     this.lineBasicMaterial = new THREE.LineBasicMaterial({linewidth: this.edgeRadius, color: 0x8D9091, side: THREE.DoubleSide});
-        // }
-
-        /* TODO - eliminates ray tracing completely */
-        // this.geometry.computeBoundingSphere();
-        // this.geometry.computeFaceNormals();
-        // this.geometry.boundingBox = null;
-        // this.geometry.verticesNeedUpdate = true;
-        // this.geometry.computeLineDistances();
-        // this.geometry.computeBoundingBox();
-        // this.geometry.computeFlatVertexNormals();
-        // this.geometry.computeLineDistances();
-        // this.geometry.computeMorphNormals();
-        // this.geometry.verticesNeedUpdate = true;
+        throw "Constructor must have edgeObject type as first parameter! ";
     }
 }
 
 /**
- * Getter for edge - COPY, NOT REFERENCE
+ * Getter for edge via copy, not reference.
+ * @public
+ * @returns {Object} Edge type object.
  */
 Edge.prototype.getEdge = function()
 {
@@ -210,9 +498,9 @@ Edge.prototype.getEdge = function()
 }
 
 /**
- * Sets the current edge with new edge attributes
- * param:
- *    - Edge: edge for copying.
+ * Sets the current edge with new node attributes.
+ * @public
+ * @param {Object} edge Edge for copying.
  */
 Edge.prototype.setEdge = function(edge)
 {
@@ -222,59 +510,11 @@ Edge.prototype.setEdge = function(edge)
 }
 
 /**
- * Getter for Geometry
- */
-Edge.prototype.getGeometry = function()
-{
-    return this.geometry;
-}
-
-/**
- * Setter for Geometry
- */
-Edge.prototype.setGeometry = function(geometry)
-{
-    this.geometry = geometry;
-}
-
-/**
- * Getter for lineBasicMaterial
- */
-Edge.prototype.getlineBasicMaterial = function()
-{
-    return this.lineBasicMaterial;
-}
-
-/**
- * Setter for lineBasicMaterial
- */
-Edge.prototype.setlineBasicMaterial = function(lineBasicMaterial)
-{
-    this.lineBasicMaterial = lineBasicMaterial;
-}
-
-/**
- * Getter for line
- */
-Edge.prototype.getLine = function()
-{
-    return this.line;
-}
-
-/**
- * Setter for line
- */
-Edge.prototype.setLine = function(line)
-{
-    this.line = line;
-}
-
-/**
- * Build the edge into the scene
- * params:
- *    - geometry: geometry for edges;
- *    - source: source node from which the edge starts (if directed);
- *    - target: target node from which the edge ends (if dirceted).
+ * Build edge into scene.
+ * @public
+ * @param {Object} geometry Geometry for edges.
+ * @param {Object} source Source node from which the edge starts.
+ * @param {Object} target Target node from which the edge ends.
  */
 Edge.prototype.buildEdge = function(geometry, source, target)
 {
@@ -284,21 +524,11 @@ Edge.prototype.buildEdge = function(geometry, source, target)
     var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
     geometry.vertices.push(v1);
     geometry.vertices.push(v2);
-    // this.geometry = new THREE.Geometry();
-    // var path = new Float32Array([
-    //     sourcePos.x, sourcePos.y, sourcePos.z,
-    //
-    //     targetPos.x, targetPos.y, targetPos.z
-    // ]);
-    // geometry.addAttribute('position', new THREE.BufferAttribute( path, 3 ));
-    // this.line.geometry.addAttribute('position', new THREE.BufferAttribute( path, 3 ));
-    // this.geometry.computeFaceNormals();
-    // this.geometry.computeVertexNormals();
-    // this.geometry.computeBoundingSphere();
 }
 
 /**
- * Highlight edge
+ * Highlight edge.
+ * @public
  */
 Edge.prototype.highlight = function()
 {
@@ -306,35 +536,32 @@ Edge.prototype.highlight = function()
 }
 
 /**
- * Unhighlight edge
+ * Unhighlight edge.
+ * @public
  */
 Edge.prototype.unhighlight = function()
 {
     this.line.material.color.setHex(0x8D9091);
 }
 
-this.line/**
-* Constructor
-* params:
-*    - graph: object containing JSON graph file, with:
-*      - graphInfo: object containing information such as:
-*              1) if the graph is directed;
-*              2) which multilevel is;
-*              3) the number of layers;
-*              4) n integers, each containing the number of nodes in a layer.
-*      - nodes: array of Node type;
-*      - edges: array of Edge type;
-*    - min: the minimal value for feature scaling, applied to nodes and edges. Default is 0
-*    - max: the maximum value for feature scaling, applied to nodes and edges. Default is 10
-*/
+/**
+ * @constructor
+ * @param {Object} graph Object containing .json graph file, with:
+ *      - graphInfo: object containing information such as:
+ *              1) if the graph is directed;
+ *              2) which multilevel is;
+ *              3) the number of layers;
+ *              4) n integers, each containing the number of nodes in a layer.
+ *      - nodes: array of Node type;
+ *      - edges: array of Edge type;
+ * @param {int} min The minimal value for feature scaling, applied to nodes and edges. Default is 0.
+ * @param {int} max The maximum value for feature scaling, applied to nodes and edges. Default is 10.
+ */
 var Graph = function(graph, min, max)
 {
-   /* Pre ECMAScript2015 standardization */
-   // layout = typeof layout !== 'undefined' ? layout : 2;
-   // min = typeof min !== 'undefined' ? min : 0;
-   // max = typeof max !== 'undefined' ? max : 10
-   min = ecmaStandard(min);
-   max = ecmaStandard(max);
+   /** Assigning default values to min and max size of elements */
+  //  min = ecmaStandard(min);
+  //  max = ecmaStandard(max);
    try
    {
        this.graphInfo = graph.graphInfo[0];
@@ -349,100 +576,83 @@ var Graph = function(graph, min, max)
        {
            this.firstLayer = this.lastLayer =  Math.floor(graph.nodes.length / 2);
        }
-       this.graphInfo.min = min;
-       this.graphInfo.max = max;
+       this.graphInfo.min = ecmaStandard(min, 0);
+       this.graphInfo.max = ecmaStandard(max, 10);
        this.theta = 0;
-       /* Graph keeps instances of geometries and materials for optimization */
-       this.circleGeometry = new THREE.CircleGeometry(1, 32);
-       this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
+       /** Define geometry and material in graph class for optimization - one actor only (graph), with only one mesh */
+      //  this.circleGeometry = new THREE.CircleGeometry(1, 32);
+      //  this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
        if(graph.nodes instanceof Array)
        {
            this.nodes = [];
            for(var i = 0; i < graph.nodes.length; i++)
            {
-               this.nodes[i] = new Node(graph.nodes[i], this.graphInfo.minNodeWeight, this.graphInfo.maxNodeWeight, this.circleGeometry, this.meshBasicMaterial);
+             this.nodes[i] = new Node(graph.nodes[i], this.minNodeWeight, this.maxNodeWeight, this.circleGeometry, this.meshBasicMaterial);
            }
-           // graph.nodes.forEach(function(d, i){
-           //     this.nodes[i] = new Node(d);
-           // });
        }
-       /* Graph keeps instances of geometries and materials for optimization */
-       this.line = undefined;
-       this.lineMesh = undefined;
-       this.material = undefined;
+       /** Define geometry and material in graph class for optimization - one actor only (graph), with only one mesh */
        this.geometry = new THREE.Geometry();
        if(graph.links instanceof Array)
        {
            this.edges = [];
            for(var i = 0; i < graph.links.length; i++)
            {
-               this.edges[i] = new Edge(graph.links[i], this.graphInfo.minEdgeWeight, this.graphInfo.maxEdgeWeight, this.lineBasicMaterial);
+             this.edges[i] = new Edge(graph.links[i], this.minEdgeWeight, this.maxEdgeWeight, this.lineBasicMaterial);
            }
-           // graph.edges.forEach(function(d, i){
-           //     this.edges[i] = new Edge(d);
-           // })
        }
    }
    catch(err)
    {
-       throw "Unexpected error ocurred at line " + err.lineNumber + ", in function Graph. " + err;
+       throw "Unexpected error ocurred. " + err;
    }
 }
 
 /**
-* Get element by id
-* param:
-*    - id: element id.
-*/
+ * Get element by id.
+ * @public
+ * @param {int} id Element id.
+ * @returns {Object} Either Node or Edge type object.
+ */
 Graph.prototype.getElementById = function(id)
 {
    var identification = id.slice(0,1);
-   if(identification == "e") // edge
+   if(identification == "e") /* edge */
    {
        return this.getEdgeById(id);
    }
-   else // node
+   else /* node */
    {
        return this.getNodeById(id);
    }
 }
 
 /**
-* Get nodes from graph
-*/
+ * Get nodes from graph.
+ * @public
+ * @returns {Array} Node type array.
+ */
 Graph.prototype.getNodes = function()
 {
    return this.nodes;
 }
 
 /**
-* Get nodes meshes
-*/
-Graph.prototype.getNodesMeshes = function()
-{
-   var meshes = [];
-   for(var i = 0; i < this.nodes.length; i++)
-   {
-       meshes.push(this.nodes[i].getCircle());
-   }
-   return meshes;
-}
-
-/**
-* Get specific node from graph by id
-* param:
-*    - id: node id.
-*/
+ * Get specific node from graph by id.
+ * @public
+ * @param {int} id Node id.
+ * @returns {Object} Node type object.
+ */
 Graph.prototype.getNodeById = function(id)
 {
    return this.getNodeByIndex(this.findNode(id));
 }
 
 /**
-* Find node by id
-* param:
-*    - id: node id.
-*/
+ * Find node by id.
+ * @public
+ * @param {int} id Node id.
+ * @returns index of node, or -1 if node wasn't found.
+ */
 Graph.prototype.findNode = function(id)
 {
    for(var i = 0; i < this.nodes.length; i++)
@@ -456,29 +666,32 @@ Graph.prototype.findNode = function(id)
 }
 
 /**
-* Get specific node from graph by index
-* param:
-*    - i: index from array of nodes in "Graph" class.
-*/
+ * Get specific node from graph by index.
+ * @public
+ * @param {int} i Index from array of nodes in "Graph" class.
+ * @returns {Object} Either Node found, or string "Node not found.".
+ */
 Graph.prototype.getNodeByIndex = function(i)
 {
    return i != -1 ? this.nodes[i] : "Node not found.";
 }
 
 /**
-* Get number of nodes from graph
-*/
+ * Get number of nodes from graph.
+ * @public
+ * @returns Length of nodes.
+ */
 Graph.prototype.getNumberOfNodes = function()
 {
    return this.nodes.length;
 }
 
 /**
-* Set node by id
-* param:
-*    - id: node id;
-*    - node: object to be assigned.
-*/
+ * Set node by id.
+ * @public
+ * @param {int} id Node id.
+ * @param {Object} node Object to be assigned.
+ */
 Graph.prototype.setNodeById = function(id, node)
 {
    var index = this.findNode(id);
@@ -486,81 +699,22 @@ Graph.prototype.setNodeById = function(id, node)
 }
 
 /**
-  * Get leftmost (or downmost) node of graph
-  * returns:
-  *    - world coordinate of leftmost (or downmost) element of graph.
-  */
-Graph.prototype.getMinNode = function()
-{
-  return this.minNode;
-}
-
-/**
-  * Set leftmost (or downmost) node of graph
-  * param:
-  *    - minNode: world coordinate of leftmost (or downmost) element of graph.
-  */
-Graph.prototype.setMinNode = function(minNode)
-{
-  this.minNode = minNode;
-}
-
-/**
-  * Get rightmost (or upmost) node of graph
-  * returns:
-  *    - world coordinate of rightmost (or upmost) element of graph.
-  */
-Graph.prototype.getMaxNode = function()
-{
-  return this.maxNode;
-}
-
-/**
-  * Set rightmost (or upmost) node of graph
-  * param:
-  *    - maxNode: world coordinate of rightmost (or upmost) element of graph.
-  */
-Graph.prototype.setMaxNode = function(maxNode)
-{
-  this.maxNode = maxNode;
-}
-
-/**
-* Get edges from graph
-*/
-Graph.prototype.getEdges = function()
-{
-   return this.edges;
-}
-
-/**
-* Get edges meshes
-*/
-Graph.prototype.getEdgesMeshes = function()
-{
-   var meshes = [];
-   for(var i = 0; i < this.edges.length; i++)
-   {
-       meshes.push(this.edges[i].getLine());
-   }
-   return meshes;
-}
-
-/**
-* Get specific edge from graph by id
-* params:
-*    - id: edge id.
-*/
+ * Get specific edge from graph by id.
+ * @public
+ * @param {int} id Edge id.
+ * @returns {Object} Edge type object.
+ */
 Graph.prototype.getEdgeById = function(id)
 {
    return this.getEdgeByIndex(this.findEdge(id));
 }
 
 /**
-* Find edge by id
-* param:
-*    - id: edge id.
-*/
+ * Find edge by id.
+ * @public
+ * @param {int} id Edge id.
+ * @returns index of edge, or -1 if edge wasn't found.
+ */
 Graph.prototype.findEdge = function(id)
 {
    for(var i = 0; i < this.edges.length; i++)
@@ -574,51 +728,63 @@ Graph.prototype.findEdge = function(id)
 }
 
 /**
-* Get specific edge from graph by index
-* param:
-*    - i: index from array of edges in "Graph" class.
-*/
+ * Get specific edge from graph by index.
+ * @public
+ * @param {int} i Index from array of edges in "Graph" class.
+ * @returns {Object} Either Edge found, or string "Node not found.".
+ */
 Graph.prototype.getEdgeByIndex = function(i)
 {
    return i != -1 ? this.edges[i] : "Edge not found.";
 }
 
 /**
-* Get specific edge from graph by index
-* param:
-*    - i: index from array of edges in "Graph" class.
-*/
-Graph.prototype.getEdgeByIndex = function(i)
-{
-   return this.edges[i];
-}
-
-/**
-* Get number of edges from graph
-*/
+ * Get number of edges from graph.
+ * @public
+ * @returns Length of edges.
+ */
 Graph.prototype.getNumberOfEdges = function()
 {
    return this.edges.length;
 }
 
 /**
-* Set edge by id
-* param:
-*    - id: edge id;
-*    - edge: object to be assigned.
-*/
+ * Set edge by id.
+ * @public
+ * @param {int} id Edge id.
+ * @param {Object} node Object to be assigned.
+ */
 Graph.prototype.setEdgeById = function(id, edge)
 {
    var index = this.findEdge(id);
    this.edges[index].setEdge(edge);
 }
 
+// /**
+// * Highlight edges from highlighted graph
+// * param:
+// *    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
+// */
+// Graph.prototype.highlightEdges = function(highlightedElements)
+// {
+//   for(var i = 0; i < highlightedElements.length; i++)
+//   {
+//       if(highlightedElements[i] instanceof Node)
+//       {
+//
+//       }
+//       else if(highlightedElements[i] instanceof Edge)
+//       {
+//
+//       }
+//   }
+// }
+
 /**
-* Find node neighbors
-* param:
-*    - node: node from which neighbors will be found;
-* returns:
-*    - neighbor nodes.
+* Find node's neighbors.
+* @public
+* @param {Object} node Node from which neighbors will be found.
+* @returns List of neighbors for given node.
 */
 Graph.prototype.findNeighbors = function(node)
 {
@@ -640,147 +806,77 @@ Graph.prototype.findNeighbors = function(node)
 }
 
 /**
-* Highlight edges from highlighted graph
-* param:
-*    - highlightedElements: a list of names, containing highlighted elements at a specific mouse position.
-*/
-Graph.prototype.highlightEdges = function(highlightedElements)
+ * Builds graph in the scene. All necessary node and edge calculations are performed, then these elements are added as actors
+ * @public
+ * @param {Object} scene The scene in which the graph will be built.
+ * @param {int} layout Graph layout.
+ */
+Graph.prototype.buildGraph = function(scene, layout)
 {
-  for(var i = 0; i < highlightedElements.length; i++)
+
+  layout = ecmaStandard(layout, 2);
+  scene = ecmaStandard(scene, undefined);
+  this.theta = 3;
+  try
   {
-      if(highlightedElements[i] instanceof Node)
-      {
+    var scale;
+    var isFirstLayer = 1;
+    /* From D3, use a scaling function for radial placement */
+    scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
 
-      }
-      else if(highlightedElements[i] instanceof Edge)
+    /* Build nodes' meshes */
+    var j = 0, pos = (-1 * (this.firstLayer / 2.0));
+    console.log("this.nodes.length: " + this.nodes.length);
+    for(var i = 0; i < this.nodes.length; i++)
+    {
+      if(i == this.firstLayer)
       {
-
+        isFirstLayer = 0;
+        // this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
+        pos = -1 * Math.floor(this.lastLayer / 2);
+        j = parseInt(j) + parseInt(1);
       }
+      else if(i > this.firstLayer)
+      {
+        j = parseInt(j) + parseInt(1);
+      }
+      //  if(i == 0) this.setMinNode(parseInt(i*this.theta));
+      //  if(i == this.nodes.length - 1) this.setMaxNode(parseInt(i*this.theta));
+      this.nodes[i].buildNode(pos, this.firstLayer, j, 20, this.theta, layout, isFirstLayer);
+      pos = pos + 1;
+      if(scene !== undefined) scene.add(this.nodes[i].getCircle());
+    }
+    for(var i = 0; i < this.edges.length; i++)
+    {
+      this.edges[i].buildEdge(this.geometry, this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target));
+    }
+    if(scene !== undefined)
+    {
+      // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
+      // scene.add(lineSegment);
+      var line = new MeshLine();
+      line.setGeometry(this.geometry);
+      line.setGeometry(this.geometry, function(p){
+        return 0.3;
+      });
+      var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
+      var lineMesh = new THREE.Mesh(line.geometry, material);
+      scene.add(lineMesh);
+    }
+  }
+  catch(err)
+  {
+     throw "Unexpected error ocurred at line " + err.line + ". " + err;
   }
 }
 
 /**
-* Builds the graph in the scene. All the node and edge calculations are performed, and the elements added
-* params:
-*    - scene: the scene in which the graph will be built;
-*    - layout: graph layout.
-*/
-Graph.prototype.buildGraph = function(scene, layout)
-{
-   layout = ecmaStandard(layout, 2);
-   scene = ecmaStandard(scene, undefined);
-   this.theta = 3;
-   try
-   {
-       var scale, theta;
-       /* From D3, use a scaling function for placement */
-       scale = d3.scaleLinear().domain([0, (this.getNumberOfNodes())]).range([0, 2 * Math.PI]);
-
-      //  /* Set which type of bipartite graph to be built */
-      //  if(layout == 2) this.theta = scale(i);
-      //  /* TODO - fix theta size; Must be according to size of nodes */
-      //  else if(layout == 3)
-      //  {
-      //    this.theta = 3;
-      //  }
-
-       /* Build nodes' meshes */
-       //  var j = this.lastLayer;
-       var j = 0;
-      //  var singleGeometry = new THREE.Geometry();
-       for(var i = 0; i < this.nodes.length; i++)
-       {
-           if(i == this.firstLayer)
-           {
-             this.theta = ((this.firstLayer / this.lastLayer)  * this.theta);
-             j = parseInt(j) + parseInt(1);
-           }
-           else if(i > this.firstLayer)
-           {
-             j = parseInt(j) + parseInt(1);
-           }
-           if(i == 0) this.setMinNode(parseInt(i*this.theta));
-           if(i == this.nodes.length - 1) this.setMaxNode(parseInt(i*this.theta));
-           this.nodes[i].buildNode(i, this.firstLayer, j, 20, this.theta, layout);
-          //  this.nodes[i].getCircle().updateMatrix();
-          //  singleGeometry.merge(this.nodes[i].getCircle().geometry, this.nodes[i].getCircle().matrix);
-           if(scene !== undefined) scene.add(this.nodes[i].getCircle());
-       }
-      //  if(scene !== undefined)
-      //  {
-      //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
-      //      var mesh = new THREE.Mesh(singleGeometry, material);
-      //      scene.add(mesh);
-      //  }
-
-      //  /* Build edges' meshes and add to scene */
-      // var singleGeometry2 = new THREE.Geometry();
-      for(var i = 0; i < this.edges.length; i++)
-      {
-         this.edges[i].buildEdge(this.geometry, this.getNodeById(this.edges[i].edgeObject.source), this.getNodeById(this.edges[i].edgeObject.target)); //this.graphInfo.min, this.graphInfo.max
-         // var helper = new THREE.FaceNormalsHelper(this.edges[i].getLine());
-         // scene.add(helper);
-         // this.edges[i].getLine().updateMatrix();
-         // singleGeometry2.merge(this.edges[i].getLine().geometry, this.edges[i].getLine().matrix);
-        // if(scene !== undefined) scene.add(this.edges[i].getLine());
-      }
-      if(scene !== undefined)
-      {
-        // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
-        // scene.add(lineSegment);
-        this.line = new MeshLine();
-        // line.setGeometry(this.geometry);
-        this.line.setGeometry(this.geometry, function(p){
-          return 0.3;
-        });
-
-        // this.material = new MeshLineMaterial({color: new THREE.Color(0xFFFFFF), vertexColors: THREE.VertexColors});
-        this.material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-        this.lineMesh = new THREE.Mesh(this.line.geometry, this.material);
-        /** Adding color to vertexes from BufferGeometry */
-        // var colors = new Float32Array(this.lineMesh.geometry.attributes.position.length);
-        // for(var i = 0; i < colors.length; i++)
-        // {
-        //   colors[i] = 0.0;
-        // }
-        // this.lineMesh.geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
-        // console.log("this.lineMesh");
-        // console.log(this.lineMesh);
-        scene.add(this.lineMesh);
-      }
-      //  if(scene !== undefined)
-      //  {
-      //      var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
-      //      var mesh = new THREE.Mesh(singleGeometry2, material);
-      //      scene.add(mesh);
-      //  }
-   }
-   catch(err)
-   {
-       throw "Unexpected error ocurred at line " + err.line + ". " + err;
-   }
-}
-
-/**
- * Constructor
- * params:
- *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for the geometry (from three.js).
- *
-function Node(circleGeometry, meshBasicMaterial)
-{
-    this.circleGeometry = circleGeometry;
-    this.meshBasicMaterial = meshBasicMaterial;
-}*/
-
-/**
- * Constructor
- * params:
- *    - nodeObject: the node object taken from the JSON file;
- *    - min: min value to be used in feature scaling;
- *    - max: max value to be used in feature scaling;
- *    - circleGeometry: a geometry of type circle (from three.js);
- *    - meshBasicMaterial: material for geometry (from three.js).
+* @constructor
+* @param {Object} nodeObject The node object taken from the JSON file.
+* @param {int} min Min value to be used in feature scaling.
+* @param {int} max Max value to be used in feature scaling.
+* @param {Object} circleGeometry A geometry of type circle (from three.js).
+* @param {Object} meshBasicMaterial Material for geometry (from three.js).
  */
 var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
 {
@@ -790,66 +886,54 @@ var Node = function(nodeObject, min, max, circleGeometry, meshBasicMaterial)
     meshBasicMaterial = ecmaStandard(meshBasicMaterial, undefined);
     try
     {
-        // CHANGED - INCLUDED this.nodeObject; REMOVED this.id, this.weight
         this.nodeObject = nodeObject;
-        //this.id = toInt(nodeObject.id);
-        //this.weight = toInt(nodeObject.weight);
-        // CHANGED - FROM this.weight TO this.nodeObject.weight
         if(this.nodeObject.weight == undefined)
         {
             this.nodeObject.weight = 1;
         }
-
         /* Use feature scaling to fit nodes */
         var x = (this.nodeObject.weight - min)/(max-min) + 1.5;
-        // circleGeometry.scale(x, x, x);
-        this.circleGeometry = new THREE.CircleGeometry(x, 100);
+        this.circleGeometry = new THREE.CircleGeometry(x, 32);
         this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
-
-        /* Store number of nodes from each layer */
-
+        // if(circleGeometry == undefined)
+        // {
+        //     this.circleGeometry = new THREE.CircleGeometry(1, 32);
+        // }
+        // else
+        // {
+        //     this.circleGeometry = circleGeometry;
+        // }
+        //
         // if(meshBasicMaterial == undefined)
         // {
         //     this.meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
         // }
         // else
         // {
-        //     this.meshBasicMaterial = meshBasicMaterial;
+        //   this.meshBasicMaterial = meshBasicMaterial;
         // }
     }
     catch(err)
     {
-        throw "Constructor must have nodeObject type as first parameter! " +
-        " Constructor " +
-            " params: " +
-            "    - nodeObject: the node object taken from the JSON file; " +
-            "    - min: min value to be used in feature scaling; " +
-            "    - max: max value to be used in feature scaling; " +
-            "    - circleGeometry: a geometry of type circle (from three.js); " +
-            "    - meshBasicMaterial: material for geometry (from three.js).";
+        throw "Constructor must have nodeObject type as first parameter! " + err;
     }
     finally
     {
         this.circle = new THREE.Mesh(this.circleGeometry, this.meshBasicMaterial);
-        // this.circle.scale.set(x, x, x);
+        this.circle.scale.set(x, x, x);
         this.circle.name = "" + this.nodeObject.id;
         this.circle.geometry.computeFaceNormals();
         this.circle.geometry.computeBoundingBox();
         this.circle.geometry.computeBoundingSphere();
-        // this.circle.geometry.boundingBox = null;
         this.circle.geometry.verticesNeedUpdate = true;
         this.circle.renderOrder = 1;
     }
 }
 
 /**
- * Define constructor
-
-Node.prototype.constructor = Node;
-*/
-
-/**
- * Getter for node - COPY, NOT REFERENCE
+ * Getter for node via copy, not reference.
+ * @public
+ * @returns {Object} Node type object.
  */
 Node.prototype.getNode = function()
 {
@@ -861,9 +945,9 @@ Node.prototype.getNode = function()
 }
 
 /**
- * Sets the current node with new node attributes
- * param:
- *    - node: node for copying.
+ * Sets the current node with new node attributes.
+ * @public
+ * @param {Object} node Node for copying.
  */
 Node.prototype.setNode = function(node)
 {
@@ -873,7 +957,9 @@ Node.prototype.setNode = function(node)
 }
 
 /**
- * Getter for circleGeometry
+ * Getter for circleGeometry.
+ * @public
+ * @returns {Object} THREE.CircleGeometry type object.
  */
 Node.prototype.getCircleGeometry = function()
 {
@@ -881,7 +967,9 @@ Node.prototype.getCircleGeometry = function()
 }
 
 /**
- * Setter for circleGeometry
+ * Setter for circleGeometry.
+ * @public
+ * @param {Object} circleGeometry THREE.CircleGeometry type object.
  */
 Node.prototype.setCircleGeometry = function(circleGeometry)
 {
@@ -889,7 +977,9 @@ Node.prototype.setCircleGeometry = function(circleGeometry)
 }
 
 /**
- * Getter for meshBasicMaterial
+ * Getter for meshBasicMaterial.
+ * @public
+ * @returns {Object} THREE.MeshBasicMaterial type object.
  */
 Node.prototype.getMeshBasicMaterial = function()
 {
@@ -897,7 +987,9 @@ Node.prototype.getMeshBasicMaterial = function()
 }
 
 /**
- * Setter for meshBasicMaterial
+ * Setter for meshBasicMaterial.
+ * @public
+ * @param {Object} meshBasicMaterial THREE.MeshBasicMaterial type object.
  */
 Node.prototype.setMeshBasicMaterial = function(meshBasicMaterial)
 {
@@ -905,7 +997,9 @@ Node.prototype.setMeshBasicMaterial = function(meshBasicMaterial)
 }
 
 /**
- * Getter for circle
+ * Getter for circle.
+ * @public
+ * @returns {Object} THREE.Mesh type object.
  */
 Node.prototype.getCircle = function()
 {
@@ -913,7 +1007,9 @@ Node.prototype.getCircle = function()
 }
 
 /**
- * Setter for circle
+ * Setter for circle.
+ * @public
+ * @param {Object} circle THREE.Mesh type object.
  */
 Node.prototype.setCircle = function(circle)
 {
@@ -921,27 +1017,31 @@ Node.prototype.setCircle = function(circle)
 }
 
 /**
- * Build the node into the scene
- * params:
- *    - index: index of current node;
- *    - firstLayer: number of nodes in first layer of bipartite graph;
- *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
- *    - alpha: value used in bipartite layout;
- *    - layout: the graph layout;
- *    - theta: used in the parametric equation of radial layout.
+ * Build node into scene.
+ * @public
+ * @param {int} index Index of current node.
+ * @param {int} firstLayer Number of nodes in first layer of bipartite graph.
+ * @param {int} lastLayer Number of nodes in second (or last) layer of bipartite graph.
+ * @param {int} alpha Value for spacing of parallel lines.
+ * @param {int} theta Used to define distance of nodes.
+ * @param {int} layout Used for checking if layout is either vertical bipartite (0) or horizontal bipartite (1).
+ * @param {int} isFirstLayer Boolean to check if first layer is being constructed.
  */
-Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, layout)
+Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, layout, isFirstLayer)
 {
     switch(layout)
     {
-        case 1: // Radial layout
+        /** Radial layout */
+        case 1:
             this.buildRadial(theta);
             break;
-        case 2: // Bipartite layout - horizontal
-            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 1);
+        /** Bipartite layout - horizontal */
+        case 2:
+            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 1, isFirstLayer);
             break;
-        case 3: // Bipartite layout - vertical
-            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 0);
+        /** Bipartite layout - vertical */
+        case 3:
+            this.buildBipartite(index, firstLayer, lastLayer, alpha, theta, 0, isFirstLayer);
             break;
         default:
             break;
@@ -949,17 +1049,9 @@ Node.prototype.buildNode = function(index, firstLayer, lastLayer, alpha, theta, 
 }
 
 /**
- * Build a node into the scene, using a force directed layout
- */
-Node.prototype.buildForceDirected = function()
-{
-    console.log("To be implemented");
-}
-
-/**
- * Build a node into the scene, using a radial layout
- * param:
- *    - theta: used in the parametric equation of radial layout.
+ * Build node into scene, using a radial layout.
+ * @public
+ * @param {int} theta Used in the parametric equation of radial layout.
  */
 Node.prototype.buildRadial = function(theta)
 {
@@ -972,56 +1064,36 @@ Node.prototype.buildRadial = function(theta)
 }
 
 /**
- * Build a node into the scene, using a bipartite layout
- * params:
- *    - index: index of node being positioned;
- *    - firstLayer: number of nodes in first layer of bipartite graph;
- *    - lastLayer: number of nodes in second (or last) layer of bipartite graph;
- *    - alpha: value for spacing of parallel lines;
- *    - theta: used for bipartite layout;
- *    - horizontal: boolean to check if layout is bipartite horizontal or not.
+ * Build node into scene, using a bipartite layout.
+ * @public
+ * @param {int} index Index of node being positioned.
+ * @param {int} firstLayer Number of nodes in first layer of bipartite graph.
+ * @param {int} lastLayer Number of nodes in second (or last) layer of bipartite graph.
+ * @param {int} alpha Value for spacing of parallel lines.
+ * @param {int} theta sed to define distance of nodes.
+ * @param {int} horizontal Boolean to check if layout is bipartite horizontal or vertical.
  */
-Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal)
+Node.prototype.buildBipartite = function(index, firstLayer, lastLayer, alpha, theta, horizontal, isFirstLayer)
 {
-    var x, y;
-    if(horizontal)
+  /* Separate vertical lines according to number of layers */
+  // if(index >= firstLayer)
+    if(isFirstLayer != 1)
     {
-      /* Separate vertical lines according to number of layers */
-      if(index >= firstLayer)
-      {
-          y = alpha;
-          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-          index = lastLayer;
-          // index = Math.round(index / lastLayer) + lastIndex;
-      }
-      else
-      {
-          y = alpha * (-1);
-      }
-      x = index * theta;
-      this.circle.position.set(x, y, 0);
+      var y = alpha;
+      // index = lastLayer;
     }
-    else if(!horizontal)
+    else
     {
-      /* Separate vertical lines according to number of layers */
-      if(index >= firstLayer)
-      {
-          x = alpha;
-          // index = (Math.abs( firstLayer - lastLayer ) / 2) - firstLayer;
-          index = lastLayer;
-          // index = Math.round(index / lastLayer) + lastIndex;
-      }
-      else
-      {
-          x = alpha * (-1);
-      }
-      y = index * theta;
-      this.circle.position.set(x, y, 0);
+      var y = alpha * (-1);
     }
+    x = index * theta;
+    console.log(y);
+    horizontal ? this.circle.position.set(x, y, 0) : this.circle.position.set(y, x, 0);
 }
 
 /**
- * Highlight node
+ * Highlight node.
+ * @public
  */
 Node.prototype.highlight = function()
 {
@@ -1029,14 +1101,15 @@ Node.prototype.highlight = function()
 }
 
 /**
- * Unhighlight node
+ * Unhighlight node.
+ * @public
  */
 Node.prototype.unhighlight = function()
 {
     this.circle.material.color.setHex(0x000000);
 }
 
-/* Global variables */
+var bipartiteGraph /* Global variables */
 var renderer;
 var graph;
 var scene;
@@ -1046,7 +1119,9 @@ var controls;
 var eventHandler;
 var layout = 2;
 var capture = false;
-var clicked = false;
+var clicked = {wasClicked: false};
+var cameraPos = document.getElementById("mainSection").clientHeight/4;
+// var cameraPos = 70;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 // $('#WebGL').on('mousemove', function(){
@@ -1054,40 +1129,92 @@ var clicked = false;
 //   if(eventHandler !== undefined)
 //   {
 //     var highlightedElements = eventHandler.getHighlightedElements();
-//     if(graph !== undefined)
+//     if(bipartiteGraph !== undefined)
 //     {
-//         graph.highlightEdges(highlightedElements);
+//         bipartiteGraph.highlightEdges(highlightedElements);
 //     }
 //   }
 // });
 
 /**
- * Display graph info to HTML page
- * param:
- *    - jason: .json file representing graph
+ * Display bipartiteGraph info on HTML page.
+ * @public
+ * @param {JSON} jason .json file representing bipartiteGraph.
  */
 function displayGraphInfo(jason)
 {
   // console.log(jason);
   /* Display number of vertices */
-  document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
-  /* Display number of edges */
-  document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
-  /* Display number of vertices in first set */
-  document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
-  /* Display number of vertices in second set */
-  document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  // jason.graphInfo[0].vlayer !== undefined ? document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  // /* Display number of edges */
+  // document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
+  // /* Display number of vertices in first set */
+  // jason.graphInfo[0].vlayer !== undefined ? document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) : document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0])
+  // /* Display number of vertices in second set */
+  // jason.graphInfo[0].vlayer !== undefined ? document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[1])
 }
 
-/**
- * @desc Find maximum
- */
+function disposeNode (node)
+{
+    if (node instanceof THREE.Mesh)
+    {
+        if (node.geometry)
+        {
+            node.geometry.dispose();
+            node.geometry = null;
+        }
+
+        if (node.material)
+        {
+            if (node.material instanceof THREE.MeshFaceMaterial)
+            {
+                $.each (node.material.materials, function (idx, mtrl)
+                {
+                    if (mtrl.map)           mtrl.map.dispose(), mtrl.map = null;
+                    if (mtrl.lightMap)      mtrl.lightMap.dispose(), mtrl.lightMap = null;
+                    if (mtrl.bumpMap)       mtrl.bumpMap.dispose(), mtrl.bumpMap = null;
+                    if (mtrl.normalMap)     mtrl.normalMap.dispose(), mtrl.normalMap = null;
+                    if (mtrl.specularMap)   mtrl.specularMap.dispose(), mtrl.specularMap = null;
+                    if (mtrl.envMap)        mtrl.envMap.dispose(), mtrl.envMap = null;
+
+                    mtrl.dispose();    // disposes any programs associated with the material
+                    mtrl = null;
+                });
+            }
+            else
+            {
+                if (node.material.map)          node.material.map.dispose(), node.material.map = null;
+                if (node.material.lightMap)     node.material.lightMap.dispose(), node.material.lightMap = null;
+                if (node.material.bumpMap)      node.material.bumpMap.dispose(), node.material.bumpMap = null;
+                if (node.material.normalMap)    node.material.normalMap.dispose(), node.material.normalMap = null;
+                if (node.material.specularMap)  node.material.specularMap.dispose(), node.material.specularMap = null;
+                if (node.material.envMap)       node.material.envMap.dispose(), node.material.envMap = null;
+
+                node.material.dispose();   // disposes any programs associated with the material
+                node.material = null;
+            }
+        }
+
+        node = null;
+    }
+}   // disposeNode
+
+function disposeHierarchy (node, callback)
+{
+    for (var i = node.children.length - 1; i >= 0; i--)
+    {
+        var child = node.children[i];
+        disposeHierarchy (child, callback);
+        callback (child);
+    }
+}
+
 
 /**
-  * Render a bipartite graph given a .json file
-  * param:
-  *    - data: string graph to be parsed into JSON notation and rendered;
-  *    - layout: graph layout. Default is 2 (bipartite horizontal)
+* Render a bipartite graph, given a .json file.
+* @public
+* @param {string} data String graph to be parsed into JSON notation and rendered.
+* @param {int} layout Graph layout. Default is 2 (bipartite horizontal).
   */
 function build(data, layout, min, max)
 {
@@ -1097,57 +1224,75 @@ function build(data, layout, min, max)
   /* Converting text string to JSON */
   var jason = JSON.parse(data);
 
-  /* Display graph info */
+  /* Display bipartite graph info */
   displayGraphInfo(jason);
 
   /* Instantiating Graph */
-  if(graph !== undefined) delete graph;
-  graph = new Graph(jason, min, max);
+  if(bipartiteGraph !== undefined) delete bipartiteGraph;
+  bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
   if(renderer == undefined)
   {
       /* Get the size of the inner window (content area) to create a full size renderer */
-      // canvasWidth = (window.innerWidth) / 1.5;
-      // canvasHeight = (window.innerHeight) / 1.5;
-      canvasWidth = (document.getElementById("WebGL").clientWidth);
-      canvasHeight = (document.getElementById("WebGL").clientHeight) - 20;
-
+      canvasWidth = (document.getElementById("mainSection").clientWidth);
+      canvasHeight = (document.getElementById("mainSection").clientHeight);
       /* Create a new WebGL renderer */
       renderer = new THREE.WebGLRenderer({antialias:true});
       /* Set the background color of the renderer to black, with full opacity */
       renderer.setClearColor("rgb(255, 255, 255)", 1);
-
-      /* Set the renderers size to the content areas size */
+      /* Set the renderers size to the content area size */
       renderer.setSize(canvasWidth, canvasHeight);
   }
   else
   {
+      renderer.setRenderTarget(null);
       renderer.clear();
   }
 
-  // renderer.sortObjects = false;
+  /* Create scene */
+  if(scene !== undefined)
+  {
+    disposeHierarchy(scene, disposeNode);
+    for(var i = scene.children.length - 1; i >= 0; i--)
+    {
+      scene.remove(scene.children[i]);
+    }
+    // delete scene;
+  }
+  else
+  {
+    scene = new THREE.Scene();
+  }
 
-  /* Get the DIV element from the HTML document by its ID and append the renderers DOM object to it */
+  // if(renderer !== undefined)
+  // {
+  //   // var element = document.getElementsByTagName("canvas");
+  //   // element[0].parentNode.removeChild(element[0]);
+  //   document.getElementById("WebGL").removeChild(renderer.domElement);
+  //   delete renderer;
+  // }
+  // /* Get the size of the inner window (content area) to create a full size renderer */
+  // canvasWidth = (document.getElementById("WebGL").clientWidth);
+  // canvasHeight = (document.getElementById("WebGL").clientHeight);
+  // /* Create a new WebGL renderer */
+  // renderer = new THREE.WebGLRenderer({antialias:true});
+  // /* Set the background color of the renderer to black, with full opacity */
+  // renderer.setClearColor("rgb(255, 255, 255)", 1);
+  // /* Set the renderers size to the content area size */
+  // renderer.setSize(canvasWidth, canvasHeight);
+
+  /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
 
-  /* Create scene */
-  if(scene !== undefined) delete scene;
-  scene = new THREE.Scene();
+  /* Build bipartiteGraph */
+  bipartiteGraph.buildGraph(jason, scene, lay);
 
-  /* Build graph */
-  graph.buildGraph(scene, lay);
+  delete jason;
 
-  /* Define depth variable to set camera positioning */
-  var depth = new Depth(0);
-  depth.setZ(Math.abs(graph.getMinNode()) + Math.abs(graph.getMaxNode()));
   /* Create the camera and associate it with the scene */
   if(camera !== undefined) delete camera;
   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 2000);
-  /* TODO - Setting Z value so that every element will have the same depth */
-  //  setZ(10);
-  camera.position.set(0, 0, 70);
-  // camera.position.set(0, 0, (depth.getZ()));
-  // console.log("(depth.getZ()): ", (depth.getZ()));
+  camera.position.set(0, 0, cameraPos);
   camera.lookAt(scene.position);
   camera.name = "camera";
   scene.add(camera);
@@ -1161,6 +1306,7 @@ function build(data, layout, min, max)
   /* Using orbitControls for moving */
   if(controls !== undefined) delete controls;
   var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
   /* Setting up params */
   controls.minDistance = 1;
   controls.maxDistance = 500;
@@ -1171,19 +1317,38 @@ function build(data, layout, min, max)
 
   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
 
-  /* Creating event listener */
-  if(eventHandler !== undefined) delete eventHandler;
-  eventHandler = new EventHandler(undefined, scene);
-
-  // eventHandler.setScene(scene);
-
-  /* Adding event listeners */
-  document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, graph);}, false);
-  document.addEventListener('dblclick', function(evt){
-    eventHandler.mouseDoubleClickEvent(clicked, evt, graph);
-    if(!clicked) clicked = true;
-    else if(clicked) clicked = false;
-  }, false);
+  /** Creating event listener */
+  if(eventHandler === undefined)
+  {
+    eventHandler = new EventHandler(undefined);
+    /* Adding event listeners */
+    document.addEventListener('resize', function(evt){
+      camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
+    }, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, scene);}, false);
+    document.addEventListener('dblclick', function(evt){
+      eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+      // !clicked ? clicked = true : clicked = false;
+    }, false);
+  }
+  // if(eventHandler !== undefined) eventHandler.setScene(scene);
+  // else
+  // {
+  //   eventHandler = new EventHandler(undefined, scene);
+  //   /* Adding event listeners */
+  //   document.addEventListener('resize', function(evt){
+  //     camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
+  //     camera.updateProjectionMatrix();
+  //     renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
+  //   }, false);
+  //   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, bipartiteGraph);}, false);
+  //   document.addEventListener('dblclick', function(evt){
+  //     eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+  //     // !clicked ? clicked = true : clicked = false;
+  //   }, false);
+  // }
 
   // console.log(renderer.info);
   animate();
@@ -1209,8 +1374,8 @@ function build(data, layout, min, max)
 }
 
 /**
- * Base class for pre ECMAScript2015 standardization.
- * Author: Diego S. Cintra
+ * @desc Base class for pre ECMAScript2015 standardization.
+ * @author Diego S. Cintra
  */
 var ecmaStandard = function(variable, defaultValue)
 {
@@ -1219,27 +1384,19 @@ var ecmaStandard = function(variable, defaultValue)
 
 /**
  * Base class for a Event handler, implementing Event interface.
- * Author: Diego S. Cintra
+ * @author Diego S. Cintra
  */
-
-// var THREE = require('../../../node_modules/three/build/three.js');
-// var ecmaStandard = require('../utils/ecmaStandard.js');
 
 /**
  * Constructor
  * params:
- *    - raycaster: defined raycaster, defaults to creating a new one;
- *    - scene: scene in which the events will be manipulated.
+ *    - raycaster: defined raycaster, defaults to creating a new one.
  */
-var EventHandler = function(raycaster, scene)
+var EventHandler = function(raycaster)
 {
-    /* Pre ECMAScript 2015 standardization */
-    // raycaster = typeof raycaster !== 'undefined' ? raycaster : new THREE.Raycaster();
-    // scene = typeof scene !== 'undefined' ? scene : new THREE.Scene();
-    raycaster = ecmaStandard(raycaster, undefined);
-    scene = ecmaStandard(scene, undefined);
-    this.raycaster = new THREE.Raycaster();
-    this.scene = scene;
+    this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
+    this.raycaster.linePrecision = 0.1;
+    // this.scene = ecmaStandard(scene, new THREE.Scene());
     this.highlightedElements = [];
     this.neighbors = [];
 }
@@ -1260,21 +1417,21 @@ EventHandler.prototype.setRaycaster = function(raycaster)
     this.raycaster = raycaster;
 }
 
-/**
- * Getter for scene
- */
-EventHandler.prototype.getScene = function()
-{
-    return this.scene;
-}
-
-/**
- * Setter for scene
- */
-EventHandler.prototype.setScene = function(scene)
-{
-    this.scene = scene;
-}
+// /**
+//  * Getter for scene
+//  */
+// EventHandler.prototype.getScene = function()
+// {
+//     return this.scene;
+// }
+//
+// /**
+//  * Setter for scene
+//  */
+// EventHandler.prototype.setScene = function(scene)
+// {
+//     this.scene = scene;
+// }
 
 /**
  * Getter for highlighted elements
@@ -1297,90 +1454,183 @@ EventHandler.prototype.setHighlightedElements = function(highlighted)
 /**
  * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
  * params:
- *    - clicked: boolean to indicate if element has already been clicked;
- *    - evt: event dispatcher;
- *    - graph: graph, containing objects to be intersected.
+ *    - clicked: boolean to indicate if element has already been clicked.
+ *    - evt: event dispatcher.
+ *    - scene: scene for raycaster.
  */
-EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
+// EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, scene)
+// {
+//   if(!clicked.wasClicked)
+//   {
+//     /* Find highlighted vertex and highlight its neighbors */
+//     for(var i = 0; i < this.highlightedElements.length; i++)
+//     {
+//       var element = graph.getElementById(this.highlightedElements[i]);
+//       if(element instanceof Node)
+//       {
+//         /* Search neighbors */
+//         this.neighbors = graph.findNeighbors(element);
+//         /* Add itself for highlighting */
+//         this.neighbors.push(element);
+//         /* Remove itself so it won't unhighlight as soon as mouse moves out */
+//         this.highlightedElements.splice(i, 1);
+//         /* Highlight neighbors */
+//         for(var j = 0; j < this.neighbors.length; j++)
+//         {
+//           if(this.neighbors[j] instanceof Node)
+//           {
+//             this.neighbors[j].highlight();
+//             clicked.wasClicked = true;
+//           }
+//         }
+//       }
+//     }
+//   }
+//   else if(clicked.wasClicked)
+//   {
+//     clicked.wasClicked = false;
+//     /* An element was already clicked and its neighbors highlighted; unhighlight all */
+//     for(var i = 0; i < this.neighbors.length; i++)
+//     {
+//       var element = undefined;
+//       if(this.neighbors[i] instanceof Node)
+//       {
+//         element = graph.getElementById(String(this.neighbors[i].circle.name));
+//         element.unhighlight();
+//       }
+//       else if(this.neighbors[i] instanceof Edge)
+//         element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
+//     }
+//     /* Clearing array of neighbors */
+//     this.neighbors = [];
+//   }
+// }
+
+/**
+ * Find index of pair of vertices that form an edge.
+ * @public
+ * @param {Object} vertexArray Array of vertexes to search for edge.
+ * @param {Object} startEdge (x,y,z) coordinates of starting vertex.
+ * @param {Object} endEdge (x,y,z) coordinates of ending vertex.
+ * @returns {int} Index in vertexArray of edge.
+ */
+EventHandler.prototype.findEdgePairIndex = function(vertexArray, startEdge, endEdge)
 {
-  if(!clicked)
+  for(var i = 0; i < vertexArray.length; i = i + 2)
   {
-    /* Find highlighted vertex and highlight its neighbors */
-    for(var i = 0; i < this.highlightedElements.length; i++)
+    if((vertexArray[i].x == startEdge.x && vertexArray[i].y == startEdge.y && vertexArray[i].z == startEdge.z &&
+       vertexArray[i+1].x == endEdge.x && vertexArray[i+1].y == endEdge.y && vertexArray[i+1].z == endEdge.z))
     {
-      var element = graph.getElementById(this.highlightedElements[i]);
-      if(element instanceof Node)
+      return i;
+    }
+    else if(vertexArray[i].x == endEdge.x && vertexArray[i].y == endEdge.y && vertexArray[i].z == endEdge.z &&
+       vertexArray[i+1].x == startEdge.x && vertexArray[i+1].y == startEdge.y && vertexArray[i+1].z == startEdge.z)
+    {
+      return i+1;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
+ * params:
+ *    - clicked: boolean to indicate if element has already been clicked.
+ *    - evt: event dispatcher.
+ *    - scene: scene for raycaster.
+ */
+EventHandler.prototype.mouseDoubleClickEvent = function()
+{
+      if(!clicked.wasClicked)
       {
-        /* Search neighbors */
-        this.neighbors = graph.findNeighbors(element);
-        /* Add itself for highlighting */
-        this.neighbors.push(element);
-        /* Remove itself so it won't unhighlight as soon as mouse moves out */
-        this.highlightedElements.splice(i, 1);
-        /* Highlight neighbors */
-        for(var j = 0; j < this.neighbors.length; j++)
+        var element = scene.getObjectByName("MainMesh", true);
+        // var lineSegments = scene.getObjectById(8, true);
+        // var lineSegments = scene.children[1];
+        var lineSegments = scene.getObjectByProperty("type", "LineSegments");
+        /** Find highlighted vertex and highlight its neighbors */
+        for(var i = 0; i < this.highlightedElements.length; i++)
         {
-          this.neighbors[j].highlight();
+          /** Add itself for highlighting */
+          this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, edgeColor: {r:0, g:0, b:0}});
+          var startEdge = element.geometry.faces[this.highlightedElements[i]].position;
+          // var startPosition = element.geometry.faces[this.highlightedElements[i]].positionIndex;
+          for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
+          {
+            var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
+            for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
+            {
+                element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
+            }
+            clicked.wasClicked = true;
+            /** Highlight connected edges */
+            var neighborIndex = element.geometry.faces[this.highlightedElements[i]].neighbors[j] * 32;
+            var endEdge = element.geometry.faces[neighborIndex].position;
+            var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
+            /** Find index of end position */
+            // var endPosition = element.geometry.faces[neighborIndex].positionIndex;
+            var originalColor = {r:0, g:0, b:0};
+            if(index != -1)
+            {
+              // originalColor = lineSegments.geometry.colors[index];
+              originalColor.r = lineSegments.geometry.colors[index].r;
+              originalColor.g = lineSegments.geometry.colors[index].g;
+              originalColor.b = lineSegments.geometry.colors[index].b;
+              lineSegments.geometry.colors[index].setRGB(1.0, 0.0, 0.0);
+            }
+            this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], edgeColor: originalColor});
+          }
+          // lineSegments.geometry.colors[startPosition].setRGB(1.0, 0.0, 0.0);
+          // lineSegments.geometry.colors[0].setRGB(1.0, 0.0, 0.0);
+          /** Remove itself so it won't unhighlight as soon as mouse moves out */
+          this.highlightedElements.splice(i, 1);
         }
+        element.geometry.colorsNeedUpdate = true;
+        lineSegments.geometry.colorsNeedUpdate = true;
       }
-    }
-    /* Highlight edges according to neighbors which have been highlighted. Iterate i+3 since positions (x,y,z) are stored as one element each in array */
-    /* Convert from BufferGeometry to Geometry */
-    var auxGeometry = new THREE.Geometry();
-    auxGeometry.fromBufferGeometry(graph.lineMesh.geometry);
-    console.log("converteu?");
-    console.log(auxGeometry);
-    /* Iterate through auxGeometry's faces, changing vertexColors */
-    // /* Highlight edges according to neighbors which have been highlighted. Iterate i+3 since positions (x,y,z) are stored as one element each in array */
-    // if(graph.line.geometry.attributes.color == undefined)
-    //   graph.line.geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(graph.line.attributes.position.array.length), 3));
-    // // console.log("o que te faz entrar no for?");
-    // // console.log(graph.line.geometry.attributes.color);
-    // // console.log(graph.line.geometry.attributes.color.array);
-    // // console.log(graph.line.geometry.attributes.color.array.length);
-    // for(var i = 0; i < graph.line.geometry.attributes.color.array.length; i = i + 3)
-    // {
-    //   /* Iterating through every neighbor */
-    //   for(var j = 0 ; j < this.neighbors.length && this.neighbors[j] instanceof Node; j++)
-    //   {
-    //       /* Position from BufferGeometry matches vertex position; highlight */
-    //       // console.log("vamos la");
-    //       // console.log(graph.line.geometry.attributes.color.array[i]);
-    //       // console.log(graph.line.geometry.attributes.color.array[i+1]);
-    //       // console.log(graph.line.geometry.attributes.color.array[i+2]);
-    //       // console.log(this.neighbors[j].circle.position.x);
-    //       // console.log(this.neighbors[j].circle.position.y);
-    //       // console.log(this.neighbors[j].circle.position.z);
-    //       // console.log("al somav");
-    //       if(graph.line.geometry.attributes.position.array[i] == this.neighbors[j].circle.position.x && graph.line.geometry.attributes.position.array[i+1] == this.neighbors[j].circle.position.y && graph.line.geometry.attributes.position.array[i+2] == this.neighbors[j].circle.position.z)
-    //       {
-    //         var newColor = new THREE.Color(0xffff00);
-    //         graph.line.geometry.attributes.color.array[i] = newColor.r;
-    //         graph.line.geometry.attributes.color.array[i+1] = newColor.g;
-    //         graph.line.geometry.attributes.color.array[i+2] = newColor.b;
-    //         /* Vertex found; leave for loop */
-    //         j = this.neighbors.length + 1;
-    //       }
-    //   }
-    // }
-    // /* Set update for color buffer */
-    // graph.line.geometry.attributes.color.needsUpdate = true;
-  }
-  else if(clicked)
-  {
-    /* An element was already clicked and its neighbors highlighted; unhighlight all */
-    for(var i = 0; i < this.neighbors.length; i++)
-    {
-      var element = undefined;
-      if(this.neighbors[i] instanceof Node)
-        element = graph.getElementById(String(this.neighbors[i].circle.name));
-      else if(this.neighbors[i] instanceof Edge)
-        element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
-      element.unhighlight();
-    }
-    /* Clearing array of neighbors */
-    this.neighbors = [];
-  }
+      else if(clicked.wasClicked)
+      {
+        clicked.wasClicked = false;
+        /** An element was already clicked and its neighbors highlighted; unhighlight all */
+        var element = scene.getObjectByName("MainMesh", true);
+        // var lineSegments = scene.getObjectById(8, true);
+        // var lineSegments = scene.children[1];
+        var lineSegments = scene.getObjectByProperty("type", "LineSegments");
+        var startEdge = element.geometry.faces[this.neighbors[0].vertexInfo*32].position;
+        for(var i = 0; i < this.neighbors.length; i++)
+        {
+          var endPoint = (this.neighbors[i].vertexInfo * 32) + 32;
+          for(var j = this.neighbors[i].vertexInfo*32; j < endPoint; j++)
+          {
+            element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
+          }
+          element.geometry.colorsNeedUpdate = true;
+          if(i != 0)
+          {
+            var endEdge = element.geometry.faces[this.neighbors[i].vertexInfo*32].position;
+            var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
+            if(index != -1)
+            {
+              // lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
+              lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor.r, this.neighbors[i].edgeColor.g, this.neighbors[i].edgeColor.b);
+            }
+            // for(var j = 1; j < element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors.length; j++)
+            // {
+            //   var neighborIndex = element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors[j] * 32;
+            //   var endEdge = element.geometry.faces[neighborIndex].position;
+            //   var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
+            //   if(index != -1)
+            //   {
+            //     console.log("this.neighbors[i].edgeColor:");
+            //     console.log(this.neighbors[i].edgeColor);
+            //     lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
+            //   }
+            // }
+            lineSegments.geometry.colorsNeedUpdate = true;
+          }
+        }
+        /** Clearing array of neighbors */
+        this.neighbors = [];
+      }
 }
 
 /**
@@ -1390,18 +1640,10 @@ EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, graph)
  *    - renderer: WebGL renderer, containing DOM element's offsets;
  *    - graph: graph, containing objects to be intersected.
  */
-EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
+EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
 {
-    /* DEBUG - Removes tracking object from scene, if there is any */
-    // if(this.tracker != undefined)
-    // {
-    //     this.scene.remove(this.tracker.getMesh());
-    // }
     /* Get canvas element and adjust x and y to element offset */
     var canvas = renderer.domElement.getBoundingClientRect();
-    // var coords = renderer.domElement.relMouseCoords(evt);
-    // var x = coords.x;
-    // var y = coords.y;
     var x = evt.clientX - canvas.left;
     var y = evt.clientY - canvas.top;
     // console.log("x: " + x + " y: " + y);
@@ -1409,84 +1651,105 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, graph)
     /* Adjusting mouse coordinates to NDC [-1, 1] */
     var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
     var mouseY = -(y / renderer.domElement.clientHeight) * 2 + 1;
-    // var mouseX = ((evt.clientX-renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1;
-    // var mouseY = -((evt.clientY-renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1;
 
     var mouse = new THREE.Vector2(mouseX, mouseY);
-    var camera = this.scene.getObjectByName("camera", true);
-
-    /* DEBUG - Adds tracking object */
-    // this.tracker = new Tracker();
-    // this.tracker.followMouse(mouseX, mouseY, camera);
-    // this.scene.add(this.tracker.getMesh());
+    var camera = scene.getObjectByName("camera", true);
 
     /* Setting raycaster starting from camera */
     this.raycaster.setFromCamera(mouse, camera);
 
     /* Execute ray tracing */
-    var intersects = this.raycaster.intersectObjects(this.scene.children, true);
+    var intersects = this.raycaster.intersectObjects(scene.children, true);
     var intersection = intersects[0];
 
     /* Unhighlight any already highlighted element */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        var element = graph.getElementById(this.highlightedElements[i]);
-        var alreadyHighlighted = false;
-        for(var j = 0; j < this.neighbors.length; j++)
+        // var element = graph.getElementById(this.highlightedElements[i]);
+        // var element = scene.getObjectByName(this.highlightedElements[i], true);
+        // if(element != undefined)
+        // {
+        //   element.material.color.setHex(0x000000);
+        // }
+        // var alreadyHighlighted = false;
+        // for(var j = 0; j < this.neighbors.length; j++)
+        // {
+        //   var el = undefined;
+        //   if(this.neighbors[j] instanceof Node)
+        //     el = this.neighbors[j].circle.name;
+        //   else if(this.neighbors[j] instanceof Edge)
+        //     el = this.neighbors[j].edgeObject.id;
+        //   if(element === graph.getElementById(el))
+        //     alreadyHighlighted = true;
+        // }
+        // if(!alreadyHighlighted)
+        //   element.unhighlight();
+        var endPoint = this.highlightedElements[i] + 32;
+        var element = scene.getObjectByName("MainMesh", true);
+        for(var j = this.highlightedElements[i]; j < endPoint; j++)
         {
-          var el = undefined;
-          if(this.neighbors[j] instanceof Node)
-            el = this.neighbors[j].circle.name;
-          else if(this.neighbors[j] instanceof Edge)
-            el = this.neighbors[j].edgeObject.id;
-          if(element === graph.getElementById(el))
-            alreadyHighlighted = true;
+          element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
         }
-        if(!alreadyHighlighted)
-          element.unhighlight();
-        if(element instanceof Node)
-        {
-            // graph.setNodeById(this.highlightedElements[i], element);
-            // d3.select("#name")
-            //     .style("display", "none");
-        }
-        else
-        {
-            graph.setEdgeById(this.highlightedElements[i], element);
-        }
+        element.geometry.colorsNeedUpdate = true;
         this.highlightedElements.splice(i, 1);
     }
+    /** Hiding vertex information */
+    document.getElementById("vertexInfo").innerHTML = "";
+    $("#vertexInfoId").css("display", "none");
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
-        var element = graph.getElementById(intersection.object.name);
-        console.log(element);
-        element.highlight();
-        if(element instanceof Node)
+
+      console.log(intersection);
+      if(intersection.face) /** Intersection with vertice */
+      {
+        intersection.face.color.setRGB(0.0, 1.0, 0.0);
+        /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
+        var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
+        for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
         {
-            graph.setNodeById(intersection.object.name, element);
-            document.getElementById("graphID").innerHTML = element.circle.name;
-            if(element.circle.description !== undefined)
-              document.getElementById("graphDescription").innerHTML = element.circle.description;
-            else
-              document.getElementById("graphDescription").innerHTML = "No description found.";
-            /* Get name of node to display onscreen */
-            // d3.select("#name")
-            //     .text(element.circle.name)
-            //     .attr("font-family", "sans-serif")
-            //     .attr("font-size", "20px")
-            //     .style("display", "inline")
-            //     .style("position", "absolute")
-            //     .style("z-index", "1")
-            //     .style("top", y)
-            //     .style("left", x)
-            //     .attr("fill", "green");
+            intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
         }
-        else
+        intersection.object.geometry.colorsNeedUpdate = true;
+        this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
+        /** Display vertex information */
+        properties = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";");
+        for(var i = 0; i < intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";").length; i++)
         {
-            graph.setEdgeById(intersection.object.name, element);
+            if(properties[i].length > 1)
+            {
+              /** if case made specifically for movieLens files */
+              if(properties[i].indexOf("|") != -1)
+              {
+                genres = properties[i].split("|");
+                for(var j = 0; j < genres.length; j++)
+                {
+                  document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + genres[j] + ",<br>";
+                }
+              }
+              else
+              {
+                document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + properties[i] + "<br>";
+                // intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";")[i] + "<br>";
+              }
+            }
         }
-        this.highlightedElements.push(intersection.object.name);
+        // document.getElementById("vertexInfo").innerHTML = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties;
+        $("#vertexInfoId").css("display", "inline");
+      }
+      else /** Intersection with edge */
+      {
+
+      }
+        // var element = graph.getElementById(intersection.object.name);
+        // var element = scene.getObjectByName(intersection.object.name);
+        // element.material.color.setHex(0xFF0000);
+        // document.getElementById("graphID").innerHTML = element.name;
+        // if(element.description !== undefined)
+        //   document.getElementById("graphDescription").innerHTML = element.description;
+        // else
+        //   document.getElementById("graphDescription").innerHTML = "No description found.";
+        // this.highlightedElements.push(intersection.object.name);
     }
 }
 
@@ -1499,16 +1762,9 @@ EventHandler.prototype.mouseOutEvent = function(graph)
 {
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        var element = graph.getElementById(this.highlightedElements[i]);
-        element.unhighlight();
-        if(element instanceof Node)
-        {
-            graph.setNodeById(this.highlightedElements[i], element);
-        }
-        else
-        {
-            graph.setEdgeById(this.highlightedElements[i], element);
-        }
+        // var element = graph.getElementById(this.highlightedElements[i]);
+        // var element = scene.getObjectByName(this.highlightedElements[i], true);
+        // element.material.color.setHex(0x000000);
     }
 
     /* Clearing array of highlighted elements */
@@ -1723,6 +1979,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 				lastQuaternion.copy( scope.object.quaternion );
 				zoomChanged = false;
 
+				/** Get camera depth */
+				cameraPos = scope.object.position.z;
 				return true;
 
 			}
@@ -1950,7 +2208,9 @@ THREE.OrbitControls = function ( object, domElement ) {
 		/* Reset camera to initial position */
 		scope.reset();
 		/* Apply pan */
-		pan((graph.getNumberOfNodes())/2, 0);
+		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
+		pan(panSize*5*1.4, 0);
+		// pan(panSize*2, 0);
 		scope.update();
 	});
 
@@ -1959,7 +2219,16 @@ THREE.OrbitControls = function ( object, domElement ) {
 		/* Reset camera to initial position */
 		scope.reset();
 		/* Apply pan */
-		pan(-(graph.getNumberOfNodes())*4, 0);
+		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
+		pan(-panSize*5*1.4, 0);
+		// pan(-panSize*2, 0);
+		scope.update();
+	});
+
+	/* Reset */
+	$('#resetButton').on('click', function(){
+		scope.reset();
+		scope.object.position.z = document.getElementById("mainSection").clientHeight/4;
 		scope.update();
 	});
 
@@ -2595,127 +2864,3 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 	}
 
 } );
-
-// /**
-//   * Base class for building scene and performing preprocessing operations, such as node size and node positions.
-//   * Author: Diego S. Cintra
-//   */
-//
-// var Graph = require('../src/graph.js');
-// var Node = require('../src/node.js');
-// var Edge = require('../src/edge.js');
-// var THREE = require('../../../node_modules/three/build/three.js');
-//
-// /**
-//  * Constructor
-//  * params:
-//  *    - jsonFile: JSON graph
-//  */
-// var SceneBuilder = function(jsonFile)
-// {
-// 	/* Converting text string to JSON */
-//     var jason = JSON.parse(jsonFile);
-//
-//     /* Instantiating Graph */
-//     this.graph = new Graph(jason, 2, 10, 70);
-//
-//     /* Create the scene */
-//     this.scene = new THREE.Scene();
-//
-//     /* Create lights to associate with scene */
-//     var lights = [];
-//     lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-//     lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-//     lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-//
-//     lights[ 0 ].position.set( 0, 2, 0 );
-//     lights[ 1 ].position.set( 1, 2, 1 );
-//     lights[ 2 ].position.set( - 1, - 2, - 1 );
-//
-//     this.scene.add( lights[ 0 ] );
-//     this.scene.add( lights[ 1 ] );
-//     this.scene.add( lights[ 2 ] );
-// }
-//
-// SceneBuilder.prototype.build = function()
-// {
-//     /* Build graph */
-//     // graph.buildGraph(scene);
-//     this.graph.buildGraph();
-//
-//     /* Add graph elements to scene */
-//     for(var i = 0; i < this.graph.getNumberOfNodes(); i++)
-//     {
-//     	this.scene.add(this.graph.getNodeByIndex(i).getCircle());
-//     }
-//     for(var i = 0; i < this.graph.getNumberOfEdges(); i++)
-//     {
-//     	this.scene.add(this.graph.getEdgeByIndex(i).getLine());
-//     }
-// }
-//
-// module.exports = SceneBuilder;
-
-// /**
-//  * Base class for tracking mouse object, used for debugging.
-//  * Author: Diego S. Cintra
-//  */
-//
-// /**
-//  * Constructor which, by default, defines a triangleMesh
-//  */
-// var Tracker = function()
-// {
-//     this.triangleGeometry = new THREE.Geometry();
-//     this.triangleGeometry.vertices.push(new THREE.Vector3( 0.0,  0.2, 0.0));
-//     this.triangleGeometry.vertices.push(new THREE.Vector3(-0.2, -0.2, 0.0));
-//     this.triangleGeometry.vertices.push(new THREE.Vector3( 0.2, -0.2, 0.0));
-//     this.triangleGeometry.faces.push(new THREE.Face3(0, 1, 2));
-//     this.triangleGeometry.faces[0].vertexColors[0] = new THREE.Color(0xFF0000);
-//     this.triangleGeometry.faces[0].vertexColors[1] = new THREE.Color(0x00FF00);
-//     this.triangleGeometry.faces[0].vertexColors[2] = new THREE.Color(0x0000FF);
-//     this.triangleMaterial = new THREE.MeshBasicMaterial({
-//         vertexColors:THREE.VertexColors,
-//         side:THREE.DoubleSide
-//     });
-//     this.triangleMesh = new THREE.Mesh(this.triangleGeometry, this.triangleMaterial);
-//     this.triangleMesh.name = "tracker";
-// }
-//
-// /**
-//  * Getter for mesh
-//  */
-// Tracker.prototype.getMesh = function()
-// {
-//     return this.triangleMesh;
-// }
-//
-// /**
-//  * Define tracker's position
-//  * params:
-//  *    - mouseX: x coordinate position;
-//  *    - mouseY: y coordinate position.
-//  */
-// Tracker.prototype.setPos = function(mouseX, mouseY)
-// {
-//     this.triangleMesh.position.set(mouseX, mouseY, 0);
-// }
-//
-// /**
-//  * Make tracker follow mouse position
-//  * params:
-//  *    - mouseX: x coordinate position;
-//  *    - mouseY: y coordinate position;
-//  *    - camera: scene camera.
-//  */
-// Tracker.prototype.followMouse = function(mouseX, mouseY, camera)
-// {
-//     var vector = new THREE.Vector3(mouseX, mouseY, 0.5);
-// 	vector.unproject( camera );
-// 	var dir = vector.sub( camera.position ).normalize();
-// 	var distance = - camera.position.z / dir.z;
-// 	var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-// 	this.triangleMesh.position.copy(pos);
-// }
-//
-// module.exports = Tracker;
