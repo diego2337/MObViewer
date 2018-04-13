@@ -180,8 +180,8 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
             if(!err)
             {
               // console.log("data from python script " + data);
-              /** Set weights properly using .cluster file generated from multilevel paradigm */
               // console.log('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  pyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.cluster');
+              /** Set weights properly using .cluster file generated from multilevel paradigm */
               nodeCmd.get('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  pyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.cluster', function(data, err, stderr) {
                 if(!err)
                 {

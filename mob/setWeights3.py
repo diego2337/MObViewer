@@ -131,7 +131,12 @@ if __name__ == "__main__":
             weight = 0.0
             for j in range(len(clusteredVertices[i].split(" "))):
                 if('weight' in jason['nodes'][int(clusteredVertices[i].split(" ")[j])]):
-                    weight = weight + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'])
+                    # two weights are in vertex
+                    if(len(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'].split("/")) != 1):
+                        weight = weight + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'].split("/")[0])
+                        weight = weight + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'].split("/")[1])
+                    else:
+                        weight = weight + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'])
                 else:
                     weight = weight + 1.0
             newCoarsenedJson.write("\t\t\"weight\": \"" + str(weight) + "\"\n")

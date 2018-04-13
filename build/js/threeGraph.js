@@ -1544,6 +1544,8 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
         /** Find highlighted vertex and highlight its neighbors */
         for(var i = 0; i < this.highlightedElements.length; i++)
         {
+          /** Add itself for highlighting */
+          this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, edgeColor: {r:0, g:0, b:0}});
           var startEdge = element.geometry.faces[this.highlightedElements[i]].position;
           // var startPosition = element.geometry.faces[this.highlightedElements[i]].positionIndex;
           for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
@@ -1560,16 +1562,17 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
             var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
             /** Find index of end position */
             // var endPosition = element.geometry.faces[neighborIndex].positionIndex;
-            var originalColor = -1;
+            var originalColor = {r:0, g:0, b:0};
             if(index != -1)
             {
-              originalColor = lineSegments.geometry.colors[index];
+              // originalColor = lineSegments.geometry.colors[index];
+              originalColor.r = lineSegments.geometry.colors[index].r;
+              originalColor.g = lineSegments.geometry.colors[index].g;
+              originalColor.b = lineSegments.geometry.colors[index].b;
               lineSegments.geometry.colors[index].setRGB(1.0, 0.0, 0.0);
             }
             this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], edgeColor: originalColor});
           }
-          /** Add itself for highlighting */
-          this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, edgeColor: -1});
           // lineSegments.geometry.colors[startPosition].setRGB(1.0, 0.0, 0.0);
           // lineSegments.geometry.colors[0].setRGB(1.0, 0.0, 0.0);
           /** Remove itself so it won't unhighlight as soon as mouse moves out */
@@ -1584,26 +1587,38 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
         /** An element was already clicked and its neighbors highlighted; unhighlight all */
         var element = scene.getObjectByName("MainMesh", true);
         var lineSegments = scene.getObjectById(8, true);
+        var startEdge = element.geometry.faces[this.neighbors[0].vertexInfo*32].position;
         for(var i = 0; i < this.neighbors.length; i++)
         {
-          var startEdge = element.geometry.faces[this.neighbors[0].vertexInfo*32].position;
           var endPoint = (this.neighbors[i].vertexInfo * 32) + 32;
           for(var j = this.neighbors[i].vertexInfo*32; j < endPoint; j++)
           {
             element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
           }
-          for(var j = 1; j < element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors.length; j++)
+          element.geometry.colorsNeedUpdate = true;
+          if(i != 0)
           {
-            var neighborIndex = element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors[j] * 32;
-            var endEdge = element.geometry.faces[neighborIndex].position;
+            var endEdge = element.geometry.faces[this.neighbors[i].vertexInfo*32].position;
             var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
             if(index != -1)
             {
-              lineSegments.geometry.colors[index].setRGB(this.neighbors[i].originalColor);
+              // lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
+              lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor.r, this.neighbors[i].edgeColor.g, this.neighbors[i].edgeColor.b);
             }
+            // for(var j = 1; j < element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors.length; j++)
+            // {
+            //   var neighborIndex = element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors[j] * 32;
+            //   var endEdge = element.geometry.faces[neighborIndex].position;
+            //   var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
+            //   if(index != -1)
+            //   {
+            //     console.log("this.neighbors[i].edgeColor:");
+            //     console.log(this.neighbors[i].edgeColor);
+            //     lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
+            //   }
+            // }
+            lineSegments.geometry.colorsNeedUpdate = true;
           }
-          element.geometry.colorsNeedUpdate = true;
-          lineSegments.geometry.colorsNeedUpdate = true;
         }
         /** Clearing array of neighbors */
         this.neighbors = [];
