@@ -10,7 +10,6 @@ var layout = 2;
 var capture = false;
 var clicked = {wasClicked: false};
 var cameraPos = document.getElementById("mainSection").clientHeight/4;
-// var cameraPos = 70;
 
 /* Check to see if any node is highlighted, and highlight its corresponding edges */
 // $('#WebGL').on('mousemove', function(){
