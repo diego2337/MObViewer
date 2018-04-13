@@ -1540,7 +1540,9 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
       if(!clicked.wasClicked)
       {
         var element = scene.getObjectByName("MainMesh", true);
-        var lineSegments = scene.getObjectById(8, true);
+        // var lineSegments = scene.getObjectById(8, true);
+        // var lineSegments = scene.children[1];
+        var lineSegments = scene.getObjectByProperty("type", "LineSegments");
         /** Find highlighted vertex and highlight its neighbors */
         for(var i = 0; i < this.highlightedElements.length; i++)
         {
@@ -1586,7 +1588,9 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
         clicked.wasClicked = false;
         /** An element was already clicked and its neighbors highlighted; unhighlight all */
         var element = scene.getObjectByName("MainMesh", true);
-        var lineSegments = scene.getObjectById(8, true);
+        // var lineSegments = scene.getObjectById(8, true);
+        // var lineSegments = scene.children[1];
+        var lineSegments = scene.getObjectByProperty("type", "LineSegments");
         var startEdge = element.geometry.faces[this.neighbors[0].vertexInfo*32].position;
         for(var i = 0; i < this.neighbors.length; i++)
         {
