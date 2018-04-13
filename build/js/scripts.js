@@ -53,9 +53,9 @@ $('#showVertexInfoCollapsed').on('click', function(){
 });
 
 /**
-  * Change current layout value.
-  * @public
-  */
+ * Change current layout value.
+ * @public
+ */
 function layoutUpdate()
 {
   if(layout == 2)

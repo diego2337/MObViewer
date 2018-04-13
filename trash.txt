@@ -602,3 +602,40 @@ Graph.prototype.getNodesMeshes = function()
    }
    return meshes;
 }
+
+
+from bipartiteGraph.js:
+
+/**
+ * Find edge index in array of vertices, given edge position.
+ * @public
+ * @param {Object} position (x,y,z) positions of an inciding edge.
+ * @param {Array} vertexArray Array of vertexes.
+ * @returns {int} Index of (x,y,z) in array of vertexes.
+ */
+BipartiteGraph.prototype.findEdgePositionIndex = function(position, vertexArray)
+{
+  for(var i = 0; i < vertexArray.length; i++)
+  {
+    if(vertexArray[i].x == position.x && vertexArray[i].y == position.y && vertexArray[i].z == position.z)
+    {
+      return i;
+    }
+  }
+  /** If no matching element was found, return -1 */
+  return -1;
+  // /** Find all occurrences of x inside vertexArray */
+  // var position1 = vertexArray.filter(function(obj){
+  //   return obj.x == position.x;
+  // });
+  // /** Find all occurrences of x inside position1 */
+  // var position2 = position1.filter(function(obj){
+  //   return obj.y == position.y;
+  // });
+  // /** Find all occurrences of x inside position2 */
+  // var position3 = position2.filter(function(obj){
+  //   return obj.z == position.z;
+  // });
+  // /** Return position3 */
+  // return position3;
+}

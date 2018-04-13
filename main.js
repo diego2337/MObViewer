@@ -351,8 +351,7 @@ app.post('/switch', function(req, res){
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 app.get('/', function(req, res){
-  // res.sendFile(path.join(__dirname, 'public/views/index.html'));
-  res.sendFile(path.join(__dirname, 'public/views/aNewIndex.html'));
+  res.sendFile(path.join(__dirname, 'public/views/index.html'));
 });
 
 /** Main function to trigger server */

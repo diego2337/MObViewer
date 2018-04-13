@@ -119,29 +119,6 @@ BipartiteGraph.prototype.getNumberOfEdges = function()
 /**
  * Find node's neighbors.
  * @public
- * @param {Object} node Node from which neighbors will be found.
- * @returns List of neighbors for given node.
- */
-// BipartiteGraph.prototype.findNeighbors = function(node)
-// {
-//   var neighbors = [];
-//   var neighbor = undefined;
-//   for(var i = 0; i < this.edges.length; i++)
-//   {
-//     if(parseInt(this.edges[i].edgeObject.source) == parseInt(node.circle.name))
-//       neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.target)));
-//     else if(parseInt(this.edges[i].edgeObject.target) == parseInt(node.circle.name))
-//       neighbor = 1, neighbors.push(this.getNodeById(parseInt(this.edges[i].edgeObject.source)));
-//     if(neighbor !== undefined)
-//       neighbors.push(this.edges[i]);
-//     neighbor = undefined;
-//   }
-//   return neighbors;
-// }
-
-/**
- * Find node's neighbors.
- * @public
  * @param {Object} graph Object containing .json graph file.
  * @param {int} i Index for node stored at 'graph' object.
  * @returns List of neighbors for given node.
@@ -149,59 +126,20 @@ BipartiteGraph.prototype.getNumberOfEdges = function()
 BipartiteGraph.prototype.findNeighbors = function(graph, i)
 {
   var neighbors = [];
-  // var neighbor = undefined;
   /** Add itself first */
   neighbors.push(parseInt(graph.nodes[i].id));
   for(j = 0; j < graph.links.length; j++)
   {
     if(parseInt(graph.links[j].source) == parseInt(graph.nodes[i].id))
     {
-      /*neighbor = 1,*/ neighbors.push(parseInt(graph.links[j].target));
+      neighbors.push(parseInt(graph.links[j].target));
     }
     else if(parseInt(graph.links[j].target) == parseInt(graph.nodes[i].id))
     {
-      /*neighbor = 1,*/ neighbors.push(parseInt(graph.links[j].source));
+      neighbors.push(parseInt(graph.links[j].source));
     }
-    // neighbor = 1, neighbors.push(graph.getNodeById(parseInt(graph.links[i].target)));
-    // if(neighbor !== undefined)
-    //   neighbors.push(graph.links[j]);
-    // neighbor = undefined;
   }
   return neighbors;
-}
-
-/**
- * Find edge index in array of vertices, given edge position.
- * @public
- * @param {Object} position (x,y,z) positions of an inciding edge.
- * @param {Array} vertexArray Array of vertexes.
- * @returns {int} Index of (x,y,z) in array of vertexes.
- */
-BipartiteGraph.prototype.findEdgePositionIndex = function(position, vertexArray)
-{
-  for(var i = 0; i < vertexArray.length; i++)
-  {
-    if(vertexArray[i].x == position.x && vertexArray[i].y == position.y && vertexArray[i].z == position.z)
-    {
-      return i;
-    }
-  }
-  /** If no matching element was found, return -1 */
-  return -1;
-  // /** Find all occurrences of x inside vertexArray */
-  // var position1 = vertexArray.filter(function(obj){
-  //   return obj.x == position.x;
-  // });
-  // /** Find all occurrences of x inside position1 */
-  // var position2 = position1.filter(function(obj){
-  //   return obj.y == position.y;
-  // });
-  // /** Find all occurrences of x inside position2 */
-  // var position3 = position2.filter(function(obj){
-  //   return obj.z == position.z;
-  // });
-  // /** Return position3 */
-  // return position3;
 }
 
 /**
@@ -215,7 +153,6 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
 {
   layout = ecmaStandard(layout, 2);
   scene = ecmaStandard(scene, undefined);
-  this.theta = 3;
   try
   {
     /** y represents space between two layers, while theta space between each vertice of each layer */
@@ -236,7 +173,6 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     }
     /** Create single geometry which will contain all geometries */
     var singleGeometry = new THREE.Geometry();
-    // singleGeometry.name = "MainGeometry";
     for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
     {
       if(i == this.firstLayer)
@@ -248,7 +184,6 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = parseInt(graph.graphInfo[0].minNodeWeight);
       var circleSize = (5.0 - 1.0) * ( (parseInt(graph.nodes[i].weight) - parseInt(graph.graphInfo[0].minNodeWeight))/((parseInt(graph.graphInfo[0].maxNodeWeight)-parseInt(graph.graphInfo[0].minNodeWeight))+1) ) + 1.0;
       if(circleSize == 0) circleSize = parseInt(graph.graphInfo[0].minNodeWeight);
-      // circleSize = circleSize * 5;
       /** Using feature scale for node sizes */
       circleGeometry.scale(circleSize, circleSize, 1);
       /** Give geometry name the same as its id */
@@ -315,6 +250,8 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     circleGeometry.dispose();
     material.dispose();
 
+    singleGeometry.dispose();
+    singleGeometry = null;
 
     circleGeometry = null;
     material = null;
@@ -325,11 +262,6 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       var edgeGeometry = new THREE.Geometry();
       for(var i = 0; i < graph.links.length; i++)
       {
-        // /** Normalize edge weight */
-        // if(graph.links[i].weight == undefined) graph.links[i].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
-        // var edgeSize = (5.0 - 3.0) * ( (parseInt(graph.links[i].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 3.0;
-        // if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
-
         /** Calculate path */
         var sourcePos = positions[graph.links[i].source];
         var targetPos = positions[graph.links[i].target];
@@ -347,7 +279,6 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
         edgeSize = (5.0 - 1.0) * edgeSize + 1.0;
         if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
         var linearScale = d3.scaleLinear().domain([1.000, 5.000]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
-        // edgeGeometry.colors[i] = new THREE.Color(0x8D9091);
         edgeGeometry.colors[i] = new THREE.Color(linearScale(edgeSize));
         edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
       }
@@ -363,87 +294,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
       edgeGeometry = null;
       edgeMaterial.dispose();
       edgeMaterial = null;
-
-      /** Find all edges indices inside array of vertexes */
-      // for(var i = 0; i < singleGeometry.faces.length; i = i + 32)
-      // {
-      //   singleGeometry.faces[i].positionIndex = this.findEdgePositionIndex(singleGeometry.faces[i].position, lineSegments.geometry.vertices);
-      // }
-
-      singleGeometry.dispose();
-      singleGeometry = null;
-
-      // var line = new THREE.MeshLine();
-      // line.setGeometry(edgeGeometry);
-      // line.setGeometry(edgeGeometry, function(p){
-      //   return 0.3;
-      // });
-      // var edgeMaterial = new THREE.MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-      // var lineMesh = new THREE.Mesh(line.geometry, edgeMaterial);
-      // scene.add(lineMesh);
-      // edgeMaterial.dispose();
-      // edgeGeometry.dispose();
-      // edgeMaterial = null;
-      // edgeGeometry = null;
-      // line = null;
-      // lineMesh = null;
     }
-
-    // /** y represents space between two layers, while theta space between each vertice of each layer */
-    // var y = -20, theta = 3;
-    // /** Build nodes' meshes */
-    // var meshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide, depthFunc: THREE.AlwaysDepth });
-    // // var circleGeometry = new THREE.CircleGeometry(1, 32);
-    // for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
-    // {
-    //   if(i == this.firstLayer)
-    //   {
-    //     pos = -1 * Math.floor(this.lastLayer / 2);
-    //     y = y * (-1);
-    //   }
-    //   /** Using feature scale for node sizes */
-    //   if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = 1;
-    //   var circleSize = (graph.nodes[i].weight - graph.graphInfo[0].minNodeWeight)/(graph.graphInfo[0].maxNodeWeight-graph.graphInfo[0].minNodeWeight);
-    //   /** Creating geometry and material for meshes */
-    //   var circleGeometry = new THREE.CircleGeometry(circleSize, 32);
-    //   /** Give mesh name the same as its id */
-    //   var circleMesh = new THREE.Mesh(circleGeometry, meshBasicMaterial);
-    //   circleMesh.name = graph.nodes[i].id;
-    //   circleMesh.renderOrder = 1;
-    //   /** Build node */
-    //   var x = pos * theta;
-    //   circleMesh.position.set(x, y, 0);
-    //   scene.add(circleMesh);
-    // }
-
-    // /** Creating geometry for edges */
-    // var geometry = new THREE.Geometry();
-    // /** Build edges mesh */
-    // for(var i = 0; i < graph.links.length; i++)
-    // {
-    //   var sourcePos = scene.getObjectByName(graph.links[i].source, true);
-    //   var targetPos = scene.getObjectByName(graph.links[i].target, true);
-    //   // var sourcePos = {position: {x:Math.random(), y:Math.random(), z:0}};
-    //   // var targetPos = {position:{x:Math.random(), y:Math.random(), z:0}};
-    //   var v1 = new THREE.Vector3(sourcePos.position.x, sourcePos.position.y, sourcePos.position.z);
-    //   var v2 = new THREE.Vector3(targetPos.position.x, targetPos.position.y, targetPos.position.z);
-    //   geometry.vertices.push(v1);
-    //   geometry.vertices.push(v2);
-    // }
-    //
-    // /** Build edges */
-    // // var lineSegment = new THREE.LineSegments(this.geometry, this.lineBasicMaterial, THREE.LinePieces);
-    // // scene.add(lineSegment);
-    // var line = new THREE.MeshLine();
-    // line.setGeometry(geometry);
-    // line.setGeometry(geometry, function(p){
-    //   return 0.3;
-    // });
-    // var material = new MeshLineMaterial({color: new THREE.Color(0x8D9091)});
-    // var lineMesh = new THREE.Mesh(line.geometry, material);
-    // scene.add(lineMesh);
-    // geometry.dispose();
-    // material.dispose();
   }
   catch(err)
   {

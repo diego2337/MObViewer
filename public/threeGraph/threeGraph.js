@@ -1,4 +1,5 @@
-var bipartiteGraph /* Global variables */
+/** Global variables */
+var bipartiteGraph
 var renderer;
 var graph;
 var scene;
@@ -11,19 +12,6 @@ var capture = false;
 var clicked = {wasClicked: false};
 var cameraPos = document.getElementById("mainSection").clientHeight/4;
 
-/* Check to see if any node is highlighted, and highlight its corresponding edges */
-// $('#WebGL').on('mousemove', function(){
-//   console.log("Ta vindo aqui?");
-//   if(eventHandler !== undefined)
-//   {
-//     var highlightedElements = eventHandler.getHighlightedElements();
-//     if(bipartiteGraph !== undefined)
-//     {
-//         bipartiteGraph.highlightEdges(highlightedElements);
-//     }
-//   }
-// });
-
 /**
  * Display bipartiteGraph info on HTML page.
  * @public
@@ -31,15 +19,7 @@ var cameraPos = document.getElementById("mainSection").clientHeight/4;
  */
 function displayGraphInfo(jason)
 {
-  // console.log(jason);
-  /* Display number of vertices */
-  // jason.graphInfo[0].vlayer !== undefined ? document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
-  // /* Display number of edges */
-  // document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
-  // /* Display number of vertices in first set */
-  // jason.graphInfo[0].vlayer !== undefined ? document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) : document.getElementById("firstSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0])
-  // /* Display number of vertices in second set */
-  // jason.graphInfo[0].vlayer !== undefined ? document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("secondSet").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[1])
+  /** TODO - Display graph info as it was done in previous commits */
 }
 
 function disposeNode (node)
@@ -117,7 +97,8 @@ function build(data, layout, min, max)
 
   /* Instantiating Graph */
   if(bipartiteGraph !== undefined) delete bipartiteGraph;
-  bipartiteGraph = new BipartiteGraph(jason, 10, 70);
+  bipartiteGraph = new BipartiteGraph(jason, min, max);
+  // bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
   if(renderer == undefined)
   {
@@ -145,29 +126,12 @@ function build(data, layout, min, max)
     {
       scene.remove(scene.children[i]);
     }
-    // delete scene;
+    delete scene;
   }
   else
   {
     scene = new THREE.Scene();
   }
-
-  // if(renderer !== undefined)
-  // {
-  //   // var element = document.getElementsByTagName("canvas");
-  //   // element[0].parentNode.removeChild(element[0]);
-  //   document.getElementById("WebGL").removeChild(renderer.domElement);
-  //   delete renderer;
-  // }
-  // /* Get the size of the inner window (content area) to create a full size renderer */
-  // canvasWidth = (document.getElementById("WebGL").clientWidth);
-  // canvasHeight = (document.getElementById("WebGL").clientHeight);
-  // /* Create a new WebGL renderer */
-  // renderer = new THREE.WebGLRenderer({antialias:true});
-  // /* Set the background color of the renderer to black, with full opacity */
-  // renderer.setClearColor("rgb(255, 255, 255)", 1);
-  // /* Set the renderers size to the content area size */
-  // renderer.setSize(canvasWidth, canvasHeight);
 
   /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
   document.getElementById("WebGL").appendChild(renderer.domElement);
@@ -217,26 +181,11 @@ function build(data, layout, min, max)
     }, false);
     document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, scene);}, false);
     document.addEventListener('dblclick', function(evt){
-      eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+      eventHandler.mouseDoubleClickEvent();
+      // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
       // !clicked ? clicked = true : clicked = false;
     }, false);
   }
-  // if(eventHandler !== undefined) eventHandler.setScene(scene);
-  // else
-  // {
-  //   eventHandler = new EventHandler(undefined, scene);
-  //   /* Adding event listeners */
-  //   document.addEventListener('resize', function(evt){
-  //     camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
-  //     camera.updateProjectionMatrix();
-  //     renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
-  //   }, false);
-  //   document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, bipartiteGraph);}, false);
-  //   document.addEventListener('dblclick', function(evt){
-  //     eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
-  //     // !clicked ? clicked = true : clicked = false;
-  //   }, false);
-  // }
 
   // console.log(renderer.info);
   animate();

@@ -4,21 +4,21 @@
  */
 
 /**
- * Constructor
- * params:
- *    - raycaster: defined raycaster, defaults to creating a new one.
+ * @constructor
+ * @param {Object} raycaster Defined raycaster, defaults to creating a new one.
  */
 var EventHandler = function(raycaster)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
     this.raycaster.linePrecision = 0.1;
-    // this.scene = ecmaStandard(scene, new THREE.Scene());
     this.highlightedElements = [];
     this.neighbors = [];
 }
 
 /**
- * Getter for raycaster
+ * Getter for raycaster.
+ * @public
+ * @returns {Object} Raycaster property from EventHandler.
  */
 EventHandler.prototype.getRaycaster = function()
 {
@@ -26,31 +26,19 @@ EventHandler.prototype.getRaycaster = function()
 }
 
 /**
- * Setter for raycaster
+ * Setter for raycaster.
+ * @public
+ * @param {Object} raycaster Raycaster property for EventHandler.
  */
 EventHandler.prototype.setRaycaster = function(raycaster)
 {
     this.raycaster = raycaster;
 }
 
-// /**
-//  * Getter for scene
-//  */
-// EventHandler.prototype.getScene = function()
-// {
-//     return this.scene;
-// }
-//
-// /**
-//  * Setter for scene
-//  */
-// EventHandler.prototype.setScene = function(scene)
-// {
-//     this.scene = scene;
-// }
-
 /**
- * Getter for highlighted elements
+ * Getter for highlighted elements.
+ * @public
+ * @returns {Object} Array of highlighted elements in scene.
  */
 EventHandler.prototype.getHighlightedElements = function()
 {
@@ -58,69 +46,13 @@ EventHandler.prototype.getHighlightedElements = function()
 }
 
 /**
- * Setter for highlighted elements
- * param:
- *    - highlighted: array of highlighted elements.
+ * Setter for highlighted elements.
+ * @param {Object} highlighted Array of highlighted elements.
  */
 EventHandler.prototype.setHighlightedElements = function(highlighted)
 {
     this.highlightedElements = highlighted;
 }
-
-/**
- * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
- * params:
- *    - clicked: boolean to indicate if element has already been clicked.
- *    - evt: event dispatcher.
- *    - scene: scene for raycaster.
- */
-// EventHandler.prototype.mouseDoubleClickEvent = function(clicked, evt, scene)
-// {
-//   if(!clicked.wasClicked)
-//   {
-//     /* Find highlighted vertex and highlight its neighbors */
-//     for(var i = 0; i < this.highlightedElements.length; i++)
-//     {
-//       var element = graph.getElementById(this.highlightedElements[i]);
-//       if(element instanceof Node)
-//       {
-//         /* Search neighbors */
-//         this.neighbors = graph.findNeighbors(element);
-//         /* Add itself for highlighting */
-//         this.neighbors.push(element);
-//         /* Remove itself so it won't unhighlight as soon as mouse moves out */
-//         this.highlightedElements.splice(i, 1);
-//         /* Highlight neighbors */
-//         for(var j = 0; j < this.neighbors.length; j++)
-//         {
-//           if(this.neighbors[j] instanceof Node)
-//           {
-//             this.neighbors[j].highlight();
-//             clicked.wasClicked = true;
-//           }
-//         }
-//       }
-//     }
-//   }
-//   else if(clicked.wasClicked)
-//   {
-//     clicked.wasClicked = false;
-//     /* An element was already clicked and its neighbors highlighted; unhighlight all */
-//     for(var i = 0; i < this.neighbors.length; i++)
-//     {
-//       var element = undefined;
-//       if(this.neighbors[i] instanceof Node)
-//       {
-//         element = graph.getElementById(String(this.neighbors[i].circle.name));
-//         element.unhighlight();
-//       }
-//       else if(this.neighbors[i] instanceof Edge)
-//         element = graph.getElementById(String(this.neighbors[i].edgeObject.id));
-//     }
-//     /* Clearing array of neighbors */
-//     this.neighbors = [];
-//   }
-// }
 
 /**
  * Find index of pair of vertices that form an edge.
@@ -149,11 +81,11 @@ EventHandler.prototype.findEdgePairIndex = function(vertexArray, startEdge, endE
 }
 
 /**
- * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges
- * params:
- *    - clicked: boolean to indicate if element has already been clicked.
- *    - evt: event dispatcher.
- *    - scene: scene for raycaster.
+ * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges.
+ * @public
+ * @param {boolean} clicked Boolean to indicate if element has already been clicked.
+ * @param {Object} evt Event dispatcher.
+ * @param {Object} scene Scene for raycaster.
  */
 EventHandler.prototype.mouseDoubleClickEvent = function()
 {
@@ -229,18 +161,6 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
               // lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
               lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor.r, this.neighbors[i].edgeColor.g, this.neighbors[i].edgeColor.b);
             }
-            // for(var j = 1; j < element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors.length; j++)
-            // {
-            //   var neighborIndex = element.geometry.faces[this.neighbors[i].vertexInfo*32].neighbors[j] * 32;
-            //   var endEdge = element.geometry.faces[neighborIndex].position;
-            //   var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
-            //   if(index != -1)
-            //   {
-            //     console.log("this.neighbors[i].edgeColor:");
-            //     console.log(this.neighbors[i].edgeColor);
-            //     lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
-            //   }
-            // }
             lineSegments.geometry.colorsNeedUpdate = true;
           }
         }
@@ -250,11 +170,11 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
 }
 
 /**
- * Handles mouse move. If mouse hovers over element, invoke highlighting
- * params:
- *    - evt: event dispatcher;
- *    - renderer: WebGL renderer, containing DOM element's offsets;
- *    - graph: graph, containing objects to be intersected.
+ * Handles mouse move. If mouse hovers over element, invoke highlighting.
+ * @public
+ * @param {Object} evt Event dispatcher.
+ * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
+ * @param {Object} scene Scene for raycaster.
  */
 EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
 {
@@ -281,25 +201,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
     /* Unhighlight any already highlighted element */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-        // var element = graph.getElementById(this.highlightedElements[i]);
-        // var element = scene.getObjectByName(this.highlightedElements[i], true);
-        // if(element != undefined)
-        // {
-        //   element.material.color.setHex(0x000000);
-        // }
-        // var alreadyHighlighted = false;
-        // for(var j = 0; j < this.neighbors.length; j++)
-        // {
-        //   var el = undefined;
-        //   if(this.neighbors[j] instanceof Node)
-        //     el = this.neighbors[j].circle.name;
-        //   else if(this.neighbors[j] instanceof Edge)
-        //     el = this.neighbors[j].edgeObject.id;
-        //   if(element === graph.getElementById(el))
-        //     alreadyHighlighted = true;
-        // }
-        // if(!alreadyHighlighted)
-        //   element.unhighlight();
         var endPoint = this.highlightedElements[i] + 32;
         var element = scene.getObjectByName("MainMesh", true);
         for(var j = this.highlightedElements[i]; j < endPoint; j++)
@@ -355,34 +256,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
       }
       else /** Intersection with edge */
       {
-
+        /** Do nothing (for now) */
       }
-        // var element = graph.getElementById(intersection.object.name);
-        // var element = scene.getObjectByName(intersection.object.name);
-        // element.material.color.setHex(0xFF0000);
-        // document.getElementById("graphID").innerHTML = element.name;
-        // if(element.description !== undefined)
-        //   document.getElementById("graphDescription").innerHTML = element.description;
-        // else
-        //   document.getElementById("graphDescription").innerHTML = "No description found.";
-        // this.highlightedElements.push(intersection.object.name);
     }
-}
-
-/**
- * Handles hovering out of an element in scene
- * params:
- *    - graph: graph, containing objects to be intersected.
- */
-EventHandler.prototype.mouseOutEvent = function(graph)
-{
-    for(var i = 0; i < this.highlightedElements.length; i++)
-    {
-        // var element = graph.getElementById(this.highlightedElements[i]);
-        // var element = scene.getObjectByName(this.highlightedElements[i], true);
-        // element.material.color.setHex(0x000000);
-    }
-
-    /* Clearing array of highlighted elements */
-    this.highlightedElements = [];
 }

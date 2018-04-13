@@ -430,7 +430,12 @@ THREE.OrbitControls = function ( object, domElement ) {
 		scope.update();
   });
 
-	/* Pan left */
+	/**
+	 * @author diego2337 - https://github.com/diego2337
+	 * Adding specific changes to orbitControls.js file to work with threeGraph.
+	 */
+
+	/** Pan left */
 	$('#panLeft').on('click', function(){
 		/* Reset camera to initial position */
 		scope.reset();
@@ -441,7 +446,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		scope.update();
 	});
 
-	/* Pan right */
+	/** Pan right */
 	$('#panRight').on('click', function(){
 		/* Reset camera to initial position */
 		scope.reset();
@@ -452,7 +457,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		scope.update();
 	});
 
-	/* Reset */
+	/** Reset */
 	$('#resetButton').on('click', function(){
 		scope.reset();
 		scope.object.position.z = document.getElementById("mainSection").clientHeight/4;
