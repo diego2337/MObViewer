@@ -133,6 +133,7 @@ if __name__ == "__main__":
                 if('weight' in jason['nodes'][int(clusteredVertices[i].split(" ")[j])]):
                     # two weights are in vertex
                     if(len(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'].split("/")) != 1):
+                        # FIXME - hardcoded; Some .cluster files have more than a pair of vertexes connected. Must change
                         weight = weight + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'].split("/")[0])
                         weight = weight + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'].split("/")[1])
                     else:

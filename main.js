@@ -171,6 +171,7 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
       }
       /** Execute python scripts */
       /** Execute coarsening with a given reduction factor */
+      console.log('python ' + pyPath + pyProg + " " + pyParams);
       nodeCmd.get('python ' + pyPath + pyProg + " " + pyParams, function(data, err, stderr) {
         if (!err)
         {

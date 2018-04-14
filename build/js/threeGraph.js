@@ -304,7 +304,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
 }
 
 /** Global variables */
-var bipartiteGraph
+var bipartiteGraph;
 var renderer;
 var graph;
 var scene;

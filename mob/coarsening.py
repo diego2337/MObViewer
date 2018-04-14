@@ -177,7 +177,9 @@ def main():
 			graph = coarse
 			if options.save_hierarchy or graph['level'] == options.max_levels:
 				hierarchy_graphs.append(graph)
-				hierarchy_levels.append(levels[:])
+				# hierarchy_levels.append(levels[:])
+				# Modified
+				hierarchy_levels.append(levels[0])
 
 	# Save
 	with timing.timeit_context_add('Save'):
@@ -185,8 +187,9 @@ def main():
 		# Save graph
 		for levels, graph in reversed(zip(hierarchy_levels, hierarchy_graphs)):
 			# Save json conf
+			# with open(output + '.conf', 'w+') as f:
 			# with open(output + str(levels) + '.conf', 'w+') as f:
-			with open(output + '.conf', 'w+') as f:
+			with open(output + 'n' + str(levels) + '.conf', 'w+') as f:
 				d = {}
 				d['edges'] = graph.ecount()
 				d['vertices'] = graph.vcount()
@@ -204,11 +207,13 @@ def main():
 				graph['vertices'] = ' '.join(str(e) for e in graph['vertices'])
 				graph['layers'] = str(graph['layers'])
 				graph['level'] = str(graph['level'])
+			# graph.write(output + '.' + options.extension, format=options.extension)
 			# graph.write(output + str(levels) + '.' + options.extension, format=options.extension)
-			graph.write(output + '.' + options.extension, format=options.extension)
+			graph.write(output + 'n' + str(levels) + '.' + options.extension, format=options.extension)
 			# Save super-vertices
+			# with open(output + '.cluster', 'w+') as f:
 			# with open(output + str(levels) + '.cluster', 'w+') as f:
-			with open(output + '.cluster', 'w+') as f:
+			with open(output + 'n' + str(levels) + '.cluster', 'w+') as f:
 				for v in graph.vs():
 					f.write(' '.join(map(str, v['original'])) + '\n')
 			if not options.save_hierarchy: break
