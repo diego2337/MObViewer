@@ -1,3 +1,4 @@
+var serverPort = 3030;
 var express = require('express');
 var app = express();
 var path = require('path');
@@ -351,10 +352,10 @@ app.post('/switch', function(req, res){
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 app.get('/', function(req, res){
-  res.sendFile(path.join(__dirname, 'public/views/index.html'));
+  res.sendFile(path.join(__dirname, 'views/index.html'));
 });
 
 /** Main function to trigger server */
-var server = app.listen(3030, function(){
-  console.log('Server listening on port 3030');
+var server = app.listen(serverPort, function(){
+  console.log('Server listening on port ' + serverPort);
 });

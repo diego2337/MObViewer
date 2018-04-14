@@ -1,5 +1,5 @@
 /** Global variables */
-var bipartiteGraph
+var bipartiteGraph;
 var renderer;
 var graph;
 var scene;

@@ -37,6 +37,8 @@ var BipartiteGraph = function(graph, min, max)
        this.graphInfo.min = ecmaStandard(min, 0);
        this.graphInfo.max = ecmaStandard(max, 10);
        this.graphSize = parseInt(this.firstLayer)+parseInt(this.lastLayer);
+       /** Store distance between each set in a bipartite graph */
+       this.distanceBetweenSets = 8;
    }
    catch(err)
    {
@@ -157,7 +159,7 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
   {
     /** y represents space between two layers, while theta space between each vertice of each layer */
     // var y = -25;
-    var y = -document.getElementById("mainSection").clientHeight/4;
+    var y = -document.getElementById("mainSection").clientHeight/this.distanceBetweenSets;
     // var theta = graph.graphInfo[0].maxNodeWeight*1.2;
     var theta = 5;
     /** Array to store (x,y,z) coordinates of nodes */
@@ -245,7 +247,6 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     scene.add(mesh);
 
     mesh = null;
-
 
     circleGeometry.dispose();
     material.dispose();
