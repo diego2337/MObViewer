@@ -54,6 +54,16 @@ __docformat__ = 'markdown en'
 __version__ = '0.1'
 __date__ = '2017-12-01'
 
+# Extract first number from list which is not 0.
+# @public
+# @param {list} array Array of values.
+# @returns {int} First number from list which is not 0.
+def extractFirstNonZero(array):
+	for value in array:
+		if value != 0:
+			return value
+	return -1
+
 def main():
 	"""
 	Main entry point for the application when run from the command line.
@@ -179,7 +189,7 @@ def main():
 				hierarchy_graphs.append(graph)
 				# hierarchy_levels.append(levels[:])
 				# Modified
-				hierarchy_levels.append(levels[0])
+				hierarchy_levels.append(extractFirstNonZero(levels))
 
 	# Save
 	with timing.timeit_context_add('Save'):

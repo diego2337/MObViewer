@@ -163,11 +163,13 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
       var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -e gml" ;
       if(req.body.coarsening == 0 || req.body.coarseningSecondSet == 0)
       {
-        req.body.firstSet == 1 ? pyParams = pyParams + " -l 0 -m 1 0 " : pyParams = pyParams + " -l 1 -m 0 1 ";
+        req.body.firstSet == 1 ? pyParams = pyParams + " -l 0 -m " + req.body.nLevels + " 0 " : pyParams = pyParams + " -l 1 -m 0 " + req.body.nLevels;
       }
       else
       {
-        pyParams = pyParams + " -m 1 1 ";
+        // pyParams = pyParams + " -m 1 1 ";
+        // pyParams = pyParams + " -m " + req.body.coarsening*10 + " " + req.body.coarseningSecondSet*10 + " ";
+        pyParams = pyParams + " -m " + req.body.nLevels + " " + req.body.nLevels + " ";
       }
       /** Execute python scripts */
       /** Execute coarsening with a given reduction factor */
@@ -176,40 +178,52 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
         if (!err)
         {
           // console.log("data from python script " + data);
-          /* Execute .gml to .json conversion */
-          nodeCmd.get('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + ".json", function(data, err, stderr) {
-            if(!err)
-            {
-              // console.log("data from python script " + data);
-              // console.log('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  pyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.cluster');
-              /** Set weights properly using .cluster file generated from multilevel paradigm */
-              nodeCmd.get('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  pyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.cluster', function(data, err, stderr) {
-                if(!err)
-                {
-                  // console.log("data from python script " + data);
-                  /** Rename new file to original coarsened file */
-                  nodeCmd.get('mv uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + 'Weighted.json uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', function(data, err, stderr) {
-                    if(!err)
-                    {
-                      readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', fs, res);
-                    }
-                    else
-                    {
-                      console.log("bash script cmd error: " + err);
-                    }
-                  });
-                }
-                else
-                {
-                  console.log("python script cmd error: " + err);
-                }
-              });
-            }
-            else
-            {
-              console.log("python script cmd error: " + err);
-            }
-          });
+          // if(req.body.nLevels !== undefined) pyName = pyName + "n" + req.body.nLevels;
+          console.log("pyName:");
+          console.log(pyName);
+          for(var i = 0; req.body.nLevels !== undefined && i < req.body.nLevels; i++)
+          {
+            var hierarchicalPyName = pyName + "n" + (i+1).toString();
+            console.log("hierarchicalPyName:");
+            console.log(hierarchicalPyName);
+            /* Execute .gml to .json conversion */
+            console.log('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json");
+            nodeCmd.get('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json", function(data, err, stderr) {
+              if(!err)
+              {
+                // console.log("data from python script " + data);
+                // console.log('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster');
+                /** Set weights properly using .cluster file generated from multilevel paradigm */
+                console.log('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster');
+                nodeCmd.get('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster', function(data, err, stderr) {
+                  if(!err)
+                  {
+                    // console.log("data from python script " + data);
+                    /** Rename new file to original coarsened file */
+                    console.log('mv uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + 'Weighted.json uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json');
+                    nodeCmd.get('mv uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + 'Weighted.json uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', function(data, err, stderr) {
+                      if(!err)
+                      {
+                        readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, res);
+                      }
+                      else
+                      {
+                        console.log("bash script cmd error: " + err);
+                      }
+                    });
+                  }
+                  else
+                  {
+                    console.log("python script cmd error: " + err);
+                  }
+                });
+              }
+              else
+              {
+                console.log("python script cmd error: " + err);
+              }
+            });
+          }
         }
         else
         {
@@ -304,7 +318,8 @@ app.post('/upload', function(req, res) {
  * @param {Object} req header incoming from HTTP;
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
-app.post('/slide', function(req, res) {
+// app.post('/slide', function(req, res) {
+app.post('/coarse', function(req, res) {
   var folderChar = addFolderPath();
   /** Test if no coarsening has been applied to both sets; if such case is true, return original graph */
   if(req.body.coarsening == "0" && req.body.coarseningSecondSet == "0")
@@ -315,7 +330,9 @@ app.post('/slide', function(req, res) {
   {
     /* Changing file name according to graph name */
     var pyName = fileName.split(".")[0] + "Coarsened" + "l" + req.body.coarsening.split(".").join("") + "r" + req.body.coarseningSecondSet.split(".").join("");
+    // if(req.body.nLevels !== undefined) pyName = pyName + "n" + req.body.nLevels;
     var pyCoarsening = "-r " + req.body.coarsening + " " + req.body.coarseningSecondSet;
+    if(req.body.nLevels !== undefined && req.body.nLevels != 0) pyCoarsening = pyCoarsening + " --save_hierarchy ";
     /** Check if coarsened file already exists; if not, generate a new coarsened file */
     fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data) {
       if(err) /* File doesn't exist */

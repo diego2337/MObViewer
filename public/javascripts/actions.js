@@ -84,3 +84,81 @@ $('#switchLayout').on('click', function(){
     xhr: loadGraph
   });
 });
+
+/**
+ * Build graph on screen using three.js.
+ * @public
+ */
+function graphUpdate(data, layout){
+  // console.log("Graph update successful");
+  /* Render updated graph */
+  build(data, layout);
+}
+
+/**
+ * While server-side functions are running, display progress bar.
+ * @public
+ * @return {Object} xhr object for AJAX call.
+ */
+function loadGraph()
+{
+  var xhr = new window.XMLHttpRequest();
+
+  // Upload progress
+  xhr.upload.addEventListener("progress", function(evt){
+      if (evt.lengthComputable) {
+          var percentComplete = evt.loaded / evt.total;
+          /* Hide graph */
+          $('#WebGL').css('visibility', 'hidden');
+          /*  Show WebGL div */
+          $('#progressBar').css('visibility', 'visible');
+          // console.log(percentComplete);
+      }
+  }, false);
+
+  // Download progress
+  xhr.addEventListener("progress", function(evt){
+     if (evt.lengthComputable) {
+         var percentComplete = evt.loaded / evt.total;
+         //  console.log(percentComplete);
+     }
+     else {
+     }
+     /* Hide loading bar */
+     $('#progressBar').css('visibility', 'hidden');
+     /*  Show WebGL div */
+     $('#WebGL').css('visibility', 'visible');
+  }, false);
+
+  return xhr;
+}
+
+/**
+ * Check to see if value is integer; if true, returns casted int value. Otherwise return undefined.
+ * @param {String} value Value to check.
+ * @returns {(int|undefined)} Returns int if value is integer; returns undefined otherwise.
+ */
+function getInteger(value)
+{
+  console.log(value);
+  if(parseInt(value) === NaN)
+  {
+    return undefined;
+  }
+  else
+  {
+    return parseInt(value);
+  }
+  // parseInt(value) == NaN ? return undefined : return parseInt(value);
+}
+
+/** Apply multilevel coarsening with user defined reduction factor and number of levels */
+$("#coarseGraph").on('click', function(){
+  $.ajax({
+    url:'/coarse',
+    type: 'POST',
+    data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
+    success: graphUpdate,
+    xhr: loadGraph
+  });
+});

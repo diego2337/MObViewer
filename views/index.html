@@ -147,6 +147,7 @@
             </li>
             <hr>
             <h6>Multilevel options</h6>
+            <!-- Sliders for reduction factor -->
             <ul class="mdl-list">
               <li class="mdl-list__item">
                 <h7>Slider for first layer:</h7>
@@ -162,7 +163,32 @@
               <li class="mdl-list__item">
                 <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener2" value="0"  tabindex="0">
               </li>
+              <li class="mdl-list__item">
+                <!-- Simple Select -->
+                <div class="mdl-textfield mdl-js-textfield">
+                <!-- input pattern attribute -->
+                  <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="nLevels" />
+                  <!-- mdl-textfield__label -->
+                  <label class="mdl-textfield__label" for="nLevels">Number of levels</label>
+                  <!-- class "mdl-textfield__error" -->
+                  <span class="mdl-textfield__error">Input must have numbers only</span>
+                </div>
+                <!-- <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                  <input class="mdl-textfield__input" type="text" id="username"/>
+                  <label class="mdl-textfield__label" for="username">Username</label>
+                </div> -->
+              </li>
+              <li class="mdl-list__item">
+                <button id="coarseGraph" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored">
+                  <span class="mdl-color-text--white ">Coarse graph</span>
+                  <div class="lower-case mdl-tooltip" for="coarseGraph">
+                      Use user defined reduction factor and number of levels to coarse graph.
+                  </div>
+                  <!-- <i class="material-icons">launch</i> -->
+                </button>
+              </li>
             </ul>
+            <!-- ??? -->
             <a id="downloadAnchorElem" class="no-display"></a>
           </ul>
       </div>
