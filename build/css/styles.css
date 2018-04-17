@@ -175,6 +175,13 @@ _:-ms-input-placeholder, :root .demo-graph {
 }
 
 
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
 .outer-div {
   display: table;
   position: absolute;

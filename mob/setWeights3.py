@@ -109,7 +109,13 @@ if __name__ == "__main__":
             i = int(removeTrash(line, junkCharacters).split(" ")[-1])
             newCoarsenedJson.write(line)
             # Write additional information from coarsened nodes inside node
-            if((clusteredVertices[i].split(" ")[0] is not (clusteredVertices[i].split(" ")[-1]))):
+            # if((clusteredVertices[i].split(" ")[0] is not (clusteredVertices[i].split(" ")[-1]))):
+            if((clusteredVertices[i].split(" ")[0] != 1)):
+                # for item in clusteredVertices[8].split(" "):
+                #     for prop in jason['nodes'][int(item)]:
+                #         for items in clusteredVertices[8].split(" "):
+                #             if(item is not items):
+                #                 jason['nodes'][int(item)][prop] = jason['nodes'][int(item)][prop] + "/" + jason['nodes'][int(items)][prop]
                 for item in jason['nodes'][int(clusteredVertices[i].split(" ")[-1])]:
                     jason['nodes'][int(clusteredVertices[i].split(" ")[-1])][item] = jason['nodes'][int(clusteredVertices[i].split(" ")[-1])][item] + "/" + jason['nodes'][int(clusteredVertices[i].split(" ")[0])][item]
             writingLine = json.dumps(jason['nodes'][int(clusteredVertices[i].split(" ")[-1])], indent=4, sort_keys=True)

@@ -140,7 +140,6 @@ function loadGraph()
  */
 function getInteger(value)
 {
-  console.log(value);
   if(parseInt(value) === NaN)
   {
     return undefined;

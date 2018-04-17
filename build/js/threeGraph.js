@@ -320,11 +320,23 @@ var cameraPos = document.getElementById("mainSection").clientHeight/4;
 /**
  * Display bipartiteGraph info on HTML page.
  * @public
+ * @param {string} name Graph name from .json file.
  * @param {JSON} jason .json file representing bipartiteGraph.
  */
 function displayGraphInfo(jason)
 {
   /** TODO - Display graph info as it was done in previous commits */
+  // console.log(jason);
+  /** Display graph name */
+  // document.getElementById("graphName").innerHTML = name;
+  /* Display number of vertices */
+  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  /* Display number of edges */
+  document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
+  /* Display number of vertices in first set */
+  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("nVerticesFirstLayer").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) : document.getElementById("nVerticesFirstLayer").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0])
+  /* Display number of vertices in second set */
+  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("nVerticesSecondLayer").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("nVerticesSecondLayer").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[1])
 }
 
 function disposeNode (node)
