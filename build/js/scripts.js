@@ -320,9 +320,16 @@ $('#upload-input').on('change', function(){
           // $('#uploadBox').css('display', 'none');
           /* Build graph after loading .json file */
           build(data);
+          console.log("Build build build");
       },
       xhr: loadGraph
     });
 
   }
 });
+
+/**
+  * @desc File to watch for server-side JSON responses, using Vue.js (https://vuejs.org/) to fill in necessary tables.
+  * @author Diego Cintra
+  * Date: 26 april 2018
+  */
