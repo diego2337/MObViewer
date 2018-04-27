@@ -83,9 +83,6 @@ EventHandler.prototype.findEdgePairIndex = function(vertexArray, startEdge, endE
 /**
  * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges.
  * @public
- * @param {boolean} clicked Boolean to indicate if element has already been clicked.
- * @param {Object} evt Event dispatcher.
- * @param {Object} scene Scene for raycaster.
  */
 EventHandler.prototype.mouseDoubleClickEvent = function()
 {
@@ -167,6 +164,47 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
         /** Clearing array of neighbors */
         this.neighbors = [];
       }
+}
+
+/**
+ * Handles mouse click. If mouse clicks vertex, show its current id and weight, as well as vertexes associated with it.
+ * @public
+ */
+EventHandler.prototype.mouseClickEvent = function()
+{
+  var element = scene.getObjectByName("MainMesh", true);
+  for(var i = 0; i < this.highlightedElements.length; i++)
+  {
+    var vertices = JSON.parse(element.geometry.faces[this.highlightedElements[i]].properties);
+    var vertexVueHeaders = [], vertexVueRows = [];
+    for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
+    {
+      if(j == 0)
+      {
+        for(key in vertices.vertexes[j])
+        {
+          vertexVueHeaders.push(key);
+        }
+        // console.log("vertexVueHeaders:");
+        // console.log(vertexVueHeaders);
+        /** Construct a new vue table header */
+        vueTableHeader = new Vue({
+          el: '#dynamicTableHeaders',
+          data: {
+            headers: vertexVueHeaders
+          }
+        });
+      }
+      vertexVueRows.push(vertices.vertexes[j]);
+    }
+    /** Construct a new vue table data */
+    vueTableRows = new Vue({
+      el: '#dynamicTableRows',
+      data: {
+        rows: vertexVueRows
+      }
+    });
+  }
 }
 
 /**

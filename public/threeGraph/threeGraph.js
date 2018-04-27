@@ -11,6 +11,7 @@ var layout = 2;
 var capture = false;
 var clicked = {wasClicked: false};
 var cameraPos = document.getElementById("mainSection").clientHeight/4;
+var vueTableHeader, vueTableRows;
 
 /**
  * Display bipartiteGraph info on HTML page.
@@ -196,6 +197,9 @@ function build(data, layout, min, max)
       eventHandler.mouseDoubleClickEvent();
       // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
       // !clicked ? clicked = true : clicked = false;
+    }, false);
+    document.addEventListener('click', function(evt){
+      eventHandler.mouseClickEvent();
     }, false);
   }
 

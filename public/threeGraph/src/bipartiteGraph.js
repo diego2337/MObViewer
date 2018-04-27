@@ -145,6 +145,32 @@ BipartiteGraph.prototype.findNeighbors = function(graph, i)
 }
 
 /**
+ * Writes properties of a given JSON object to string in geometry faces.
+ * @public
+ * @param {Object} singleGeometry geometry whose faces will be written with JSON properties.
+ * @param {Object} jsonObject Object containing properties to be written in geometry.
+ * @param {int} i Face index on geometry.
+ */
+BipartiteGraph.prototype.writeProperties = function(singleGeometry, jsonObject, i)
+{
+  for(var property in jsonObject)
+  {
+    if(property != "vertexes" && jsonObject.hasOwnProperty(property))
+    {
+      if(singleGeometry.faces[i].properties === undefined)
+      {
+        singleGeometry.faces[i].properties = '';
+      }
+      else
+      {
+        singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ';';
+      }
+      singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + jsonObject[property];
+    }
+  }
+}
+
+/**
  * Builds graph in the scene. All necessary node and edge calculations are performed, then these elements are added as actors.
  * @public
  * @param {Object} graph Object containing .json graph file.
@@ -219,21 +245,32 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
     /** Populate vertices with additional .json information */
     for(var i = 0, j = 0; i < singleGeometry.faces.length && j < graph.nodes.length; i = i + 32, j++)
     {
-      for(var property in graph.nodes[j])
-      {
-        if(graph.nodes[j].hasOwnProperty(property))
-        {
-          if(singleGeometry.faces[i].properties === undefined)
-          {
-            singleGeometry.faces[i].properties = '';
-          }
-          else
-          {
-            singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ';';
-          }
-          singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + graph.nodes[j][property];
-        }
-      }
+      singleGeometry.faces[i].properties = JSON.stringify(graph.nodes[j]);
+
+      // this.writeProperties(singleGeometry, graph.nodes[j], i);
+      // /** Start to write coarsened vertexes information */
+      // singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + ";vertexes" + ":" + "[";
+      // for(var k = 0; graph.nodes[j].hasOwnProperty("vertexes") && k < graph.nodes[j].vertexes.length; k++)
+      // {
+      //   this.writeProperties(singleGeometry, graph.nodes[j].vertexes[k], i);
+      // }
+      // singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + "]";
+
+      // for(var property in graph.nodes[j])
+      // {
+      //   if(property != "vertexes" && graph.nodes[j].hasOwnProperty(property))
+      //   {
+      //     if(singleGeometry.faces[i].properties === undefined)
+      //     {
+      //       singleGeometry.faces[i].properties = '';
+      //     }
+      //     else
+      //     {
+      //       singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ';';
+      //     }
+      //     singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + graph.nodes[j][property];
+      //   }
+      // }
       /** Find vertex neighbors */
       singleGeometry.faces[i].neighbors = this.findNeighbors(graph, j);
       /** Store vertex position */

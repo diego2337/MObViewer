@@ -192,10 +192,10 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
               if(!err)
               {
                 // console.log("data from python script " + data);
-                // console.log('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster');
+                // console.log('python ' + pyPath + 'setWeights4.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster');
                 /** Set weights properly using .cluster file generated from multilevel paradigm */
-                console.log('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster');
-                nodeCmd.get('python ' + pyPath + 'setWeights3.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster', function(data, err, stderr) {
+                console.log('python ' + pyPath + 'setWeights4.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster');
+                nodeCmd.get('python ' + pyPath + 'setWeights4.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster', function(data, err, stderr) {
                   if(!err)
                   {
                     // console.log("data from python script " + data);

@@ -253,14 +253,21 @@
         <section class="mdl-layout__tab-panel" id="fixed-tab-3">
           <div class="mdl-grid page-content">
             <table class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
-              <thead>
+              <thead id="dynamicTableHeaders">
                 <tr>
-                  <th class="mdl-data-table__cell--non-numeric">TODO</th>
-                  <th>Insert values</th>
-                  <th>Dynamically</th>
+                  <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
+                    {{ header }}
+                  </th>
+                  <!-- <th>Insert values</th>
+                  <th>Dynamically</th> -->
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="dynamicTableRows">
+                <tr v-for="row in rows">
+                  <td class="mdl-data-table__cell--non-numeric" v-for="key in row">
+                    {{ key.value }}
+                  </td>
+                </tr>
                 <!-- <tr>
                   <td class="mdl-data-table__cell--non-numeric">Acrylic (Transparent)</td>
                   <td>25</td>

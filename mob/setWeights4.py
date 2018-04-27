@@ -3,7 +3,7 @@
 ### .json file graph and add them to newly       ###
 ### coarsened graph.                             ###
 ### Author: Diego S. Cintra                      ###
-### Date: 21/02/2018                             ###
+### Date: 27 april 2018                          ###
 ####################################################
 
 import argparse
@@ -79,7 +79,8 @@ if __name__ == "__main__":
     clusteredVertices = []
     for line in clusterJson:
         clusteredVertices.append(line)
-        clusteredVertices[-1] = clusteredVertices[-1][:-1]
+        if(clusteredVertices[-1][-1] == '\n'):
+            clusteredVertices[-1] = clusteredVertices[-1][:-1]
     clusterJson.close()
 
     # Step 2 - Save .json file in memory #
@@ -92,17 +93,52 @@ if __name__ == "__main__":
         weights.append(0.0)
         for j in range(len(clusteredVertices[i].split(" "))):
             if('weight' in jason['nodes'][int(clusteredVertices[i].split(" ")[j])]):
-                weights[i] = weights[i] + jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight']
+                weights[i] = weights[i] + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'])
             else:
                 weights[i] = weights[i] + 1.0
     # print weights
 
-    # Step 4 - open newCoarsenedJson, and start writing .json with new weights #
-    junkCharacters = [chr(9), ' ', '\n', '\r', '\"', ',']
+    # Step 4 - load coarsened .json file in memory, open newCoarsenedJson, and start writing .json with new weights #
+    coarsenedJason = json.load(coarsenedJson)
+    # Store graphInfo
+    newCoarsenedJson.write("{\n\t\"graphInfo\":\n")
+    json.dump(coarsenedJason['graphInfo'], newCoarsenedJson, indent=4, sort_keys=True)
+    # Eliminate old nodes information
+    del coarsenedJason['nodes']
+    # Create a list of dictionaries, so nodes information can be stored
+    nodes = []
+    # newCoarsenedJson.write(",\n\t\"nodes\":\n\t[")
+    newCoarsenedJson.write(",\n\t\"nodes\":\n")
+    # Start writing new nodes with respective weights
     for i in range(len(clusteredVertices)): # "i" corresponds to clustered vertice
         for j in range(len(clusteredVertices[i].split(" "))):
             if(j == 0): # First node is id node; for every first node, store a property called "vertexes", containing array of concatenated vertexes
-
+                nodes.append(dict())
+                # writingLine = json.dumps(jason['nodes'][int(clusteredVertices[i].split(" ")[j])], indent=4, sort_keys=True)
+                nodes[i]['id'] = str(clusteredVertices[i].split(" ")[j])
+                nodes[i]['weight'] = str(weights[i])
+                # Create a list of concatenated vertexes
+                nodes[i]['vertexes'] = []
+                # coarsenedJason['nodes'][i]['id'] = j
+                # coarsenedJason['nodes'][i]['weight'] = weights[i]
+                # coarsenedJason['nodes'][i]['vertexes'] = ""
+                nodes[i]['vertexes'].append(jason['nodes'][int(clusteredVertices[i].split(" ")[j])])
+            else:
+                nodes[i]['vertexes'].append(jason['nodes'][int(clusteredVertices[i].split(" ")[j])])
+                # coarsenedJason['nodes'][i]['vertexes'] = jason['nodes'][int(clusteredVertices[i].split(" ")[j])]
+                # print json.dumps()
+    # Assign node information to dictionary structure
+    coarsenedJason['nodes'] = nodes
+    # Store nodes
+    json.dump(coarsenedJason['nodes'], newCoarsenedJson, indent=4, sort_keys=True)
+    # newCoarsenedJson.write("\n\t]")
+    # Store links
+    # newCoarsenedJson.write(",\n\t\"links\":\n\t[")
+    newCoarsenedJson.write(",\n\t\"links\":\n")
+    json.dump(coarsenedJason['links'], newCoarsenedJson, indent=4, sort_keys=True)
+    # newCoarsenedJson.write("\n\t]")
+    # Finish writing JSON file
+    newCoarsenedJson.write("\n}")
 
     # Step 5 - Close files and exit program cleanly #
     coarsenedJson.close()
