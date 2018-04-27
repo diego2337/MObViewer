@@ -85,65 +85,24 @@ if __name__ == "__main__":
     # Step 2 - Save .json file in memory #
     jason = json.load(originalJson)
     originalJson.close()
-    # estringue = json.dumps(jason['nodes'][101])
-    # print estringue.split("{")[-1].split("}")[0]
 
-    # weight = []
-    # # Step 3 - For every item in clusteredVertices, find its weight in originalJson and add it #
-    # for i in range(len(clusteredVertices)): # "i" corresponds to clustered vertice
-    #     weight.append(0)
-    #     for j in range(len(clusteredVertices[i].split(" "))):
-    #         # print clusteredVertices[i].split(" ")[j]
-    #         # junkCharacters = [chr(9), ' ', '\n', '\r', '\"', ',']
-    #         originalJson.seek(i)
-    #         weight[-1] = weight[-1] + findVerticeWeight(originalJson, int(clusteredVertices[i].split(" ")[j]))
-    #         print weight
+    weights = []
+    # Step 3 - For every item in clusteredVertices, find its weight in originalJson and add it #
+    for i in range(len(clusteredVertices)): # "i" corresponds to clustered vertice
+        weights.append(0.0)
+        for j in range(len(clusteredVertices[i].split(" "))):
+            if('weight' in jason['nodes'][int(clusteredVertices[i].split(" ")[j])]):
+                weights[i] = weights[i] + jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight']
+            else:
+                weights[i] = weights[i] + 1.0
+    # print weights
 
     # Step 4 - open newCoarsenedJson, and start writing .json with new weights #
     junkCharacters = [chr(9), ' ', '\n', '\r', '\"', ',']
-    i = 0
-    line = coarsenedJson.readline()
-    while(line != ""):
-        if(removeTrash(line, junkCharacters).split(" ")[0] == "id"):
-            # Store current id
-            i = int(removeTrash(line, junkCharacters).split(" ")[-1])
-            newCoarsenedJson.write(line)
-            # Write additional information from coarsened nodes inside node
-            if((clusteredVertices[i].split(" ")[0] is not (clusteredVertices[i].split(" ")[-1]))):
-                for item in jason['nodes'][int(clusteredVertices[i].split(" ")[-1])]:
-                    jason['nodes'][int(clusteredVertices[i].split(" ")[-1])][item] = jason['nodes'][int(clusteredVertices[i].split(" ")[-1])][item] + "/" + jason['nodes'][int(clusteredVertices[i].split(" ")[0])][item]
-            writingLine = json.dumps(jason['nodes'][int(clusteredVertices[i].split(" ")[-1])], indent=4, sort_keys=True)
-            writingLine = writingLine.split("{")[-1].split("}")[0]
-            writingLine = writingLine[1:-1] + "," + "\n"
-            newCoarsenedJson.write(writingLine)
-#            for j in range(len(clusteredVertices[i].split(" "))):
-#                writingLine = json.dumps(jason['nodes'][int(clusteredVertices[i].split(" ")[j])], indent=4, sort_keys=True)
-#                writingLine = writingLine.split("{")[-1].split("}")[0]
-#                 if(removeTrash(writingLine, junkCharacters).split(" ")[0] == i):
-#                 print "j: " + str(j)
-#                writingLine = writingLine[1:-1] + "," + "\n"
-#                newCoarsenedJson.write(writingLine)
-            line = coarsenedJson.readline()
-            while(line != "" and removeTrash(line, junkCharacters).split(" ")[0] != "weight"):
-                newCoarsenedJson.write(line)
-                line = coarsenedJson.readline()
-            # weight found: write new weight
-            weight = 0.0
-            for j in range(len(clusteredVertices[i].split(" "))):
-                if('weight' in jason['nodes'][int(clusteredVertices[i].split(" ")[j])]):
-                    # two weights are in vertex
-                    if(len(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'].split("/")) != 1):
-                        weight = weight + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'].split("/")[0])
-                        weight = weight + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'].split("/")[1])
-                    else:
-                        weight = weight + float(jason['nodes'][int(clusteredVertices[i].split(" ")[j])]['weight'])
-                else:
-                    weight = weight + 1.0
-            newCoarsenedJson.write("\t\t\"weight\": \"" + str(weight) + "\"\n")
-            # newCoarsenedJson.write("\t\t\"weight\": \"" + str(weight[i]) + "\"\n")
-            line = coarsenedJson.readline()
-        newCoarsenedJson.write(line)
-        line = coarsenedJson.readline()
+    for i in range(len(clusteredVertices)): # "i" corresponds to clustered vertice
+        for j in range(len(clusteredVertices[i].split(" "))):
+            if(j == 0): # First node is id node; for every first node, store a property called "vertexes", containing array of concatenated vertexes
+
 
     # Step 5 - Close files and exit program cleanly #
     coarsenedJson.close()

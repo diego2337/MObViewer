@@ -320,7 +320,6 @@ $('#upload-input').on('change', function(){
           // $('#uploadBox').css('display', 'none');
           /* Build graph after loading .json file */
           build(data);
-          console.log("Build build build");
       },
       xhr: loadGraph
     });
