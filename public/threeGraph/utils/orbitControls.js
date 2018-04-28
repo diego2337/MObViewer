@@ -441,8 +441,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		scope.reset();
 		/* Apply pan */
 		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
-		pan(panSize*5*1.4, 0);
-		// pan(panSize*2, 0);
+		pan(panSize*2, 0);
 		scope.update();
 	});
 
@@ -452,8 +451,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		scope.reset();
 		/* Apply pan */
 		parseInt(bipartiteGraph.firstLayer ) > parseInt(bipartiteGraph.lastLayer) ? panSize = parseInt(bipartiteGraph.firstLayer) : panSize = parseInt(bipartiteGraph.lastLayer);
-		pan(-panSize*5*1.4, 0);
-		// pan(-panSize*2, 0);
+		pan(-panSize*2, 0);
 		scope.update();
 	});
 

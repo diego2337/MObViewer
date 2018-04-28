@@ -8,6 +8,8 @@ var bodyParser = require('body-parser');
 var nodeCmd = require('node-cmd');
 var fileName = "";
 var graphSize = [];
+var pyName = "";
+var currentLevel = 0;
 
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -223,6 +225,7 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
                 console.log("python script cmd error: " + err);
               }
             });
+            currentLevel = i+1;
           }
         }
         else
@@ -329,7 +332,7 @@ app.post('/coarse', function(req, res) {
   else
   {
     /* Changing file name according to graph name */
-    var pyName = fileName.split(".")[0] + "Coarsened" + "l" + req.body.coarsening.split(".").join("") + "r" + req.body.coarseningSecondSet.split(".").join("");
+    pyName = fileName.split(".")[0] + "Coarsened" + "l" + req.body.coarsening.split(".").join("") + "r" + req.body.coarseningSecondSet.split(".").join("");
     // if(req.body.nLevels !== undefined) pyName = pyName + "n" + req.body.nLevels;
     var pyCoarsening = "-r " + req.body.coarsening + " " + req.body.coarseningSecondSet;
     if(req.body.nLevels !== undefined && req.body.nLevels != 0) pyCoarsening = pyCoarsening + " --save_hierarchy ";
@@ -360,7 +363,8 @@ app.post('/coarse', function(req, res) {
  */
 app.post('/switch', function(req, res){
   var folderChar = addFolderPath();
-  readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', fs, res);
+  // readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', fs, res);
+  readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + "n" + currentLevel + '.json', fs, res);
 });
 
 /**

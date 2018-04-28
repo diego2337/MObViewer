@@ -15,7 +15,7 @@ $('#saveFileButton').on('click', function(){
     url: '/switch',
     type: 'POST',
     success: function(html){
-      var dataStr = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(html));
+      var dataStr = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(html, undefined, "\t"));
       var dlAnchorElem = document.getElementById('downloadAnchorElem');
       dlAnchorElem.setAttribute("href", dataStr);
       dlAnchorElem.setAttribute("download", "graph.json");

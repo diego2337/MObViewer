@@ -167,44 +167,94 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
 }
 
 /**
+ * Makes all necessary configurations to properly execute raycast.
+ * @public
+ * @param {Object} evt Event dispatcher.
+ * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
+ * @param {Object} scene Scene for raycaster.
+ * @returns {Object} intersected objects in specified scene.
+ */
+EventHandler.prototype.configAndExecuteRaytracing = function(evt, renderer, scene)
+{
+  /* Get canvas element and adjust x and y to element offset */
+  var canvas = renderer.domElement.getBoundingClientRect();
+  var x = evt.clientX - canvas.left;
+  var y = evt.clientY - canvas.top;
+  // console.log("x: " + x + " y: " + y);
+
+  /* Adjusting mouse coordinates to NDC [-1, 1] */
+  var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
+  var mouseY = -(y / renderer.domElement.clientHeight) * 2 + 1;
+
+  var mouse = new THREE.Vector2(mouseX, mouseY);
+  var camera = scene.getObjectByName("camera", true);
+
+  /* Setting raycaster starting from camera */
+  this.raycaster.setFromCamera(mouse, camera);
+
+  /* Execute ray tracing */
+  return this.raycaster.intersectObjects(scene.children, true);
+}
+
+/**
  * Handles mouse click. If mouse clicks vertex, show its current id and weight, as well as vertexes associated with it.
  * @public
+ * @param {Object} evt Event dispatcher.
+ * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
+ * @param {Object} scene Scene for raycaster.
  */
-EventHandler.prototype.mouseClickEvent = function()
+EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
 {
-  var element = scene.getObjectByName("MainMesh", true);
-  for(var i = 0; i < this.highlightedElements.length; i++)
+  var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
+  var intersection = intersects[0];
+  if(intersection != undefined)
   {
-    var vertices = JSON.parse(element.geometry.faces[this.highlightedElements[i]].properties);
-    var vertexVueHeaders = [], vertexVueRows = [];
-    for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
+    if(intersection.face) /** Intersection with vertice */
     {
-      if(j == 0)
+      var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
+      var vertexVueHeaders = [], vertexVueRows = [];
+      for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
       {
-        for(key in vertices.vertexes[j])
+        if(j == 0)
         {
-          vertexVueHeaders.push(key);
-        }
-        // console.log("vertexVueHeaders:");
-        // console.log(vertexVueHeaders);
-        /** Construct a new vue table header */
-        vueTableHeader = new Vue({
-          el: '#dynamicTableHeaders',
-          data: {
-            headers: vertexVueHeaders
+          for(key in vertices.vertexes[j])
+          {
+            vertexVueHeaders.push(key);
           }
-        });
+          // console.log("vertexVueHeaders:");
+          // console.log(vertexVueHeaders);
+          /** Construct a new vue table header */
+          vueTableHeader._data.headers = vertexVueHeaders;
+        }
+        vertexVueRows.push(vertices.vertexes[j]);
       }
-      vertexVueRows.push(vertices.vertexes[j]);
+      /** Construct a new vue table data */
+      vueTableRows._data.rows = vertexVueRows;
     }
-    /** Construct a new vue table data */
-    vueTableRows = new Vue({
-      el: '#dynamicTableRows',
-      data: {
-        rows: vertexVueRows
-      }
-    });
   }
+  // var element = scene.getObjectByName("MainMesh", true);
+  // for(var i = 0; i < this.highlightedElements.length; i++)
+  // {
+  //   var vertices = JSON.parse(element.geometry.faces[this.highlightedElements[i]].properties);
+  //   var vertexVueHeaders = [], vertexVueRows = [];
+  //   for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
+  //   {
+  //     if(j == 0)
+  //     {
+  //       for(key in vertices.vertexes[j])
+  //       {
+  //         vertexVueHeaders.push(key);
+  //       }
+  //       // console.log("vertexVueHeaders:");
+  //       // console.log(vertexVueHeaders);
+  //       /** Construct a new vue table header */
+  //       vueTableHeader._data.headers = vertexVueHeaders;
+  //     }
+  //     vertexVueRows.push(vertices.vertexes[j]);
+  //   }
+  //   /** Construct a new vue table data */
+  //   vueTableRows._data.rows = vertexVueRows;
+  // }
 }
 
 /**
@@ -216,24 +266,9 @@ EventHandler.prototype.mouseClickEvent = function()
  */
 EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
 {
-    /* Get canvas element and adjust x and y to element offset */
-    var canvas = renderer.domElement.getBoundingClientRect();
-    var x = evt.clientX - canvas.left;
-    var y = evt.clientY - canvas.top;
-    // console.log("x: " + x + " y: " + y);
-
-    /* Adjusting mouse coordinates to NDC [-1, 1] */
-    var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
-    var mouseY = -(y / renderer.domElement.clientHeight) * 2 + 1;
-
-    var mouse = new THREE.Vector2(mouseX, mouseY);
-    var camera = scene.getObjectByName("camera", true);
-
-    /* Setting raycaster starting from camera */
-    this.raycaster.setFromCamera(mouse, camera);
-
     /* Execute ray tracing */
-    var intersects = this.raycaster.intersectObjects(scene.children, true);
+    // var intersects = this.raycaster.intersectObjects(scene.children, true);
+    var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
     var intersection = intersects[0];
 
     /* Unhighlight any already highlighted element */
@@ -254,7 +289,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
-
       console.log(intersection);
       if(intersection.face) /** Intersection with vertice */
       {
@@ -266,35 +300,42 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
             intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
         }
         intersection.object.geometry.colorsNeedUpdate = true;
-        this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
-        /** Display vertex information */
-        properties = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";");
-        for(var i = 0; i < intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";").length; i++)
+        /** First check if vertex isn't already highlighted because of double-clicking */
+        var found = this.neighbors.find(function(element){
+          return element.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)/32);
+        });
+        if(found == undefined)
         {
-            if(properties[i].length > 1)
-            {
-              /** if case made specifically for movieLens files */
-              if(properties[i].indexOf("|") != -1)
-              {
-                genres = properties[i].split("|");
-                for(var j = 0; j < genres.length; j++)
-                {
-                  document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + genres[j] + ",<br>";
-                }
-              }
-              else
-              {
-                document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + properties[i] + "<br>";
-                // intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";")[i] + "<br>";
-              }
-            }
+          this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
         }
-        // document.getElementById("vertexInfo").innerHTML = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties;
-        $("#vertexInfoId").css("display", "inline");
+        /** Display vertex information */
+        // properties = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";");
+        // for(var i = 0; i < intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";").length; i++)
+        // {
+        //     if(properties[i].length > 1)
+        //     {
+        //       /** if case made specifically for movieLens files */
+        //       if(properties[i].indexOf("|") != -1)
+        //       {
+        //         genres = properties[i].split("|");
+        //         for(var j = 0; j < genres.length; j++)
+        //         {
+        //           document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + genres[j] + ",<br>";
+        //         }
+        //       }
+        //       else
+        //       {
+        //         document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + properties[i] + "<br>";
+        //         // intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";")[i] + "<br>";
+        //       }
+        //     }
+        // }
+        // // document.getElementById("vertexInfo").innerHTML = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties;
+        // $("#vertexInfoId").css("display", "inline");
       }
       else /** Intersection with edge */
       {
-        /** Do nothing (for now) */
+        /** Do nothing (TODO - for now) */
       }
     }
 }
