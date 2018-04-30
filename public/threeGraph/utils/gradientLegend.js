@@ -93,14 +93,14 @@ GradientLegend.prototype.createGradientLegend = function(elementId, gradientTitl
       .attr("stop-opacity", 1);
     /** Creating rectangle */
     key.append("rect")
-      .attr("width", this.width)
+      .attr("width", this.width-5)
       .attr("height", this.height - 30)
       .style("fill", "url(#gradient)")
       .attr("transform", "translate(0,10)");
     /** Scale original edge weights to normalized edge weights */
     var y = d3.scaleLinear()
       // .range([this.graphInfo.maxDomainValue, this.graphInfo.minDomainValue])
-      .range([300, 0])
+      .range([this.width-6, 0])
       .domain([this.maxDomainValue, this.minDomainValue]);
       // .domain([this.graphInfo.maxDomainValue, this.graphInfo.minDomainValue]);
     /** Define scale ticks */
