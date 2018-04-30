@@ -163,7 +163,9 @@ function build(data, layout, min, max)
   document.getElementById("WebGL").appendChild(renderer.domElement);
 
   /* Build bipartiteGraph */
-  bipartiteGraph.buildGraph(jason, scene, lay);
+  // bipartiteGraph.buildGraph(jason, scene, lay);
+  /* Render bipartiteGraph */
+  bipartiteGraph.renderGraph(jason, scene, lay);
 
   /** Create edge gradient legend */
   if(gradientLegend !== undefined)
