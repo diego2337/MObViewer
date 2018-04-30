@@ -68,7 +68,6 @@ GradientLegend.prototype.createGradientLegend = function(elementId, gradientTitl
       .attr("id", this.spanElementId)
       .style("padding-right", "20px");
     span._groups[0][0].innerHTML = gradientTitle;
-    console.log(span);
     /** Create SVG element */
     var key = d3.select("#" + elementId)
       .append("svg")
