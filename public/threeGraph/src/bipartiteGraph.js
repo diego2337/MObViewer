@@ -39,6 +39,9 @@ var BipartiteGraph = function(graph, min, max)
        this.graphSize = parseInt(this.firstLayer)+parseInt(this.lastLayer);
        /** Store distance between each set in a bipartite graph */
        this.distanceBetweenSets = 8;
+       /** Store min and max edge weight normalized */
+       this.minEdgeWeight = 1.0, this.maxEdgeWeight = 5.0;
+       this.linearScale = undefined;
    }
    catch(err)
    {
@@ -314,14 +317,15 @@ BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
         if(graph.links[j].weight == undefined) graph.links[j].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
         // var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
         var edgeSize = Math.abs( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+0.2) );
-        edgeSize = (5.0 - 1.0) * edgeSize + 1.0;
+        // edgeSize = (5.0 - 1.0) * edgeSize + 1.0;
+        edgeSize = (this.maxEdgeWeight - this.minEdgeWeight) * edgeSize + this.minEdgeWeight;
         if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
-        var linearScale = d3.scaleLinear().domain([1.000, 5.000]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
-        edgeGeometry.colors[i] = new THREE.Color(linearScale(edgeSize));
+        // this.linearScale = d3.scaleLinear().domain([1.000, 5.000]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
+        this.linearScale = d3.scaleLinear().domain([this.minEdgeWeight, this.maxEdgeWeight]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
+        edgeGeometry.colors[i] = new THREE.Color(this.linearScale(edgeSize));
         edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
       }
       edgeGeometry.colorsNeedUpdate = true;
-
 
       /** Create one LineSegments and add it to scene */
       var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});

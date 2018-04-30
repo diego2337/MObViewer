@@ -284,8 +284,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         this.highlightedElements.splice(i, 1);
     }
     /** Hiding vertex information */
-    document.getElementById("vertexInfo").innerHTML = "";
-    $("#vertexInfoId").css("display", "none");
+    // document.getElementById("vertexInfo").innerHTML = "";
+    // $("#vertexInfoId").css("display", "none");
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {

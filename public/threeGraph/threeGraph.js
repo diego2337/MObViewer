@@ -1,5 +1,6 @@
 /** Global variables */
 var bipartiteGraph;
+var gradientLegend;
 var renderer;
 var graph;
 var scene;
@@ -163,6 +164,17 @@ function build(data, layout, min, max)
 
   /* Build bipartiteGraph */
   bipartiteGraph.buildGraph(jason, scene, lay);
+
+  /** Create edge gradient legend */
+  if(gradientLegend !== undefined)
+  {
+      gradientLegend.clear();
+      delete gradientLegend;
+  }
+  // gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo, bipartiteGraph.minEdgeWeight, bipartiteGraph.maxEdgeWeight, 300, 50);
+  /** Use minimum edge weight and maximum edge weight as domain values */
+  gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo.minEdgeWeight, bipartiteGraph.graphInfo.maxEdgeWeight, 300, 50, 5);
+  gradientLegend.createGradientLegend("gradientScale", "Edge weights:");
 
   delete jason;
 

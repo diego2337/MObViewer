@@ -195,15 +195,17 @@
       </div>
       <main id="mainSection" class="mdl-layout__content">
         <section class="mdl-layout__tab-panel is-active" id="fixed-tab-1">
+          <div id="gradientScale" class="relative-div float-right z-index-front">
+          </div>
           <div class="page-content outer-div">
-            <div id="WebGL" class="middle-div">
+            <div id="WebGL" class="middle-div z-index-behind">
               <div id="progressBar" class="hidden-visibility inner-div margin-zero-auto mdl-progress mdl-js-progress mdl-progress__indeterminate">
                 <h6 >Loading graph...</h6>
               </div>
             </div>
-            <div id="vertexInfoId" class="lower-case mdl-tooltip mdl-tooltip--large" for="fixed-tab-1" style="display: none;">
+            <!-- <div id="vertexInfoId" class="lower-case mdl-tooltip mdl-tooltip--large" for="fixed-tab-1" style="display: none;">
                 <span id="vertexInfo"></span>
-            </div>
+            </div> -->
           </div>
         </section>
         <section class="mdl-layout__tab-panel" id="fixed-tab-2">
