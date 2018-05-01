@@ -509,6 +509,8 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
 {
   try
   {
+    /** Store number of faces before adding nodes */
+    var numberOfFaces = geometry.faces.length;
     /** Build nodes */
     /** Creating geometry for nodes */
     var circleGeometry = new THREE.CircleGeometry(1, 32);
@@ -554,7 +556,7 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
       circleGeometry.scale((1/circleSize), (1/circleSize), 1);
     }
     /** Populate vertices with additional .json information */
-    for(var i = 0, j = 0; i < geometry.faces.length && j < nodes.length; i = i + 32, j++)
+    for(var i = numberOfFaces, j = 0; i < geometry.faces.length && j < nodes.length; i = i + 32, j++)
     {
       geometry.faces[i].properties = JSON.stringify(nodes[j]);
       /** Find vertex neighbors - FIXME not an IndependentSet responsibility */
