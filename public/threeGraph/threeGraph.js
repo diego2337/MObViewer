@@ -119,7 +119,7 @@ function build(data, layout, min, max)
 
   /* Instantiating Graph */
   if(bipartiteGraph !== undefined) delete bipartiteGraph;
-  bipartiteGraph = new BipartiteGraph(jason, 8, min, max);
+  bipartiteGraph = new BipartiteGraph(jason, 8, "", min, max);
   // bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
   if(renderer == undefined)

@@ -218,8 +218,6 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Create one mesh from single geometry and add it to scene */
   var mesh = new THREE.Mesh(singleGeometry, material);
   mesh.name = "MainMesh" + this.nLevel.toString();
-  console.log("mesh.name:");
-  console.log(this.nLevel.toString());
   /** Alter render order so that node mesh will always be drawn on top of edges */
   mesh.renderOrder = 1;
   scene.add(mesh);
