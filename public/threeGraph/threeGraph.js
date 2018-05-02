@@ -92,6 +92,14 @@ function disposeHierarchy (node, callback)
     }
 }
 
+/**
+ * Connect vertexes from previous level to current level, according to .cluster file.
+ * @param {Array} clusters .cluster file grouped as an array.
+ */
+function connectLevels(clusters)
+{
+  console.log("Hi, I'm a newborn function yet to be implemented :3");
+}
 
 /**
  * Render a bipartite graph, given a .json file.
@@ -183,6 +191,17 @@ function build(data, layout, min, max)
         /** Render independent sets in scene */
         coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
         /** Make connections with coarsened vertexes - use ajax call to get .cluster file, containing coarsened super vertexes */
+        $.ajax({
+          url: '/getClusters',
+          type: 'POST',
+          data: gName + "n" + (i).toString() + ".cluster",
+          processData: false,
+          contentType: false,
+          success: function(data){
+            connectLevels(data);
+          },
+          xhr: loadGraph
+        });
         // bipartiteGraphs.push(new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (i+1)));
         /** Render independent sets in scene */
         // bipartiteGraphs[bipartiteGraphs.length-1].renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());

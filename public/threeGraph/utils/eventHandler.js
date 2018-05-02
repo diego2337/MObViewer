@@ -212,6 +212,8 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
     if(intersection.face) /** Intersection with vertice */
     {
       var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
+      console.log("vertices:");
+      console.log(vertices);
       var vertexVueHeaders = [], vertexVueRows = [];
       for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
       {
@@ -280,8 +282,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         var element;
         j == 0 ? element = scene.getObjectByName("MainMesh", true) : element = scene.getObjectByName("MainMesh" + j.toString(), true);
         // var element = scene.getObjectByName("MainMesh", true);
-        console.log("element:");
-        console.log(element);
         for(var k = this.highlightedElements[i]; k < endPoint; k++)
         {
           if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(0.0, 0.0, 0.0);

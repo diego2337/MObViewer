@@ -722,6 +722,14 @@ function disposeHierarchy (node, callback)
     }
 }
 
+/**
+ * Connect vertexes from previous level to current level, according to .cluster file.
+ * @param {Array} clusters .cluster file grouped as an array.
+ */
+function connectLevels(clusters)
+{
+  console.log("Hi, I'm a newborn function yet to be implemented :3");
+}
 
 /**
  * Render a bipartite graph, given a .json file.
@@ -797,7 +805,7 @@ function build(data, layout, min, max)
   /** Construct new bipartite graphs from previous levels of coarsening */
   var nLevels = 0;
   // for(var i = 0; i < parseInt(numOfLevels)-1; i = i + 1)
-  for(var i = parseInt(numOfLevels)-1; i > 0; i = i - 1)
+  for(let i = parseInt(numOfLevels)-1; i > 0; i = i - 1)
   {
     var gName = graphName.split(".")[0];
     gName = gName.substring(0, gName.length-2);
@@ -813,6 +821,17 @@ function build(data, layout, min, max)
         /** Render independent sets in scene */
         coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
         /** Make connections with coarsened vertexes - use ajax call to get .cluster file, containing coarsened super vertexes */
+        $.ajax({
+          url: '/getClusters',
+          type: 'POST',
+          data: gName + "n" + (i).toString() + ".cluster",
+          processData: false,
+          contentType: false,
+          success: function(data){
+            connectLevels(data);
+          },
+          xhr: loadGraph
+        });
         // bipartiteGraphs.push(new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (i+1)));
         /** Render independent sets in scene */
         // bipartiteGraphs[bipartiteGraphs.length-1].renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
@@ -1129,6 +1148,8 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
     if(intersection.face) /** Intersection with vertice */
     {
       var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
+      console.log("vertices:");
+      console.log(vertices);
       var vertexVueHeaders = [], vertexVueRows = [];
       for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
       {
@@ -1197,8 +1218,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         var element;
         j == 0 ? element = scene.getObjectByName("MainMesh", true) : element = scene.getObjectByName("MainMesh" + j.toString(), true);
         // var element = scene.getObjectByName("MainMesh", true);
-        console.log("element:");
-        console.log(element);
         for(var k = this.highlightedElements[i]; k < endPoint; k++)
         {
           if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(0.0, 0.0, 0.0);

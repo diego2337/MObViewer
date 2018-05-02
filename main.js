@@ -184,9 +184,9 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
           // if(req.body.nLevels !== undefined) pyName = pyName + "n" + req.body.nLevels;
           console.log("pyName:");
           console.log(pyName);
-          for(var i = 0; req.body.nLevels !== undefined && i < req.body.nLevels; i++)
+          for(let i = 0; req.body.nLevels !== undefined && i < req.body.nLevels; i++)
           {
-            var hierarchicalPyName = pyName + "n" + (i+1).toString();
+            let hierarchicalPyName = pyName + "n" + (i+1).toString();
             console.log("hierarchicalPyName:");
             console.log(hierarchicalPyName);
             /* Execute .gml to .json conversion */
@@ -382,6 +382,32 @@ app.post('/getLevels', function(req, res){
         // console.log(bodydata);
         readJsonFile(bodydata, fs, req, res);
     });
+});
+
+/**
+ * Server-side callback function from 'express' framework for get clusters for each level. These clusters will be converted to an array.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+app.post('/getClusters', function(req, res){
+  var folderChar = addFolderPath();
+  req.on('data', function(chunk) {
+    let clusterFileName = chunk.toString('utf8');
+    console.log("clusterFileName");
+    console.log(clusterFileName);
+    fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + clusterFileName, 'utf8', function(err, data){
+      if(err)
+      {
+        return console.log(err);
+      }
+      else
+      {
+        console.log(data);
+        // res.end(...);
+      }
+    });
+  });
 });
 
 /**
