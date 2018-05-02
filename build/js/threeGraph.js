@@ -8,10 +8,12 @@
  *              4) n integers, each containing the number of nodes in a layer.
  *      - nodes: array of Node type;
  *      - edges: array of Edge type;
+ * @param {int} distanceBetweenSets The distance between two independent sets in the bipartite graph.
+ * @param {string} nLevel The level number which such bipartite graph corresponds.
  * @param {int} min The minimal value for feature scaling, applied to nodes and edges. Default is 0.
  * @param {int} max The maximum value for feature scaling, applied to nodes and edges. Default is 10.
  */
-var BipartiteGraph = function(graph, min, max)
+var BipartiteGraph = function(graph, distanceBetweenSets, nLevel, min, max)
 {
    try
    {
@@ -34,11 +36,12 @@ var BipartiteGraph = function(graph, min, max)
        {
            this.firstLayer = this.lastLayer =  Math.floor(graph.nodes.length / 2);
        }
+       this.nLevel = ecmaStandard(nLevel, " ");
        this.graphInfo.min = ecmaStandard(min, 0);
        this.graphInfo.max = ecmaStandard(max, 10);
        this.graphSize = parseInt(this.firstLayer)+parseInt(this.lastLayer);
        /** Store distance between each set in a bipartite graph */
-       this.distanceBetweenSets = 8;
+       this.distanceBetweenSets = distanceBetweenSets;
        /** Store min and max edge weight normalized */
        this.minEdgeWeight = 1.0, this.maxEdgeWeight = 5.0;
        this.linearScale = undefined;
@@ -174,6 +177,116 @@ BipartiteGraph.prototype.writeProperties = function(singleGeometry, jsonObject, 
 }
 
 /**
+ * Renders nodes in the scene.
+ * @public
+ * @param {Object} graph Object containing .json graph file.
+ * @param {Object} scene The scene in which the graph will be built.
+ * @param {int} layout Graph layout.
+ * @param {Object} firstIndependentSet Independent set where first set of nodes will be rendered.
+ * @param {Object} secondIndependentSet Independent set where second set of nodes will be rendered.
+ */
+BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndependentSet, secondIndependentSet)
+{
+  /** Create single geometry which will contain all geometries */
+  var singleGeometry = new THREE.Geometry();
+  /** y represents space between two layers, while theta space between each vertice of each layer */
+  var y = -document.getElementById("mainSection").clientHeight/this.distanceBetweenSets;
+  var theta = 5;
+  /** Define x-axis starting position */
+  var pos = (-1 * (parseInt(this.firstLayer) / 2.0));
+  /** Fill an array with nodes from first set */
+  var setNodes = [];
+  for(var i = 0; i < parseInt(this.firstLayer); i++)
+  {
+    setNodes.push(graph.nodes[i]);
+  }
+  /** Create an independent set and render its nodes */
+  firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  /** Readjust x and y-axis values */
+  y = y * (-1);
+  pos = -1 * Math.floor(parseInt(this.lastLayer) / 2);
+  /** Clear array and fill with nodes from second set */
+  setNodes = [];
+  for(var i = 0; i < parseInt(this.lastLayer); i++)
+  {
+    setNodes.push(graph.nodes[i+parseInt(this.firstLayer)]);
+  }
+  /** Create an independent set and render its nodes */
+  secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  /** Creating material for nodes */
+  var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+  /** Create one mesh from single geometry and add it to scene */
+  var mesh = new THREE.Mesh(singleGeometry, material);
+  mesh.name = "MainMesh" + this.nLevel.toString();
+  console.log("mesh.name:");
+  console.log(this.nLevel);
+  /** Alter render order so that node mesh will always be drawn on top of edges */
+  mesh.renderOrder = 1;
+  scene.add(mesh);
+
+  /** Properly dispose of objects */
+  mesh = null;
+  singleGeometry.dispose();
+  singleGeometry = null;
+  material.dispose();
+  material = null;
+}
+
+/**
+ * Renders edges in the scene.
+ * @public
+ * @param {Object} graph Object containing .json graph file.
+ * @param {Object} scene The scene in which the graph will be built.
+ * @param {int} layout Graph layout.
+ * @param {Object} firstIndependentSet Independent set where first set of nodes will be rendered.
+ * @param {Object} secondIndependentSet Independent set where second set of nodes will be rendered.
+ */
+BipartiteGraph.prototype.renderEdges = function(graph, scene, layout, firstIndependentSet, secondIndependentSet)
+{
+  if(graph.links)
+  {
+    /** Get nodes positions */
+    var positions = firstIndependentSet.positions.concat(secondIndependentSet.positions);
+    var edgeGeometry = new THREE.Geometry();
+    for(var i = 0; i < graph.links.length; i++)
+    {
+      /** Calculate path */
+      var sourcePos = positions[graph.links[i].source];
+      var targetPos = positions[graph.links[i].target];
+      var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+      var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+      edgeGeometry.vertices.push(v1);
+      edgeGeometry.vertices.push(v2);
+    }
+    for(var i = 0, j = 0; i < edgeGeometry.vertices.length && j < graph.links.length; i = i + 2, j++)
+    {
+      /** Normalize edge weight */
+      if(graph.links[j].weight == undefined) graph.links[j].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
+      // var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
+      var edgeSize = Math.abs( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+0.2) );
+      // edgeSize = (5.0 - 1.0) * edgeSize + 1.0;
+      edgeSize = (this.maxEdgeWeight - this.minEdgeWeight) * edgeSize + this.minEdgeWeight;
+      if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
+      // this.linearScale = d3.scaleLinear().domain([1.000, 5.000]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
+      this.linearScale = d3.scaleLinear().domain([this.minEdgeWeight, this.maxEdgeWeight]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
+      edgeGeometry.colors[i] = new THREE.Color(this.linearScale(edgeSize));
+      edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+    }
+    edgeGeometry.colorsNeedUpdate = true;
+
+    /** Create one LineSegments and add it to scene */
+    var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+    var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+    scene.add(lineSegments);
+
+    edgeGeometry.dispose();
+    edgeGeometry = null;
+    edgeMaterial.dispose();
+    edgeMaterial = null;
+  }
+}
+
+/**
  * Renders graph in the scene. All necessary node and edge calculations are performed, then these elements are added as actors.
  * @public
  * @param {Object} graph Object containing .json graph file.
@@ -187,92 +300,18 @@ BipartiteGraph.prototype.renderGraph = function(graph, scene, layout)
   scene = ecmaStandard(scene, undefined);
   try
   {
-    /** Create single geometry which will contain all geometries */
-    var singleGeometry = new THREE.Geometry();
-    /** y represents space between two layers, while theta space between each vertice of each layer */
-    var y = -document.getElementById("mainSection").clientHeight/this.distanceBetweenSets;
-    var theta = 5;
-    /** Define x-axis starting position */
-    var pos = (-1 * (parseInt(this.firstLayer) / 2.0));
-    /** Fill an array with nodes from first set */
-    var setNodes = [];
-    for(var i = 0; i < parseInt(this.firstLayer); i++)
-    {
-      setNodes.push(graph.nodes[i]);
-    }
-    /** Create an independent set and render its nodes */
+    /** Create independent sets */
     var firstIndependentSet = new IndependentSet();
-    firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
-    /** Readjust x and y-axis values */
-    y = y * (-1);
-    pos = -1 * Math.floor(parseInt(this.lastLayer) / 2);
-    /** Clear array and fill with nodes from second set */
-    setNodes = [];
-    for(var i = 0; i < parseInt(this.lastLayer); i++)
-    {
-      setNodes.push(graph.nodes[i+parseInt(this.firstLayer)]);
-    }
-    /** Create an independent set and render its nodes */
     var secondIndependentSet = new IndependentSet();
-    secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
-    /** Creating material for nodes */
-    var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
-    /** Create one mesh from single geometry and add it to scene */
-    var mesh = new THREE.Mesh(singleGeometry, material);
-    mesh.name = "MainMesh";
-    /** Alter render order so that node mesh will always be drawn on top of edges */
-    mesh.renderOrder = 1;
-    scene.add(mesh);
-
-    /** Properly dispose of objects */
-    mesh = null;
-    singleGeometry.dispose();
-    singleGeometry = null;
-    material.dispose();
-    material = null;
+    /** Build and render nodes */
+    this.renderNodes(graph, scene, layout, firstIndependentSet, secondIndependentSet);
 
     /** Build edges */
-    if(graph.links)
-    {
-      /** Get nodes positions */
-      var positions = firstIndependentSet.positions.concat(secondIndependentSet.positions);
-      var edgeGeometry = new THREE.Geometry();
-      for(var i = 0; i < graph.links.length; i++)
-      {
-        /** Calculate path */
-        var sourcePos = positions[graph.links[i].source];
-        var targetPos = positions[graph.links[i].target];
-        var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
-        var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
-        edgeGeometry.vertices.push(v1);
-        edgeGeometry.vertices.push(v2);
-      }
-      for(var i = 0, j = 0; i < edgeGeometry.vertices.length && j < graph.links.length; i = i + 2, j++)
-      {
-        /** Normalize edge weight */
-        if(graph.links[j].weight == undefined) graph.links[j].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
-        // var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
-        var edgeSize = Math.abs( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+0.2) );
-        // edgeSize = (5.0 - 1.0) * edgeSize + 1.0;
-        edgeSize = (this.maxEdgeWeight - this.minEdgeWeight) * edgeSize + this.minEdgeWeight;
-        if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
-        // this.linearScale = d3.scaleLinear().domain([1.000, 5.000]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
-        this.linearScale = d3.scaleLinear().domain([this.minEdgeWeight, this.maxEdgeWeight]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
-        edgeGeometry.colors[i] = new THREE.Color(this.linearScale(edgeSize));
-        edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
-      }
-      edgeGeometry.colorsNeedUpdate = true;
+    this.renderEdges(graph, scene, layout, firstIndependentSet, secondIndependentSet);
 
-      /** Create one LineSegments and add it to scene */
-      var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
-      var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
-      scene.add(lineSegments);
-
-      edgeGeometry.dispose();
-      edgeGeometry = null;
-      edgeMaterial.dispose();
-      edgeMaterial = null;
-    }
+    /** Properly dispose of elements */
+    delete firstIndependentSet;
+    delete secondIndependentSet;
   }
   catch(err)
   {
@@ -577,19 +616,22 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
   }
 }
 
+/**
+ * @desc Base class for abstraction of all elements in scene. Reponsible for rendering bipartite graph in scene, invoking functions to generate drawings, and invoking all objects in scene. TODO - to be implemented later
+ * @author Diego Cintra
+ * 1 May 2018
+ */
+
+/**
+ * @constructor
+ */
+var Layout = function()
+{
+
+}
+
 /** Global variables */
-var bipartiteGraph;
-var gradientLegend;
-var renderer;
-var graph;
-var scene;
-var camera;
-var light;
-var controls;
-var eventHandler;
-var layout = 2;
-var capture = false;
-var clicked = {wasClicked: false};
+var bipartiteGraph, gradientLegend, renderer, graph, scene, camera, light, controls, eventHandler, layout = 2, capture = false, clicked = {wasClicked: false}, graphName, numOfLevels = 0, firstSet, secondSet, bipartiteGraphs = [];
 var cameraPos = document.getElementById("mainSection").clientHeight/4;
 // var vueTableHeader, vueTableRows;
 var vueTableHeader = new Vue({
@@ -686,11 +728,18 @@ function disposeHierarchy (node, callback)
 /**
  * Render a bipartite graph, given a .json file.
  * @public
- * @param {string} data String graph to be parsed into JSON notation and rendered.
+ * @param {(string|Array)} data String of graph (or graphs) to be parsed into JSON notation and rendered.
  * @param {int} layout Graph layout. Default is 2 (bipartite horizontal).
  */
 function build(data, layout, min, max)
 {
+  /** Check and treat incoming response */
+  data = JSON.parse(data);
+  graphName = data.graphName;
+  numOfLevels = data.nLevels;
+  firstSet = data.firstSet;
+  secondSet = data.secondSet;
+  data = data.graph;
   min = ecmaStandard(min, 10);
   max = ecmaStandard(max, 70);
   lay = ecmaStandard(layout, 2);
@@ -702,7 +751,7 @@ function build(data, layout, min, max)
 
   /* Instantiating Graph */
   if(bipartiteGraph !== undefined) delete bipartiteGraph;
-  bipartiteGraph = new BipartiteGraph(jason, min, max);
+  bipartiteGraph = new BipartiteGraph(jason, 8, min, max);
   // bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
   if(renderer == undefined)
@@ -745,6 +794,34 @@ function build(data, layout, min, max)
   // bipartiteGraph.buildGraph(jason, scene, lay);
   /* Render bipartiteGraph */
   bipartiteGraph.renderGraph(jason, scene, lay);
+
+  if(bipartiteGraphs !== undefined) bipartiteGraphs = [];
+  /** Construct new bipartite graphs from previous levels of coarsening */
+  var nLevels = 0;
+  // for(var i = 0; i < parseInt(numOfLevels)-1; i = i + 1)
+  for(var i = parseInt(numOfLevels)-1; i > 0; i = i - 1)
+  {
+    var gName = graphName.split(".")[0];
+    gName = gName.substring(0, gName.length-2);
+    $.ajax({
+      url: '/getLevels',
+      type: 'POST',
+      data: gName + "n" + (i).toString() + ".json",
+      processData: false,
+      contentType: false,
+      success: function(data){
+        var coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
+        nLevels = nLevels + 1;
+        /** Render independent sets in scene */
+        coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
+        /** Make connections with coarsened vertexes - use ajax call to get .cluster file, containing coarsened super vertexes */
+        // bipartiteGraphs.push(new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (i+1)));
+        /** Render independent sets in scene */
+        // bipartiteGraphs[bipartiteGraphs.length-1].renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
+      },
+      xhr: loadGraph
+    });
+  }
 
   /** Create edge gradient legend */
   if(gradientLegend !== undefined)

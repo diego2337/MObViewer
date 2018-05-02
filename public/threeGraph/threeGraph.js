@@ -1,16 +1,5 @@
 /** Global variables */
-var bipartiteGraph;
-var gradientLegend;
-var renderer;
-var graph;
-var scene;
-var camera;
-var light;
-var controls;
-var eventHandler;
-var layout = 2;
-var capture = false;
-var clicked = {wasClicked: false};
+var bipartiteGraph, gradientLegend, renderer, graph, scene, camera, light, controls, eventHandler, layout = 2, capture = false, clicked = {wasClicked: false}, graphName, numOfLevels = 0, firstSet, secondSet, bipartiteGraphs = [];
 var cameraPos = document.getElementById("mainSection").clientHeight/4;
 // var vueTableHeader, vueTableRows;
 var vueTableHeader = new Vue({
@@ -107,11 +96,18 @@ function disposeHierarchy (node, callback)
 /**
  * Render a bipartite graph, given a .json file.
  * @public
- * @param {string} data String graph to be parsed into JSON notation and rendered.
+ * @param {(string|Array)} data String of graph (or graphs) to be parsed into JSON notation and rendered.
  * @param {int} layout Graph layout. Default is 2 (bipartite horizontal).
  */
 function build(data, layout, min, max)
 {
+  /** Check and treat incoming response */
+  data = JSON.parse(data);
+  graphName = data.graphName;
+  numOfLevels = data.nLevels;
+  firstSet = data.firstSet;
+  secondSet = data.secondSet;
+  data = data.graph;
   min = ecmaStandard(min, 10);
   max = ecmaStandard(max, 70);
   lay = ecmaStandard(layout, 2);
@@ -123,7 +119,7 @@ function build(data, layout, min, max)
 
   /* Instantiating Graph */
   if(bipartiteGraph !== undefined) delete bipartiteGraph;
-  bipartiteGraph = new BipartiteGraph(jason, min, max);
+  bipartiteGraph = new BipartiteGraph(jason, 8, min, max);
   // bipartiteGraph = new BipartiteGraph(jason, 10, 70);
 
   if(renderer == undefined)
@@ -166,6 +162,34 @@ function build(data, layout, min, max)
   // bipartiteGraph.buildGraph(jason, scene, lay);
   /* Render bipartiteGraph */
   bipartiteGraph.renderGraph(jason, scene, lay);
+
+  if(bipartiteGraphs !== undefined) bipartiteGraphs = [];
+  /** Construct new bipartite graphs from previous levels of coarsening */
+  var nLevels = 0;
+  // for(var i = 0; i < parseInt(numOfLevels)-1; i = i + 1)
+  for(var i = parseInt(numOfLevels)-1; i > 0; i = i - 1)
+  {
+    var gName = graphName.split(".")[0];
+    gName = gName.substring(0, gName.length-2);
+    $.ajax({
+      url: '/getLevels',
+      type: 'POST',
+      data: gName + "n" + (i).toString() + ".json",
+      processData: false,
+      contentType: false,
+      success: function(data){
+        var coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
+        nLevels = nLevels + 1;
+        /** Render independent sets in scene */
+        coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
+        /** Make connections with coarsened vertexes - use ajax call to get .cluster file, containing coarsened super vertexes */
+        // bipartiteGraphs.push(new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (i+1)));
+        /** Render independent sets in scene */
+        // bipartiteGraphs[bipartiteGraphs.length-1].renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
+      },
+      xhr: loadGraph
+    });
+  }
 
   /** Create edge gradient legend */
   if(gradientLegend !== undefined)

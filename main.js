@@ -120,10 +120,11 @@ function addFolderPath()
  * @public
  * @param {string} path Path string for fs variable to read.
  * @param {Object} fs FileSystem API module.
+ * @param {Object} req header sent via HTTP from HTML page, from Express API module callback 'post'.
  * @param {Object} res header to be sent via HTTP for HTML page, from Express API module callback 'post'.
  * @returns {string} if any error occurs during file read, return it via console; otherwise return nothing.
  */
-function readJsonFile(path, fs, res)
+function readJsonFile(path, fs, req, res)
 {
   fs.readFile(path, 'utf8', function(err, data){
     if(err)
@@ -135,7 +136,7 @@ function readJsonFile(path, fs, res)
       /* Store graph size */
       if(graphSize.length == 0) JSON.parse(data).graphInfo[0].vlayer != undefined ? graphSize = JSON.parse(data).graphInfo[0].vlayer : graphSize = JSON.parse(data).graphInfo[0].vertices;
       /* Send data to client */
-      res.end(addValues(data));
+      res.end(JSON.stringify({graph: addValues(data), nLevels: currentLevel, graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
     }
   });
 }
@@ -206,7 +207,7 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
                     nodeCmd.get('mv uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + 'Weighted.json uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', function(data, err, stderr) {
                       if(!err)
                       {
-                        readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, res);
+                        readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, req, res);
                       }
                       else
                       {
@@ -249,6 +250,7 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
  */
 app.post('/upload', function(req, res) {
   graphSize = [];
+  currentLevel = 0;
   var folderChar = addFolderPath();
   /* Create an incoming form object */
   var form = new formidable.IncomingForm();
@@ -274,7 +276,7 @@ app.post('/upload', function(req, res) {
                             if (!err)
                             {
                               /** Python script executed successfully; read .json file */
-                              readJsonFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', fs, res);
+                              readJsonFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', fs, req, res);
                             }
                             else
                             {
@@ -289,7 +291,7 @@ app.post('/upload', function(req, res) {
               /** Python script executed successfully; read .json file */
                 if(!err)
                 {
-                  readJsonFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', fs, res);
+                  readJsonFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', fs, req, res);
                 }
                 else
                 {
@@ -327,7 +329,7 @@ app.post('/coarse', function(req, res) {
   /** Test if no coarsening has been applied to both sets; if such case is true, return original graph */
   if(req.body.coarsening == "0" && req.body.coarseningSecondSet == "0")
   {
-    readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', fs, res);
+    readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', fs, req, res);
   }
   else
   {
@@ -364,7 +366,22 @@ app.post('/coarse', function(req, res) {
 app.post('/switch', function(req, res){
   var folderChar = addFolderPath();
   // readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', fs, res);
-  readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + "n" + currentLevel + '.json', fs, res);
+  readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + "n" + currentLevel + '.json', fs, req, res);
+});
+
+/**
+ * Server-side callback function from 'express' framework for get levels route. Gets different graph levels, in case number of levels is different than 1.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+app.post('/getLevels', function(req, res){
+  /** From https://stackoverflow.com/questions/43669913/node-js-how-to-inspect-request-data */
+  req.on('data', function(chunk) {
+        var bodydata = chunk.toString('utf8');
+        // console.log(bodydata);
+        readJsonFile(bodydata, fs, req, res);
+    });
 });
 
 /**

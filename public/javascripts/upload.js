@@ -4,6 +4,16 @@
   * Date: 02/02/2018
   */
 
+/**
+  * Outputs current slider value.
+  * @public
+  */
+function showValue()
+{
+  document.getElementById("output1").innerHTML = document.getElementById("multilevelCoarsener").value;
+  document.getElementById("output2").innerHTML = document.getElementById("multilevelCoarsener2").value;
+}
+
 /** Trigger upload-input element click */
 $('.upload-btn').on('click', function (){
     $('#upload-input').click();
@@ -36,8 +46,6 @@ $('#upload-input').on('change', function(){
           console.log('Upload successful!\n');
           /* Show slider's current value */
           showValue();
-          /* Hide upload box */
-          // $('#uploadBox').css('display', 'none');
           /* Build graph after loading .json file */
           build(data);
       },
