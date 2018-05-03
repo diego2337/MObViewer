@@ -5,7 +5,8 @@ module.exports = function(grunt){
     concurrent: {
       dev: [
         'supervisor',
-        'uglify',
+        // NOTE - uglify uses UglifyJS, which uses previous ECMAstandards than ES6, which does not accept variables such as 'let' and 'const'. Omitting uglifying proccess.
+        // 'uglify',
         'watch'
       ],
       options: {
@@ -15,15 +16,15 @@ module.exports = function(grunt){
     concat: {
       scripts: {
         src: ['public/javascripts/*.js'],
-        dest: 'build/js/scripts.js',
+        dest: 'public/build/js/scripts.js',
       },
       threegraph: {
         src: ['public/threeGraph/**/*.js'],
-        dest: 'build/js/threeGraph.js',
+        dest: 'public/build/js/threeGraph.js',
       },
       css: {
         src: ['public/**/*.css'],
-        dest: 'build/css/styles.css',
+        dest: 'public/build/css/styles.css',
       },
     },
     watch: {

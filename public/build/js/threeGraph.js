@@ -725,10 +725,14 @@ function disposeHierarchy (node, callback)
 /**
  * Connect vertexes from previous level to current level, according to .cluster file.
  * @param {Array} clusters .cluster file grouped as an array.
+ * @param {Object} scene Scene to get meshes.
+ * @param {int} outerBPLevel Outer bipartite graph level (previous coarsening level). Necessary to access proper mesh where such bipartite graph was built.
+ * @param {int} outerBPLevel Inner bipartite graph level. Necessary to access proper mesh where such bipartite graph was built.
  */
-function connectLevels(clusters)
+function connectLevels(clusters, scene, outerBPLevel, innerBPLevel)
 {
   console.log("Hi, I'm a newborn function yet to be implemented :3");
+  var outerMesh =
 }
 
 /**
@@ -816,7 +820,7 @@ function build(data, layout, min, max)
       processData: false,
       contentType: false,
       success: function(data){
-        var coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
+        let coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
         nLevels = nLevels + 1;
         /** Render independent sets in scene */
         coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
@@ -828,7 +832,7 @@ function build(data, layout, min, max)
           processData: false,
           contentType: false,
           success: function(data){
-            connectLevels(data);
+            connectLevels(data, scene, i, i-1);
           },
           xhr: loadGraph
         });
