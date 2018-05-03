@@ -396,17 +396,15 @@ app.post('/getClusters', function(req, res){
     let clusterFileName = chunk.toString('utf8');
     console.log("clusterFileName");
     console.log(clusterFileName);
-    fs.readFile(clusterFileName, 'utf8', function(err, data){
+    fs.readFile(clusterFileName, 'utf8', function(err, dat){
       if(err)
       {
         return console.log(err);
       }
       else
       {
-        /** Read char by char, storing numbers in an array */
-        var clusterVertexes = data.toString().split("\n");
         /** Send array of clusters */
-        res.end(clusterVertexes);
+        res.end(dat);
       }
     });
   });

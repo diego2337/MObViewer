@@ -101,8 +101,58 @@ function disposeHierarchy (node, callback)
  */
 function connectLevels(clusters, scene, outerBPLevel, innerBPLevel)
 {
-  console.log("Hi, I'm a newborn function yet to be implemented :3");
-  var outerMesh =
+  /** Read char by char, storing numbers in an array */
+  var clusterVertexes = clusters.toString().split("\n");
+  /** Get specific meshes for each coarsened level */
+  var outerMesh;
+  parseInt(outerBPLevel) == 0 ? outerMesh = scene.getObjectByName("MainMesh", true) : outerMesh = scene.getObjectByName("MainMesh" + outerBPLevel.toString(), true);
+  var innerMesh;
+  parseInt(innerBPLevel) == 0 ? innerMesh = scene.getObjectByName("MainMesh", true) : innerMesh = scene.getObjectByName("MainMesh" + innerBPLevel.toString(), true);
+  /** Iterate through clusterVertexes array, constructing edges between layers */
+  var edgeGeometry = new THREE.Geometry();
+  for(let i = 0, k = 0; i < innerMesh.geometry.faces.length && k < clusterVertexes.length; i = i + 32, k = k + 1)
+  {
+    var v1 = new THREE.Vector3(innerMesh.geometry.faces[i].position.x, innerMesh.geometry.faces[i].position.y, innerMesh.geometry.faces[i].position.z);
+    var previousVertexes = clusterVertexes[k].split(" ");
+    for(let j = 0; j < previousVertexes.length && outerMesh.geometry.faces[parseInt(previousVertexes[j])*32] !== undefined; j++)
+    {
+      // console.log("outerMesh:");
+      // console.log(outerMesh.geometry.faces.length);
+      // console.log("innerMesh:");
+      // console.log(innerMesh.geometry.faces.length);
+      // console.log("parseInt(previousVertexes[j])*32");
+      // console.log(outerMesh.geometry.faces[parseInt(previousVertexes[j])*32]);
+      var v2 = new THREE.Vector3(outerMesh.geometry.faces[parseInt(previousVertexes[j])*32].position.x, outerMesh.geometry.faces[parseInt(previousVertexes[j])*32].position.y, outerMesh.geometry.faces[parseInt(previousVertexes[j])*32].position.z);
+      edgeGeometry.vertices.push(v1);
+      edgeGeometry.vertices.push(v2);
+    }
+  }
+  for(let i = 0; i < edgeGeometry.vertices.length; i++)
+  {
+    edgeGeometry.colors[i] = new THREE.Color(0xFF0000);
+    edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+  }
+  edgeGeometry.verticesNeedUpdate = true;
+  edgeGeometry.colorsNeedUpdate = true;
+
+  /** Create one LineSegments and add it to scene */
+  var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+  var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+  scene.add(lineSegments);
+
+  edgeGeometry.dispose();
+  edgeGeometry = null;
+  edgeMaterial.dispose();
+  edgeMaterial = null;
+  // console.log("Hi, I'm a newborn function yet to be implemented :3");
+  // console.log("outerBPLevel:");
+  // console.log(outerBPLevel);
+  // console.log("outerMesh:");
+  // console.log(outerMesh);
+  // console.log("innerBPLevel:");
+  // console.log(innerBPLevel);
+  // console.log("innerMesh:");
+  // console.log(innerMesh);
 }
 
 /**
@@ -190,7 +240,7 @@ function build(data, layout, min, max)
       processData: false,
       contentType: false,
       success: function(data){
-        let coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
+        var coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
         nLevels = nLevels + 1;
         /** Render independent sets in scene */
         coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
@@ -202,7 +252,7 @@ function build(data, layout, min, max)
           processData: false,
           contentType: false,
           success: function(data){
-            connectLevels(data, scene, i, i-1);
+            connectLevels(data, scene, parseInt(numOfLevels)-1, i-1);
           },
           xhr: loadGraph
         });
