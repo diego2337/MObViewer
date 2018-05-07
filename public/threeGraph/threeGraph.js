@@ -272,8 +272,6 @@ function build(data, layout, min, max)
     else if(a.graphInfo[0].graphSize > b.graphInfo[0].graphSize) return 1;
     else return 0;
   });
-  console.log("bipartiteGraphs: ");
-  console.log(bipartiteGraphs);
   /** Render previous uncoarsened graphs */
   for(let i = parseInt(numOfLevels)-1; i >= 0; i = i - 1)
   {
@@ -285,7 +283,6 @@ function build(data, layout, min, max)
   nLevels = parseInt(numOfLevels);
   for(let i = 0; i < parseInt(numOfLevels); i++)
   {
-    console.log("nLevels: " + nLevels);
     var gName = graphName.split(".")[0];
     gName = gName.substring(0, gName.length-2);
     gName = gName + "n" + nLevels.toString() + ".cluster";

@@ -276,7 +276,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
     /* Unhighlight any already highlighted element - FIXME this is problematic; highlightedElements might have index of an element that is being highlighted because of a double click. Must find a way to check from which specific mesh that index is */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-      for(var j = 0; j < parseInt(numOfLevels); j++)
+      for(var j = 0; j < parseInt(numOfLevels)+1; j++)
       {
         var endPoint = this.highlightedElements[i] + 32;
         var element;
