@@ -856,39 +856,79 @@ function build(data, layout, min, max)
   bipartiteGraph.renderGraph(jason, scene, lay);
 
   if(bipartiteGraphs !== undefined) bipartiteGraphs = [];
-  /** Construct new bipartite graphs from previous levels of coarsening */
   var nLevels = 0;
   // for(var i = 0; i < parseInt(numOfLevels)-1; i = i + 1)
-  for(let i = parseInt(numOfLevels)-1; i > 0; i = i - 1)
+  /** Construct new bipartite graphs from previous levels of coarsening */
+  for(let i = parseInt(numOfLevels)-1; i >= 0; i = i - 1)
   {
     var gName = graphName.split(".")[0];
     gName = gName.substring(0, gName.length-2);
+    i == 0 ? gName = gName.substring(0, gName.lastIndexOf('Coarsened')) + ".json" : gName = gName + "n" + (i).toString() + ".json";
     $.ajax({
+      async: false,
       url: '/getLevels',
       type: 'POST',
-      data: gName + "n" + (i).toString() + ".json",
+      data: gName,
       processData: false,
       contentType: false,
       success: function(data){
-        var coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
-        nLevels = nLevels + 1;
-        /** Render independent sets in scene */
-        coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
-        /** Make connections with coarsened vertexes - use ajax call to get .cluster file, containing coarsened super vertexes */
-        $.ajax({
-          url: '/getClusters',
-          type: 'POST',
-          data: gName + "n" + (i).toString() + ".cluster",
-          processData: false,
-          contentType: false,
-          success: function(data){
-            connectLevels(data, scene, parseInt(numOfLevels)-1, i-1);
-          },
-          xhr: loadGraph
-        });
-        // bipartiteGraphs.push(new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (i+1)));
-        /** Render independent sets in scene */
+        /** Store JSON graph in array */
+        // bipartiteGraphs.push(new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (i+1), (nLevels+1).toString()));
+        bipartiteGraphs.push(JSON.parse(JSON.parse(data).graph));
         // bipartiteGraphs[bipartiteGraphs.length-1].renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
+        // nLevels = nLevels + 1;
+        // var coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
+        // /** Render independent sets in scene */
+        // coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
+        // /** Make connections with coarsened vertexes - use ajax call to get .cluster file, containing coarsened super vertexes */
+        // $.ajax({
+        //   url: '/getClusters',
+        //   type: 'POST',
+        //   data: gName + "n" + (i).toString() + ".cluster",
+        //   processData: false,
+        //   contentType: false,
+        //   success: function(data){
+        //     connectLevels(data, scene, parseInt(numOfLevels)-1, i-1);
+        //   },
+        //   xhr: loadGraph
+        // });
+      },
+      xhr: loadGraph
+    });
+  }
+  /** Sort array */
+  bipartiteGraphs.sort(function(a, b){
+    if(a.graphInfo[0].graphSize < b.graphInfo[0].graphSize) return -1;
+    else if(a.graphInfo[0].graphSize > b.graphInfo[0].graphSize) return 1;
+    else return 0;
+  });
+  console.log("bipartiteGraphs: ");
+  console.log(bipartiteGraphs);
+  /** Render previous uncoarsened graphs */
+  for(let i = parseInt(numOfLevels)-1; i >= 0; i = i - 1)
+  {
+    var coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (nLevels+1).toString());
+    coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], scene, lay, new IndependentSet(), new IndependentSet());
+    nLevels = nLevels + 1;
+  }
+  /** Fetch .cluster files and connect nodes based on such files */
+  nLevels = parseInt(numOfLevels);
+  for(let i = 0; i < parseInt(numOfLevels); i++)
+  {
+    console.log("nLevels: " + nLevels);
+    var gName = graphName.split(".")[0];
+    gName = gName.substring(0, gName.length-2);
+    gName = gName + "n" + nLevels.toString() + ".cluster";
+    nLevels = nLevels - 1;
+    $.ajax({
+      async: false,
+      url: '/getClusters',
+      type: 'POST',
+      data: gName,
+      processData: false,
+      contentType: false,
+      success: function(data){
+        connectLevels(data, scene, i+1, i);
       },
       xhr: loadGraph
     });

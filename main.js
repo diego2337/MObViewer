@@ -184,6 +184,7 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
           // if(req.body.nLevels !== undefined) pyName = pyName + "n" + req.body.nLevels;
           console.log("pyName:");
           console.log(pyName);
+          /** FIXME - for loop works, however is incorrect; Only runs once and returns to client side, while all other data is created in background  */
           for(let i = 0; req.body.nLevels !== undefined && i < req.body.nLevels; i++)
           {
             let hierarchicalPyName = pyName + "n" + (i+1).toString();
