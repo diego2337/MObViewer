@@ -63,7 +63,7 @@ class Timing(object):
 
 	def add_elapsed(self):
 		elapsed = time.time() - self.start
-		self.elapsed_set.append([elapsed // 60, float('%.4f' % (elapsed % 60))])
+		self.elapsed_set.append([elapsed // 60, '%.4f' % (elapsed % 60)])
 
 	def print_tabular(self):
 		max_row = max(self.rows + self.header, key=len)

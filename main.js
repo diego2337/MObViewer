@@ -163,10 +163,12 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
       /* Build python parameters string */
       var pyPath = "mob" + folderChar;
       var pyProg = "coarsening.py";
-      var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -e gml" ;
+      var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " --save_gml";
+      // var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " -e gml" ;
       if(req.body.coarsening == 0 || req.body.coarseningSecondSet == 0)
       {
-        req.body.firstSet == 1 ? pyParams = pyParams + " -l 0 -m " + req.body.nLevels + " 0 " : pyParams = pyParams + " -l 1 -m 0 " + req.body.nLevels;
+        // req.body.firstSet == 1 ? pyParams = pyParams + " -l 0 -m " + req.body.nLevels + " 0 " : pyParams = pyParams + " -l 1 -m 0 " + req.body.nLevels;
+        req.body.firstSet == 1 ? pyParams = pyParams + " -m " + req.body.nLevels + " 0 " : pyParams = pyParams + " -m 0 " + req.body.nLevels;
       }
       else
       {

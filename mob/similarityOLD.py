@@ -32,13 +32,6 @@ Required:
 
 import math
 
-from scipy.spatial.distance import cosine
-from scipy.spatial.distance import cdist
-from numpy import dot
-from numpy.linalg import norm
-from numpy import linalg as LA
-from scipy import spatial
-
 __maintainer__ = 'Alan Valejo'
 __author__ = 'Alan Valejo'
 __email__ = 'alanvalejo@gmail.com'
@@ -55,26 +48,6 @@ class Similarity(object):
 	def __init__(self, graph, adjlist):
 		self.graph = graph
 		self.adjlist = adjlist
-
-	def modularity(self, i, j):
-		score = self.weighted_common_neighbors(i, j)
-		strength = self.graph['strength']
-		i_strenght = self.graph.vs[i]['strength']
-		j_strenght = self.graph.vs[j]['strength']
-		return (score / strength) - ((i_strength * j_strength) / (strength * strength))
-
-	def nmf_cosine(self, i, j):
-		""" The similarity between two nodes is given by the cosine of the
-		angle between the corresponding columns in H, multiplied
-		by their norms. """
-
-		h_i = self.graph.nmf_array(i)
-		h_j = self.graph.nmf_array(j)
-		# cosine = 1 - spatial.distance.cosine(h_i, h_j)
-		# cosine = cdist([h_i], [h_j], 'jaccard')
-		# return cosine[0][0]
-		cosine = dot(h_i, h_j) / (norm(h_i) * norm(h_j))
-		return LA.norm(h_i, 1) * LA.norm(h_j, 1) * cosine
 
 	def weight(self, i, j):
 		""" Calculates pairwise weight edge on a geiven graph. """
@@ -242,7 +215,7 @@ class Similarity(object):
 
 		score = 0.0
 		for isect in self.adjlist[i].intersection(self.adjlist[j]):
-			if self.vs[isect]['membership'] == self.vs[i]['membership']:
+			if vs[isect]['membership'] == self.vs[i]['membership']:
 				degree = self.graph.degree(isect)
 				if degree != 0:
 					score += 1 / math.log(degree)
@@ -257,7 +230,7 @@ class Similarity(object):
 
 		score = 0.0
 		for isect in self.adjlist[i].intersection(self.adjlist[j]):
-			if self.vs[isect]['membership'] == self.vs[i]['membership']:
+			if vs[isect]['membership'] == self.vs[i]['membership']:
 				degree = self.graph.degree(isect)
 				if degree != 0:
 					score += 1 / degree
