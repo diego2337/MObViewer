@@ -212,14 +212,25 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
     if(intersection.face) /** Intersection with vertice */
     {
       var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
-      console.log("vertices:");
-      console.log(vertices);
-      var vertexVueHeaders = [], vertexVueRows = [];
-      for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
+      var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
+      /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
+      if(vertices.vertexes !== undefined)
+      {
+        vertices = vertices.vertexes;
+      }
+      else
+      {
+        var simpleArr = [];
+        simpleArr.push(vertices);
+        vertices = simpleArr;
+      }
+      // for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
+      for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
       {
         if(j == 0)
         {
-          for(key in vertices.vertexes[j])
+          // for(key in vertices.vertexes[j])
+          for(key in vertices[j])
           {
             vertexVueHeaders.push(key);
           }
@@ -228,7 +239,8 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
           /** Construct a new vue table header */
           vueTableHeader._data.headers = vertexVueHeaders;
         }
-        vertexVueRows.push(vertices.vertexes[j]);
+        // vertexVueRows.push(vertices.vertexes[j]);
+        vertexVueRows.push(vertices[j]);
       }
       /** Construct a new vue table data */
       vueTableRows._data.rows = vertexVueRows;
