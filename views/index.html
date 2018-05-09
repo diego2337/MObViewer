@@ -65,12 +65,12 @@
         </div>
         <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
           <a href="#fixed-tab-1" class="mdl-layout__tab is-active">Visualization</a>
-          <a href="#fixed-tab-2" class="mdl-layout__tab">Display Info</a>
+          <!-- <a href="#fixed-tab-2" class="mdl-layout__tab">Display Info</a> -->
           <a href="#fixed-tab-3" class="mdl-layout__tab">Vertex Info</a>
         </div>
       </header>
       <div id="settingsDrawer" class="mdl-layout__drawer">
-        <span class="mdl-layout-title">Settings</span>
+        <!-- <span class="mdl-layout-title">Settings</span> -->
         <ul class="mdl-list">
             <!-- <li class="mdl-list__item">
               <span class="mdl-color-text--blue-grey-50 mdl-list__item-primary-content">
@@ -147,18 +147,18 @@
               </button>
             </li>
             <hr>
-            <h6>Multilevel options</h6>
+            <h6>Multilevel settings</h6>
             <!-- Sliders for reduction factor -->
             <ul class="mdl-list">
               <li class="mdl-list__item">
-                <h7>Slider for first layer:</h7>
+                <h7>Layer 1: </h7>
                 <span id="output1"></span>
               </li>
               <li class="mdl-list__item">
                 <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener" value="0" name="multilevelCoarsenerSlider" tabindex="0">
               </li>
               <li class="mdl-list__item">
-                <h7>Slider for second layer:</h7>
+                <h7>Layer 2: </h7>
                 <span id="output2"></span>
               </li>
               <li class="mdl-list__item">
@@ -189,6 +189,25 @@
                 </button>
               </li>
             </ul>
+            <!-- Graph info -->
+            <ul class="mdl-list">
+              <li class="mdl-list__item">
+                <h7>Vertices: </h7>
+                <span id="numberOfVertices"></span>
+              </li>
+              <li class="mdl-list__item">
+                <h7>Edges: </h7>
+                <span id="numberOfEdges"></span>
+              </li>
+              <li class="mdl-list__item">
+                <h7>Layer 1 vertices: </h7>
+                <span id="nVerticesFirstLayer"></span>
+              </li>
+              <li class="mdl-list__item">
+                <h7>Layer 2 vertices: </h7>
+                <span id="nVerticesSecondLayer"></span>
+              </li>
+            </ul>
             <!-- ??? -->
             <a id="downloadAnchorElem" class="no-display"></a>
           </ul>
@@ -208,7 +227,7 @@
             </div> -->
           </div>
         </section>
-        <section class="mdl-layout__tab-panel" id="fixed-tab-2">
+        <!-- <section class="mdl-layout__tab-panel" id="fixed-tab-2">
           <div class="mdl-grid page-content">
             <table class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
               <tbody>
@@ -231,27 +250,7 @@
               </tbody>
             </table>
           </div>
-          <!-- <div class="page-content">
-            <ul class="mdl-list">
-              <li class="mdl-list__item no-padding">
-                <h6 class="no-margin">Number of vertices (total): </h6>
-                <span id="numberOfVertices"></span>
-              </li>
-              <li class="mdl-list__item no-padding">
-                <h6 class="no-margin">Number of edges: </h6>
-                <span id="numberOfEdges"></span>
-              </li>
-              <li class="mdl-list__item no-padding">
-                <h6 class="no-margin">Number of vertices for first layer: </h6>
-                <span id="nVerticesFirstLayer"></span>
-              </li>
-              <li class="mdl-list__item no-padding">
-                <h6 class="no-margin">Number of vertices for second layer: </h6>
-                <span id="nVerticesSecondLayer"></span>
-              </li>
-            </ul>
-          </div> -->
-        </section>
+        </section> -->
         <section class="mdl-layout__tab-panel" id="fixed-tab-3">
           <div class="mdl-grid page-content">
             <table class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
