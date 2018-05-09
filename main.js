@@ -197,19 +197,31 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
             nodeCmd.get('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json", function(data, err, stderr) {
               if(!err)
               {
-                // console.log("data from python script " + data);
-                // console.log('python ' + pyPath + 'setWeights4.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster');
-                console.log('mv uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + 'Weighted.json uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json');
-                nodeCmd.get('mv uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + 'Weighted.json uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', function(data, err, stderr) {
+                /** Set properties properly using information from "source" attribue in .json file generated from multilevel paradigm */
+                console.log('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet);
+                nodeCmd.get('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet, function(data, err, stderr) {
                   if(!err)
                   {
-                    readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, req, res);
+                    // console.log("data from python script " + data);
+                    /** Rename new file to original coarsened file */
+                    console.log('mv uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + 'Weighted.json uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json');
+                    nodeCmd.get('mv uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + 'Weighted.json uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', function(data, err, stderr) {
+                      if(!err)
+                      {
+                        readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, req, res);
+                      }
+                      else
+                      {
+                        console.log("bash script cmd error: " + err);
+                      }
+                    });
                   }
                   else
                   {
-                    console.log("bash script cmd error: " + err);
+                    console.log("python script cmd error: " + err);
                   }
                 });
+
                 /** Set weights properly using .cluster file generated from multilevel paradigm */
                 // console.log('python ' + pyPath + 'setWeights4.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster');
                 // nodeCmd.get('python ' + pyPath + 'setWeights4.py -o uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json -c uploads' + folderChar + fileName.split(".")[0] + folderChar +  hierarchicalPyName + '.json -g uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.cluster', function(data, err, stderr) {

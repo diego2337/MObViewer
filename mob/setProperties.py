@@ -49,3 +49,27 @@ if __name__ == "__main__":
     # Step 3: Iterate through all coarsened graphs and write new properties to .json file #
     for level in range(1, int(options.nLevels)+1):
         coarsenedFileName = fileName + "n" + str(level) + ".json"
+        # Step 3.1: Open coarsened .json graph #
+        coarsenedJson = open(options.folder + coarsenedFileName, 'r')
+        coarsenedGraph = json.load(coarsenedJson)
+        coarsenedJson.close()
+        # Step 3.2: Iterate through every node of .json file and create array of vertexes, composing super-vertex #
+        for node in coarsenedGraph['nodes']:
+            # Create a list of concatenated vertexes
+            node['vertexes'] = []
+            for source in node['source'].split(","):
+                node['vertexes'].append(originalGraph['nodes'][int(source)])
+        # Step 3.3: Open a new .json file for writing
+        newCoarsenedJson = open(options.folder + fileName + "n" + str(level) + "Weighted.json", 'w')
+        # Write graph info
+        newCoarsenedJson.write("{\n\t\"graphInfo\":\n")
+        json.dump(coarsenedGraph['graphInfo'], newCoarsenedJson, indent=4, sort_keys=True)
+        # Write nodes
+        newCoarsenedJson.write(",\n\t\"nodes\":\n")
+        json.dump(coarsenedGraph['nodes'], newCoarsenedJson, indent=4, sort_keys=True)
+        # Write links
+        newCoarsenedJson.write(",\n\t\"links\":\n")
+        json.dump(coarsenedGraph['links'], newCoarsenedJson, indent=4, sort_keys=True)
+        # Finish writing JSON file
+        newCoarsenedJson.write("\n}")
+        newCoarsenedJson.close()
