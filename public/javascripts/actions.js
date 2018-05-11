@@ -53,7 +53,7 @@ $('#switchLayout').on('click', function(){
  */
 function graphUpdate(data, layout){
   /* Render updated graph */
-  build(data, layout);
+  layout.build(data, layout);
 }
 
 /**

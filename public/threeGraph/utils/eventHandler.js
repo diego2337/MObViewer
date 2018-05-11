@@ -246,29 +246,6 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       vueTableRows._data.rows = vertexVueRows;
     }
   }
-  // var element = scene.getObjectByName("MainMesh", true);
-  // for(var i = 0; i < this.highlightedElements.length; i++)
-  // {
-  //   var vertices = JSON.parse(element.geometry.faces[this.highlightedElements[i]].properties);
-  //   var vertexVueHeaders = [], vertexVueRows = [];
-  //   for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
-  //   {
-  //     if(j == 0)
-  //     {
-  //       for(key in vertices.vertexes[j])
-  //       {
-  //         vertexVueHeaders.push(key);
-  //       }
-  //       // console.log("vertexVueHeaders:");
-  //       // console.log(vertexVueHeaders);
-  //       /** Construct a new vue table header */
-  //       vueTableHeader._data.headers = vertexVueHeaders;
-  //     }
-  //     vertexVueRows.push(vertices.vertexes[j]);
-  //   }
-  //   /** Construct a new vue table data */
-  //   vueTableRows._data.rows = vertexVueRows;
-  // }
 }
 
 /**

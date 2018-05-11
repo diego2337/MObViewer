@@ -53,7 +53,7 @@ $('#switchLayout').on('click', function(){
  */
 function graphUpdate(data, layout){
   /* Render updated graph */
-  build(data, layout);
+  layout.build(data, layout);
 }
 
 /**
@@ -201,16 +201,10 @@ $('#upload-input').on('change', function(){
           /* Show slider's current value */
           showValue();
           /* Build graph after loading .json file */
-          build(data);
+          layout.build(data);
       },
       xhr: loadGraph
     });
 
   }
 });
-
-/**
-  * @desc File to watch for server-side JSON responses, using Vue.js (https://vuejs.org/) to fill in necessary tables.
-  * @author Diego Cintra
-  * Date: 26 april 2018
-  */

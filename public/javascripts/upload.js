@@ -47,7 +47,7 @@ $('#upload-input').on('change', function(){
           /* Show slider's current value */
           showValue();
           /* Build graph after loading .json file */
-          build(data);
+          layout.build(data);
       },
       xhr: loadGraph
     });
