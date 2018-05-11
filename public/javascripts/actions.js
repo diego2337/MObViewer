@@ -24,6 +24,16 @@ function layoutUpdate()
   }
 }
 
+/** Change values for first layer coarsening */
+$('#multilevelCoarsener').on('change', function(){
+  document.getElementById("output1").innerHTML = parseFloat($('#multilevelCoarsener')[0].value);
+});
+
+/** Change values for second layer coarsening */
+$('#multilevelCoarsener2').on('change', function(){
+  document.getElementById("output2").innerHTML = parseFloat($('#multilevelCoarsener2')[0].value);
+});
+
 /** Change from horizontal layout to vertical layout */
 $('#switchLayout').on('click', function(){
   $.ajax({
