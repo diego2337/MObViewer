@@ -646,25 +646,57 @@ var vueTableRows = new Vue({
 });
 
 /**
+ * Clear all bipartiteGraph info on HTML page.
+ * @public
+ */
+function removeGraphInfo()
+{
+  document.getElementById("numberOfVertices").innerHTML = "";
+  document.getElementById("numberOfEdges").innerHTML = "";
+  document.getElementById("nVerticesFirstLayer").innerHTML = "";
+  document.getElementById("nVerticesSecondLayer").innerHTML = "";
+}
+
+/**
  * Display bipartiteGraph info on HTML page.
  * @public
- * @param {string} name Graph name from .json file.
  * @param {JSON} jason .json file representing bipartiteGraph.
  */
 function displayGraphInfo(jason)
 {
-  /** TODO - Display graph info as it was done in previous commits */
-  // console.log(jason);
-  /** Display graph name */
-  // document.getElementById("graphName").innerHTML = name;
-  /* Display number of vertices */
-  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("numberOfVertices").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
-  /* Display number of edges */
-  document.getElementById("numberOfEdges").innerHTML = parseInt(jason.graphInfo[0].edges);
-  /* Display number of vertices in first set */
-  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("nVerticesFirstLayer").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) : document.getElementById("nVerticesFirstLayer").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[0])
-  /* Display number of vertices in second set */
-  jason.graphInfo[0].vlayer !== undefined ? document.getElementById("nVerticesSecondLayer").innerHTML = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]) : document.getElementById("nVerticesSecondLayer").innerHTML = parseInt(jason.graphInfo[0].vertices.split(" ")[1])
+  /** Store innerHTML elements in variables for consistency */
+  var numOfVertexes = document.getElementById("numberOfVertices"), vertexes;
+  var numOfEdges = document.getElementById("numberOfEdges");
+  var nVerticesFirstLayer = document.getElementById("nVerticesFirstLayer"), firstLevel;
+  var nVerticesSecondLayer = document.getElementById("nVerticesSecondLayer"), secondLevel;
+  /** Making necessary assignments according to information from graphInfo */
+  if(jason.graphInfo[0].vlayer !== undefined)
+  {
+    vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+    firstLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
+    secondLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  }
+  else
+  {
+    vertexes = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+    firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
+    secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  }
+  /* Display number of vertices, edges, vertexes for first and second level separately */
+  if(numOfVertexes.innerHTML == "")
+  {
+    numOfVertexes.innerHTML = vertexes;
+    numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
+    nVerticesFirstLayer.innerHTML = firstLevel;
+    nVerticesSecondLayer.innerHTML = secondLevel;
+  }
+  else
+  {
+    numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
+    numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
+    nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
+    nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
+  }
 }
 
 function disposeNode (node)
@@ -858,6 +890,8 @@ function connectVertexes(innerNodes, outerNodes, innerBPLevel, outerBPLevel)
  */
 function build(data, layout, min, max)
 {
+  /** Remove any information from graphs */
+  removeGraphInfo();
   /** Check and treat incoming response */
   data = JSON.parse(data);
   graphName = data.graphName;
@@ -872,8 +906,10 @@ function build(data, layout, min, max)
   var jason = JSON.parse(data);
 
   /* Display bipartite graph info */
-  displayGraphInfo(jason);
+  // displayGraphInfo(jason);
 
+  console.log("jason:");
+  console.log(jason);
   /* Instantiating Graph */
   if(bipartiteGraph !== undefined) delete bipartiteGraph;
   bipartiteGraph = new BipartiteGraph(jason, 8, "", min, max);
@@ -929,7 +965,6 @@ function build(data, layout, min, max)
     var gName = graphName.split(".")[0];
     gName = gName.substring(0, gName.length-2);
     i == 0 ? gName = gName.substring(0, gName.lastIndexOf('Coarsened')) + ".json" : gName = gName + "n" + (i).toString() + ".json";
-    // console.log("gName: " + gName);
     if(gName !== ".json")
     {
       $.ajax({
@@ -941,8 +976,8 @@ function build(data, layout, min, max)
         contentType: false,
         success: function(data){
           /** Store JSON graph in array */
-          // bipartiteGraphs.push(new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (i+1), (nLevels+1).toString()));
           bipartiteGraphs.push(JSON.parse(JSON.parse(data).graph));
+          displayGraphInfo(bipartiteGraphs[bipartiteGraphs.length-1]);
           // bipartiteGraphs[bipartiteGraphs.length-1].renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
           // nLevels = nLevels + 1;
           // var coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
@@ -963,6 +998,10 @@ function build(data, layout, min, max)
         },
         xhr: loadGraph
       });
+    }
+    else
+    {
+      displayGraphInfo(jason);
     }
   }
   /** Sort array */
