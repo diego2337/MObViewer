@@ -266,6 +266,36 @@
   <script src="build/js/scripts.js"></script>
   <script src="build/js/threeGraph.js"></script>
   <script type="text/javascript">
+    var vueTableHeader = new Vue({
+      el: '#dynamicTableHeaders',
+      data: {
+        headers: ""
+      }
+    });
+    var vueTableRows = new Vue({
+      el: '#dynamicTableRows',
+      data: {
+        rows: ""
+      }
+    });
     var layout = new Layout();
+    function animate()
+    {
+      /* Render scene */
+      globalRenderer.render(globalScene, globalScene.getObjectByName("camera", true));
+
+      /* Tell the browser to call this function when page is visible */
+      requestAnimationFrame(animate);
+
+      /* Capture graph image (when requested) */
+      if(layout.capture)
+      {
+        layout.capture = false;
+        var dataURL = document.getElementsByTagName('canvas')[0].toDataURL('image/png');
+        var wd = window.open('about:blank', 'graph');
+        wd.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
+        wd.document.close();
+      }
+    }
   </script>
 </html>
