@@ -318,177 +318,6 @@ BipartiteGraph.prototype.renderGraph = function(graph, scene, layout)
 }
 
 /**
- * Builds graph in the scene. All necessary node and edge calculations are performed, then these elements are added as actors.
- * @public
- * @param {Object} graph Object containing .json graph file.
- * @param {Object} scene The scene in which the graph will be built.
- * @param {int} layout Graph layout.
- */
-BipartiteGraph.prototype.buildGraph = function(graph, scene, layout)
-{
-  layout = ecmaStandard(layout, 2);
-  scene = ecmaStandard(scene, undefined);
-  try
-  {
-    /** y represents space between two layers, while theta space between each vertice of each layer */
-    // var y = -25;
-    var y = -document.getElementById("mainSection").clientHeight/this.distanceBetweenSets;
-    // var theta = graph.graphInfo[0].maxNodeWeight*1.2;
-    var theta = 5;
-    /** Array to store (x,y,z) coordinates of nodes */
-    var positions = [];
-    /** Build nodes */
-    /** Creating geometry and material for nodes */
-    var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
-    var circleGeometry = new THREE.CircleGeometry(1, 32);
-    /** Color vertexes */
-    for(var k = 0; k < circleGeometry.faces.length; k++)
-    {
-      circleGeometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
-    }
-    /** Create single geometry which will contain all geometries */
-    var singleGeometry = new THREE.Geometry();
-    for(var i = 0, pos = (-1 * (this.firstLayer / 2.0)); i < graph.nodes.length; i++, pos++)
-    {
-      if(i == this.firstLayer)
-      {
-        pos = -1 * Math.floor(this.lastLayer / 2);
-        y = y * (-1);
-      }
-      var x = pos * theta;
-      if(graph.nodes[i].weight == undefined) graph.nodes[i].weight = parseInt(graph.graphInfo[0].minNodeWeight);
-      var circleSize = (5.0 - 1.0) * ( (parseInt(graph.nodes[i].weight) - parseInt(graph.graphInfo[0].minNodeWeight))/((parseInt(graph.graphInfo[0].maxNodeWeight)-parseInt(graph.graphInfo[0].minNodeWeight))+1) ) + 1.0;
-      if(circleSize == 0) circleSize = parseInt(graph.graphInfo[0].minNodeWeight);
-      /** Using feature scale for node sizes */
-      circleGeometry.scale(circleSize, circleSize, 1);
-      /** Give geometry name the same as its id */
-      circleGeometry.name = graph.nodes[i].id;
-      if(layout == 3)
-      {
-        /** Translate geometry for its coordinates */
-        circleGeometry.translate(y, x, 0);
-        /** Push coordinates to array */
-        positions.push({x: y, y: x, z: 0});
-        /** Merge into singleGeometry */
-        singleGeometry.merge(circleGeometry);
-        /** Return geometry for reusing */
-        circleGeometry.translate(-y, -x, 0);
-      }
-      else
-      {
-        /** Translate geometry for its coordinates */
-        circleGeometry.translate(x, y, 0);
-        /** Push coordinates to array */
-        positions.push({x: x, y: y, z: 0});
-        /** Merge into singleGeometry */
-        singleGeometry.merge(circleGeometry);
-        /** Return geometry for reusing */
-        circleGeometry.translate(-x, -y, 0);
-        circleGeometry.arrayOfProperties = [];
-      }
-      circleGeometry.name = "";
-      circleGeometry.scale((1/circleSize), (1/circleSize), 1);
-    }
-    /** Populate vertices with additional .json information */
-    for(var i = 0, j = 0; i < singleGeometry.faces.length && j < graph.nodes.length; i = i + 32, j++)
-    {
-      singleGeometry.faces[i].properties = JSON.stringify(graph.nodes[j]);
-
-      // this.writeProperties(singleGeometry, graph.nodes[j], i);
-      // /** Start to write coarsened vertexes information */
-      // singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + ";vertexes" + ":" + "[";
-      // for(var k = 0; graph.nodes[j].hasOwnProperty("vertexes") && k < graph.nodes[j].vertexes.length; k++)
-      // {
-      //   this.writeProperties(singleGeometry, graph.nodes[j].vertexes[k], i);
-      // }
-      // singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + "]";
-
-      // for(var property in graph.nodes[j])
-      // {
-      //   if(property != "vertexes" && graph.nodes[j].hasOwnProperty(property))
-      //   {
-      //     if(singleGeometry.faces[i].properties === undefined)
-      //     {
-      //       singleGeometry.faces[i].properties = '';
-      //     }
-      //     else
-      //     {
-      //       singleGeometry.faces[i].properties = singleGeometry.faces[i].properties +  ';';
-      //     }
-      //     singleGeometry.faces[i].properties = singleGeometry.faces[i].properties + property + ":" + graph.nodes[j][property];
-      //   }
-      // }
-      /** Find vertex neighbors */
-      singleGeometry.faces[i].neighbors = this.findNeighbors(graph, j);
-      /** Store vertex position */
-      singleGeometry.faces[i].position = positions[j];
-    }
-    /** Create one mesh from single geometry and add it to scene */
-    mesh = new THREE.Mesh(singleGeometry, material);
-    mesh.name = "MainMesh";
-    /** Alter render order so that node mesh will always be drawn on top of edges */
-    mesh.renderOrder = 1;
-    scene.add(mesh);
-
-    mesh = null;
-
-    circleGeometry.dispose();
-    material.dispose();
-
-    singleGeometry.dispose();
-    singleGeometry = null;
-
-    circleGeometry = null;
-    material = null;
-
-    /** Build edges */
-    if(graph.links)
-    {
-      var edgeGeometry = new THREE.Geometry();
-      for(var i = 0; i < graph.links.length; i++)
-      {
-        /** Calculate path */
-        var sourcePos = positions[graph.links[i].source];
-        var targetPos = positions[graph.links[i].target];
-        var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
-        var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
-        edgeGeometry.vertices.push(v1);
-        edgeGeometry.vertices.push(v2);
-      }
-      for(var i = 0, j = 0; i < edgeGeometry.vertices.length && j < graph.links.length; i = i + 2, j++)
-      {
-        /** Normalize edge weight */
-        if(graph.links[j].weight == undefined) graph.links[j].weight = parseInt(graph.graphInfo[0].minEdgeWeight);
-        // var edgeSize = (5.0 - 1.0) * ( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+1) ) + 1.0;
-        var edgeSize = Math.abs( (parseInt(graph.links[j].weight) - parseInt(graph.graphInfo[0].minEdgeWeight))/((parseInt(graph.graphInfo[0].maxEdgeWeight)-parseInt(graph.graphInfo[0].minEdgeWeight))+0.2) );
-        // edgeSize = (5.0 - 1.0) * edgeSize + 1.0;
-        edgeSize = (this.maxEdgeWeight - this.minEdgeWeight) * edgeSize + this.minEdgeWeight;
-        if(edgeSize == 0) edgeSize = parseInt(graph.graphInfo[0].minEdgeWeight);
-        // this.linearScale = d3.scaleLinear().domain([1.000, 5.000]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
-        this.linearScale = d3.scaleLinear().domain([this.minEdgeWeight, this.maxEdgeWeight]).range(['rgb(220, 255, 255)', 'rgb(0, 0, 255)']);
-        edgeGeometry.colors[i] = new THREE.Color(this.linearScale(edgeSize));
-        edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
-      }
-      edgeGeometry.colorsNeedUpdate = true;
-
-      /** Create one LineSegments and add it to scene */
-      var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
-      var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
-      scene.add(lineSegments);
-
-      edgeGeometry.dispose();
-      edgeGeometry = null;
-      edgeMaterial.dispose();
-      edgeMaterial = null;
-    }
-  }
-  catch(err)
-  {
-     throw "Unexpected error ocurred at line " + err.line + ". " + err;
-  }
-}
-
-/**
  * Base class for Independent Set, which consists of an independent set of nodes.
  * @author Diego Cintra
  * 30 april 2018
@@ -615,60 +444,61 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
 }
 
 /**
- * @desc Base class for abstraction of all elements in scene. Reponsible for rendering bipartite graph in scene, invoking functions to generate drawings, and invoking all objects in scene. TODO - to be implemented later
+ * @desc Base class for abstraction of all elements in scene. Reponsible for rendering bipartite graph in scene, invoking functions to generate drawings, taking care of clearing and filling HTML page elements and invoking all objects in scene. TODO - to be implemented and modulated later
  * @author Diego Cintra
  * 1 May 2018
  */
+
+ /** @global Global variables must be declarated for redrawing to happen. */
+ var globalRenderer, globalScene;
 
 /**
  * @constructor
  */
 var Layout = function()
 {
-
+  /** @desc Define trigger for saving a graph image in .png format */
+  this.capture = false;
+  /** @desc Define number of coarsened graphs in current visualization */
+  this.numOfLevels = 0;
+  /** @desc Define if gradient legend is already present */
+  this.gradientLegend = undefined;
+  /** @desc Define standard layout - (2) for horizontal bipartite graph, (3) for vertical bipartite graph */
+  this.lay = 2;
 }
-
-/** Global variables */
-var bipartiteGraph, gradientLegend, renderer, graph, scene, camera, light, controls, eventHandler, layout = 2, capture = false, clicked = {wasClicked: false}, graphName, numOfLevels = 0, firstSet, secondSet, bipartiteGraphs = [];
-var cameraPos = document.getElementById("mainSection").clientHeight/4;
-// var vueTableHeader, vueTableRows;
-var vueTableHeader = new Vue({
-  el: '#dynamicTableHeaders',
-  data: {
-    headers: ""
-  }
-});
-var vueTableRows = new Vue({
-  el: '#dynamicTableRows',
-  data: {
-    rows: ""
-  }
-});
 
 /**
  * Clear all bipartiteGraph info on HTML page.
  * @public
+ * @param {string} numberOfVertices "id" attribute of HTML element indicating number of vertexes to be shown.
+ * @param {string} numberOfEdges "id" attribute of HTML element indicating number of edges to be shown.
+ * @param {string} nVerticesFirstLayer "id" attribute of HTML element indicating number of verticesw in first layer to be shown.
+ * @param {string} nVerticesSecondLayer "id" attribute of HTML element indicating number of verticesw in second layer to be shown.
  */
-function removeGraphInfo()
+Layout.prototype.removeGraphInfo = function(numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
-  document.getElementById("numberOfVertices").innerHTML = "";
-  document.getElementById("numberOfEdges").innerHTML = "";
-  document.getElementById("nVerticesFirstLayer").innerHTML = "";
-  document.getElementById("nVerticesSecondLayer").innerHTML = "";
+  document.getElementById(numberOfVertices).innerHTML = "";
+  document.getElementById(numberOfEdges).innerHTML = "";
+  document.getElementById(nVerticesFirstLayer).innerHTML = "";
+  document.getElementById(nVerticesSecondLayer).innerHTML = "";
 }
 
 /**
  * Display bipartiteGraph info on HTML page.
  * @public
  * @param {JSON} jason .json file representing bipartiteGraph.
+ * @param {string} numberOfVertices "id" attribute of HTML element indicating number of vertexes to be shown.
+ * @param {string} numberOfEdges "id" attribute of HTML element indicating number of edges to be shown.
+ * @param {string} nVerticesFirstLayer "id" attribute of HTML element indicating number of vertices in first layer to be shown.
+ * @param {string} nVerticesSecondLayer "id" attribute of HTML element indicating number of vertices in second layer to be shown.
  */
-function displayGraphInfo(jason)
+Layout.prototype.displayGraphInfo = function(jason, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
   /** Store innerHTML elements in variables for consistency */
-  var numOfVertexes = document.getElementById("numberOfVertices"), vertexes;
-  var numOfEdges = document.getElementById("numberOfEdges");
-  var nVerticesFirstLayer = document.getElementById("nVerticesFirstLayer"), firstLevel;
-  var nVerticesSecondLayer = document.getElementById("nVerticesSecondLayer"), secondLevel;
+  var numOfVertexes = document.getElementById(numberOfVertices), vertexes;
+  var numOfEdges = document.getElementById(numberOfEdges);
+  var nVerticesFirstLayer = document.getElementById(nVerticesFirstLayer), firstLevel;
+  var nVerticesSecondLayer = document.getElementById(nVerticesSecondLayer), secondLevel;
   /** Making necessary assignments according to information from graphInfo */
   if(jason.graphInfo[0].vlayer !== undefined)
   {
@@ -699,7 +529,151 @@ function displayGraphInfo(jason)
   }
 }
 
-function disposeNode (node)
+/**
+ * Find index of object which contains specified value inside an array.
+ * @param {(string|int|float)} value Value to be searched in objects.
+ * @param {Array} objArray Object array.
+ * @returns {int} Index of position or -1 if not found.
+ */
+function findPos(value, objArray)
+{
+  return objArray.map(function(e) { return e.id; }).indexOf(value);
+}
+
+/**
+ * Connect vertexes from previous level to current level, using information stored in nodes.
+ * @param {JSON} innerNodes Coarsened nodes.
+ * @param {JSON} outerNodes Uncoarsened nodes (from previous levels).
+ * @param {int} innerBPLevel Inner bipartite graph level. Necessary to access proper mesh where such bipartite graph was built.
+ * @param {int} outerBPLevel Outer bipartite graph level (previous coarsening level). Necessary to access proper mesh where such bipartite graph was built.
+ */
+Layout.prototype.connectVertexes = function(innerNodes, outerNodes, innerBPLevel, outerBPLevel)
+{
+  // console.log("innerBPLevel: " + innerBPLevel);
+  // console.log("outerBPLevel: " + outerBPLevel);
+  /** Fetch meshes */
+  var outerMesh;
+  parseInt(outerBPLevel) == 0 ? outerMesh = globalScene.getObjectByName("MainMesh", true) : outerMesh = globalScene.getObjectByName("MainMesh" + outerBPLevel.toString(), true);
+  var innerMesh;
+  parseInt(innerBPLevel) == 0 ? innerMesh = globalScene.getObjectByName("MainMesh", true) : innerMesh = globalScene.getObjectByName("MainMesh" + innerBPLevel.toString(), true);
+  /** Iterate through innerNodes to get predecessors */
+  var edgeGeometry = new THREE.Geometry();
+  for(let i = 0; i < innerNodes['nodes'].length; i++)
+  {
+    /** Store (array of) predecessor(s) */
+    let predecessor = innerNodes['nodes'][i].predecessor;
+    let innerIndex = parseInt(innerNodes['nodes'][i].id)*32;
+    /** Store position(s) of predecessor(s) */
+    predecessor = predecessor.split(",");
+    var v1 = new THREE.Vector3(innerMesh.geometry.faces[innerIndex].position.x, innerMesh.geometry.faces[innerIndex].position.y, innerMesh.geometry.faces[innerIndex].position.z);
+    for(let j = 0; j < predecessor.length; j++)
+    {
+      let pos = findPos(predecessor[j], outerNodes['nodes']);
+      let outerIndex = parseInt(outerNodes['nodes'][pos].id)*32;
+      var v2 = new THREE.Vector3(outerMesh.geometry.faces[outerIndex].position.x, outerMesh.geometry.faces[outerIndex].position.y, outerMesh.geometry.faces[outerIndex].position.z);
+      edgeGeometry.vertices.push(v1);
+      edgeGeometry.vertices.push(v2);
+    }
+  }
+  for(let i = 0; i < edgeGeometry.vertices.length; i++)
+  {
+    edgeGeometry.colors[i] = new THREE.Color(0xFF0000);
+    edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+  }
+  edgeGeometry.verticesNeedUpdate = true;
+  edgeGeometry.colorsNeedUpdate = true;
+
+  /** Create one LineSegments and add it to scene */
+  var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+  var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+  globalScene.add(lineSegments);
+
+  edgeGeometry.dispose();
+  edgeGeometry = null;
+  edgeMaterial.dispose();
+  edgeMaterial = null;
+}
+
+/**
+ * Create eventHandler object, to associate all document listeners to it.
+ * @public
+ * @param {Object} camera Camera object from three.js API.
+ * @param {string} WebGL "id" attribute of HTML element indicating main section for canvas to be drawn.
+ */
+Layout.prototype.createEventListener = function(camera, WebGL)
+{
+  var eventHandler;
+  var numOfLevels = this.numOfLevels;
+  if(eventHandler === undefined)
+  {
+    eventHandler = new EventHandler(undefined);
+    /* Adding event listeners */
+    document.addEventListener('resize', function(evt){
+      camera.aspect = document.getElementById(WebGL).clientWidth / document.getElementById(WebGL).clientHeight;
+      camera.updateProjectionMatrix();
+      globalRenderer.setSize(document.getElementById(WebGL).clientWidth, document.getElementById(WebGL).clientHeight);
+    }, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, numOfLevels, globalRenderer, globalScene);}, false);
+    document.addEventListener('dblclick', function(evt){
+      eventHandler.mouseDoubleClickEvent(globalScene);
+      // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+      // !clicked ? clicked = true : clicked = false;
+    }, false);
+    document.addEventListener('click', function(evt){
+      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene);
+    }, false);
+  }
+}
+
+/**
+ * Configure additional three.js API parameters, such as camera, light and controls.
+ * @public
+ * @param {string} mainSection "id" attribute of HTML element indicating main section containing main canvas.
+ * @param {string} WebGL "id" attribute of HTML element indicating main section for canvas to be drawn.
+ * @param {int} canvasWidth Width of canvas element in HTML page.
+ * @param {int} canvasHeight Height of canvas element in HTML page.
+ */
+Layout.prototype.configCLC = function(mainSection, WebGL, canvasWidth, canvasHeight)
+{
+  /* Create the camera and associate it with the scene */
+  var camera = undefined;
+  if(camera !== undefined) delete camera;
+  camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 2000);
+  camera.position.set(0, 0, document.getElementById(mainSection).clientHeight/4);
+  camera.lookAt(globalScene.position);
+  camera.name = "camera";
+  globalScene.add(camera);
+
+  /* Create simple directional light */
+  var light = undefined;
+  if(light !== undefined) delete light;
+  light = new THREE.DirectionalLight();
+  light.position.set(0, 0, 10);
+  globalScene.add(light);
+
+  /* Using orbitControls for moving */
+  if(controls !== undefined) delete controls;
+  var controls = new THREE.OrbitControls(camera, globalRenderer.domElement);
+
+  /* Setting up params */
+  controls.minDistance = 1;
+  controls.maxDistance = 500;
+  controls.zoomSpeed = 1.5;
+  controls.target.set(0, 0, 0);
+  controls.enableRotate = false;
+  controls.enableKeys = false;
+
+  controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
+
+  /** Creating event listener */
+  this.createEventListener(camera, WebGL);
+}
+
+/**
+ * Dispose of a three.js API element.
+ * @param {Object} node Any element from three.js API.
+ */
+Layout.prototype.disposeNode = function(node)
 {
     if (node instanceof THREE.Mesh)
     {
@@ -744,222 +718,86 @@ function disposeNode (node)
     }
 }   // disposeNode
 
-function disposeHierarchy (node, callback)
+/**
+ * Method to dispose of all three.js generated elements and children.
+ * @param {Object} node Any element from three.js API.
+ * @param {function} callback Callback function to be invoked to dispose of element and its children.
+ */
+Layout.prototype.disposeHierarchy = function(node, callback)
 {
     for (var i = node.children.length - 1; i >= 0; i--)
     {
         var child = node.children[i];
-        disposeHierarchy (child, callback);
+        this.disposeHierarchy (child, callback);
         callback (child);
     }
 }
 
 /**
- * Connect vertexes from previous level to current level, according to .cluster file.
- * @param {Array} clusters .cluster file grouped as an array.
- * @param {Object} scene Scene to get meshes.
- * @param {int} outerBPLevel Outer bipartite graph level (previous coarsening level). Necessary to access proper mesh where such bipartite graph was built.
- * @param {int} outerBPLevel Inner bipartite graph level. Necessary to access proper mesh where such bipartite graph was built.
- */
-function connectLevels(clusters, scene, outerBPLevel, innerBPLevel)
-{
-  /** Read char by char, storing numbers in an array */
-  var clusterVertexes = clusters.toString().split("\n");
-  /** Get specific meshes for each coarsened level */
-  var outerMesh;
-  parseInt(outerBPLevel) == 0 ? outerMesh = scene.getObjectByName("MainMesh", true) : outerMesh = scene.getObjectByName("MainMesh" + outerBPLevel.toString(), true);
-  var innerMesh;
-  parseInt(innerBPLevel) == 0 ? innerMesh = scene.getObjectByName("MainMesh", true) : innerMesh = scene.getObjectByName("MainMesh" + innerBPLevel.toString(), true);
-  /** Iterate through clusterVertexes array, constructing edges between layers */
-  var edgeGeometry = new THREE.Geometry();
-  for(let i = 0, k = 0; i < innerMesh.geometry.faces.length && k < clusterVertexes.length; i = i + 32, k = k + 1)
-  {
-    var v1 = new THREE.Vector3(innerMesh.geometry.faces[i].position.x, innerMesh.geometry.faces[i].position.y, innerMesh.geometry.faces[i].position.z);
-    var previousVertexes = clusterVertexes[k].split(" ");
-    for(let j = 0; j < previousVertexes.length && outerMesh.geometry.faces[parseInt(previousVertexes[j])*32] !== undefined; j++)
-    {
-      // console.log("outerMesh:");
-      // console.log(outerMesh.geometry.faces.length);
-      // console.log("innerMesh:");
-      // console.log(innerMesh.geometry.faces.length);
-      // console.log("parseInt(previousVertexes[j])*32");
-      // console.log(outerMesh.geometry.faces[parseInt(previousVertexes[j])*32]);
-      var v2 = new THREE.Vector3(outerMesh.geometry.faces[parseInt(previousVertexes[j])*32].position.x, outerMesh.geometry.faces[parseInt(previousVertexes[j])*32].position.y, outerMesh.geometry.faces[parseInt(previousVertexes[j])*32].position.z);
-      edgeGeometry.vertices.push(v1);
-      edgeGeometry.vertices.push(v2);
-    }
-  }
-  for(let i = 0; i < edgeGeometry.vertices.length; i++)
-  {
-    edgeGeometry.colors[i] = new THREE.Color(0xFF0000);
-    edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
-  }
-  edgeGeometry.verticesNeedUpdate = true;
-  edgeGeometry.colorsNeedUpdate = true;
-
-  /** Create one LineSegments and add it to scene */
-  var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
-  var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
-  scene.add(lineSegments);
-
-  edgeGeometry.dispose();
-  edgeGeometry = null;
-  edgeMaterial.dispose();
-  edgeMaterial = null;
-  // console.log("Hi, I'm a newborn function yet to be implemented :3");
-  // console.log("outerBPLevel:");
-  // console.log(outerBPLevel);
-  // console.log("outerMesh:");
-  // console.log(outerMesh);
-  // console.log("innerBPLevel:");
-  // console.log(innerBPLevel);
-  // console.log("innerMesh:");
-  // console.log(innerMesh);
-}
-
-/**
- * Find index of object which contains specified value inside an array.
- * @param {(string|int|float)} value Value to be searched in objects.
- * @param {Array} objArray Object array.
- * @returns {int} Index of position or -1 if not found.
- */
-function findPos(value, objArray)
-{
-  return objArray.map(function(e) { return e.id; }).indexOf(value);
-}
-
-/**
- * Connect vertexes from previous level to current level, using information stored in nodes.
- * @param {JSON} innerNodes Coarsened nodes.
- * @param {JSON} outerNodes Uncoarsened nodes (from previous levels).
- * @param {int} innerBPLevel Inner bipartite graph level. Necessary to access proper mesh where such bipartite graph was built.
- * @param {int} outerBPLevel Outer bipartite graph level (previous coarsening level). Necessary to access proper mesh where such bipartite graph was built.
- */
-function connectVertexes(innerNodes, outerNodes, innerBPLevel, outerBPLevel)
-{
-  // console.log("innerBPLevel: " + innerBPLevel);
-  // console.log("outerBPLevel: " + outerBPLevel);
-  /** Fetch meshes */
-  var outerMesh;
-  parseInt(outerBPLevel) == 0 ? outerMesh = scene.getObjectByName("MainMesh", true) : outerMesh = scene.getObjectByName("MainMesh" + outerBPLevel.toString(), true);
-  var innerMesh;
-  parseInt(innerBPLevel) == 0 ? innerMesh = scene.getObjectByName("MainMesh", true) : innerMesh = scene.getObjectByName("MainMesh" + innerBPLevel.toString(), true);
-  /** Iterate through innerNodes to get predecessors */
-  var edgeGeometry = new THREE.Geometry();
-  for(let i = 0; i < innerNodes['nodes'].length; i++)
-  {
-    /** Store (array of) predecessor(s) */
-    let predecessor = innerNodes['nodes'][i].predecessor;
-    let innerIndex = parseInt(innerNodes['nodes'][i].id)*32;
-    /** Store position(s) of predecessor(s) */
-    predecessor = predecessor.split(",");
-    var v1 = new THREE.Vector3(innerMesh.geometry.faces[innerIndex].position.x, innerMesh.geometry.faces[innerIndex].position.y, innerMesh.geometry.faces[innerIndex].position.z);
-    for(let j = 0; j < predecessor.length; j++)
-    {
-      let pos = findPos(predecessor[j], outerNodes['nodes']);
-      let outerIndex = parseInt(outerNodes['nodes'][pos].id)*32;
-      var v2 = new THREE.Vector3(outerMesh.geometry.faces[outerIndex].position.x, outerMesh.geometry.faces[outerIndex].position.y, outerMesh.geometry.faces[outerIndex].position.z);
-      edgeGeometry.vertices.push(v1);
-      edgeGeometry.vertices.push(v2);
-    }
-  }
-  for(let i = 0; i < edgeGeometry.vertices.length; i++)
-  {
-    edgeGeometry.colors[i] = new THREE.Color(0xFF0000);
-    edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
-  }
-  edgeGeometry.verticesNeedUpdate = true;
-  edgeGeometry.colorsNeedUpdate = true;
-
-  /** Create one LineSegments and add it to scene */
-  var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
-  var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
-  scene.add(lineSegments);
-
-  edgeGeometry.dispose();
-  edgeGeometry = null;
-  edgeMaterial.dispose();
-  edgeMaterial = null;
-}
-
-/**
- * Render a bipartite graph, given a .json file.
+ * Initialize renderer and scene for three.js API, configuring their aspects.
  * @public
- * @param {(string|Array)} data String of graph (or graphs) to be parsed into JSON notation and rendered.
- * @param {int} layout Graph layout. Default is 2 (bipartite horizontal).
+ * @param {string} mainSection "id" attribute of HTML element indicating main section containing main canvas.
+ * @param {string} WebGL "id" attribute of HTML element indicating main section for canvas to be drawn.
  */
-function build(data, layout, min, max)
+Layout.prototype.configAPIParams = function(mainSection, WebGL)
 {
-  /** Remove any information from graphs */
-  removeGraphInfo();
-  /** Check and treat incoming response */
-  data = JSON.parse(data);
-  graphName = data.graphName;
-  numOfLevels = data.nLevels;
-  firstSet = data.firstSet;
-  secondSet = data.secondSet;
-  data = data.graph;
-  min = ecmaStandard(min, 10);
-  max = ecmaStandard(max, 70);
-  lay = ecmaStandard(layout, 2);
-  /* Converting text string to JSON */
-  var jason = JSON.parse(data);
-
-  /* Display bipartite graph info */
-  // displayGraphInfo(jason);
-
-  console.log("jason:");
-  console.log(jason);
-  /* Instantiating Graph */
-  if(bipartiteGraph !== undefined) delete bipartiteGraph;
-  bipartiteGraph = new BipartiteGraph(jason, 8, "", min, max);
-  // bipartiteGraph = new BipartiteGraph(jason, 10, 70);
-
-  if(renderer == undefined)
+  /* Get the size of the inner window (content area) to create a full size renderer */
+  canvasWidth = (document.getElementById(mainSection).clientWidth);
+  canvasHeight = (document.getElementById(mainSection).clientHeight);
+  if(globalRenderer == undefined)
   {
-      /* Get the size of the inner window (content area) to create a full size renderer */
-      canvasWidth = (document.getElementById("mainSection").clientWidth);
-      canvasHeight = (document.getElementById("mainSection").clientHeight);
       /* Create a new WebGL renderer */
-      renderer = new THREE.WebGLRenderer({antialias:true});
+      globalRenderer = new THREE.WebGLRenderer({antialias:true});
       /* Set the background color of the renderer to black, with full opacity */
-      renderer.setClearColor("rgb(255, 255, 255)", 1);
+      globalRenderer.setClearColor("rgb(255, 255, 255)", 1);
       /* Set the renderers size to the content area size */
-      renderer.setSize(canvasWidth, canvasHeight);
+      globalRenderer.setSize(canvasWidth, canvasHeight);
   }
   else
   {
-      renderer.setRenderTarget(null);
-      renderer.clear();
+      globalRenderer.setRenderTarget(null);
+      globalRenderer.clear();
   }
 
   /* Create scene */
-  if(scene !== undefined)
+  if(globalScene !== undefined)
   {
-    disposeHierarchy(scene, disposeNode);
-    for(var i = scene.children.length - 1; i >= 0; i--)
+    this.disposeHierarchy(globalScene, this.disposeNode);
+    for(var i = globalScene.children.length - 1; i >= 0; i--)
     {
-      scene.remove(scene.children[i]);
+      globalScene.remove(globalScene.children[i]);
     }
-    delete scene;
+    delete globalScene;
   }
   else
   {
-    scene = new THREE.Scene();
+    globalScene = new THREE.Scene();
   }
 
-  /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
-  document.getElementById("WebGL").appendChild(renderer.domElement);
+  /** Get DIV element from HTML document by its ID and append renderers' DOM object to it */
+  document.getElementById(WebGL).appendChild(globalRenderer.domElement);
 
-  /* Build bipartiteGraph */
-  // bipartiteGraph.buildGraph(jason, scene, lay);
-  /* Render bipartiteGraph */
-  bipartiteGraph.renderGraph(jason, scene, lay);
+  /** Configure camera, light and controls */
+  this.configCLC(mainSection, WebGL, canvasWidth, canvasHeight);
+}
 
-  if(bipartiteGraphs !== undefined) bipartiteGraphs = [];
-  var nLevels = 0;
-  // for(var i = 0; i < parseInt(numOfLevels)-1; i = i + 1)
-  /** Construct new bipartite graphs from previous levels of coarsening */
+/**
+ * Build and render previous uncoarsened bipartite graphs.
+ * @public
+ * @param {Object} bipartiteGraph Most coarsened bipartite graph, already rendered.
+ * @param {int} lay Graph layout. Default is 2 (bipartite horizontal).
+ * @param {JSON} jason .json file representing bipartiteGraph.
+ * @param {string} graphName Current coarsened graph name.
+ * @param {int} numOfLevels Current number of coarsened levels.
+ * @param {string} numberOfVertices "id" attribute of HTML element indicating number of vertexes to be shown.
+ * @param {string} numberOfEdges "id" attribute of HTML element indicating number of edges to be shown.
+ * @param {string} nVerticesFirstLayer "id" attribute of HTML element indicating number of verticesw in first layer to be shown.
+ * @param {string} nVerticesSecondLayer "id" attribute of HTML element indicating number of verticesw in second layer to be shown.
+ */
+Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, graphName, numOfLevels, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
+{
+  var bipartiteGraphs = [];
+  var layout = this;
   for(let i = parseInt(numOfLevels); i >= 0; i = i - 1)
   {
     var gName = graphName.split(".")[0];
@@ -977,31 +815,14 @@ function build(data, layout, min, max)
         success: function(data){
           /** Store JSON graph in array */
           bipartiteGraphs.push(JSON.parse(JSON.parse(data).graph));
-          displayGraphInfo(bipartiteGraphs[bipartiteGraphs.length-1]);
-          // bipartiteGraphs[bipartiteGraphs.length-1].renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
-          // nLevels = nLevels + 1;
-          // var coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
-          // /** Render independent sets in scene */
-          // coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
-          // /** Make connections with coarsened vertexes - use ajax call to get .cluster file, containing coarsened super vertexes */
-          // $.ajax({
-          //   url: '/getClusters',
-          //   type: 'POST',
-          //   data: gName + "n" + (i).toString() + ".cluster",
-          //   processData: false,
-          //   contentType: false,
-          //   success: function(data){
-          //     connectLevels(data, scene, parseInt(numOfLevels)-1, i-1);
-          //   },
-          //   xhr: loadGraph
-          // });
+          layout.displayGraphInfo(bipartiteGraphs[bipartiteGraphs.length-1], numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer);
         },
         xhr: loadGraph
       });
     }
     else
     {
-      displayGraphInfo(jason);
+      layout.displayGraphInfo(jason, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer);
     }
   }
   /** Sort array */
@@ -1011,130 +832,592 @@ function build(data, layout, min, max)
     else return 0;
   });
   /** Render previous uncoarsened graphs */
-  nLevels = 0;
-  // for(let i = parseInt(numOfLevels); i > 0; i = i - 1)
   for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
   {
     var coarsenedBipartiteGraph;
     if(i != 0)
     {
       coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
-      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], scene, lay, new IndependentSet(), new IndependentSet());
+      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet());
     }
-    nLevels = nLevels + 1;
     /** Connect super vertexes */
-    // if(i == 1 || i < parseInt(numOfLevels))
     if(i < bipartiteGraphs.length-1)
     {
-      connectVertexes(bipartiteGraphs[i], bipartiteGraphs[i+1], i, i+1);
+      this.connectVertexes(bipartiteGraphs[i], bipartiteGraphs[i+1], i, i+1);
     }
   }
-  /** Fetch .cluster files and connect nodes based on such files */
-  // nLevels = parseInt(numOfLevels);
-  // for(let i = 0; i < parseInt(numOfLevels); i++)
-  // {
-  //   var gName = graphName.split(".")[0];
-  //   gName = gName.substring(0, gName.length-2);
-  //   gName = gName + "n" + nLevels.toString() + ".cluster";
-  //   nLevels = nLevels - 1;
-  //   $.ajax({
-  //     async: false,
-  //     url: '/getClusters',
-  //     type: 'POST',
-  //     data: gName,
-  //     processData: false,
-  //     contentType: false,
-  //     success: function(data){
-  //       connectLevels(data, scene, i+1, i);
-  //     },
-  //     xhr: loadGraph
-  //   });
-  // }
+}
 
-  /** Create edge gradient legend */
-  if(gradientLegend !== undefined)
-  {
-      gradientLegend.clear();
-      delete gradientLegend;
-  }
-  // gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo, bipartiteGraph.minEdgeWeight, bipartiteGraph.maxEdgeWeight, 300, 50);
-  /** Use minimum edge weight and maximum edge weight as domain values */
-  gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo.minEdgeWeight, bipartiteGraph.graphInfo.maxEdgeWeight, 300, 50, 5);
-  gradientLegend.createGradientLegend("gradientScale", "Edge weights:");
+/**
+ * Render bipartite graph and its previous uncoarsened forms.
+ * @public
+ * @param {string} data String of graph (or graphs) to be parsed into JSON notation and rendered.
+ * @param {int} layout Graph layout. Default is 2 (bipartite horizontal).
+ * @param {string} numberOfVertices "id" attribute of HTML element indicating number of vertexes to be shown.
+ * @param {string} numberOfEdges "id" attribute of HTML element indicating number of edges to be shown.
+ * @param {string} nVerticesFirstLayer "id" attribute of HTML element indicating number of verticesw in first layer to be shown.
+ * @param {string} nVerticesSecondLayer "id" attribute of HTML element indicating number of verticesw in second layer to be shown.
+ * @param {string} mainSectionID "id" attribute of HTML element indicating main section containing main canvas.
+ * @param {string} WebGLID "id" attribute of HTML element indicating main section for canvas to be drawn.
+ */
+Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer, mainSectionID, WebGLID)
+{
+  /** Check and treat incoming response */
+  var data = JSON.parse(data);
+  /** Assign values to variables */
+  var graphName = data.graphName;
+  var numOfLevels = data.nLevels;
+  this.numOfLevels = numOfLevels;
+  var firstSet = data.firstSet;
+  var secondSet = data.secondSet;
+  var data = data.graph;
+  var lay = ecmaStandard(layout, 2);
+  this.lay = lay;
+  var nVertexes = ecmaStandard(numberOfVertices, "numberOfVertices");
+  var nEdges = ecmaStandard(numberOfEdges, "numberOfEdges");
+  var nVertexesFirstLayer = ecmaStandard(nVerticesFirstLayer, "nVerticesFirstLayer");
+  var nVertexesSecondLayer = ecmaStandard(nVerticesSecondLayer, "nVerticesSecondLayer");
+  var mainSection = ecmaStandard(mainSectionID, "mainSection");
+  var WebGL = ecmaStandard(WebGLID, "WebGL");
+  var bipartiteGraph;
+  /** Convert string to JSON */
+  var jason = JSON.parse(data);
+
+  /** Remove any information from graphs */
+  this.removeGraphInfo(nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+
+  /** Instantiate renderer, scene, camera and lights, and configure additional parameters */
+  this.configAPIParams(mainSection, WebGL);
+
+  // if(bipartiteGraph !== undefined) delete bipartiteGraph;
+  bipartiteGraph = new BipartiteGraph(jason, 8, "");
+
+  /* Render bipartiteGraph */
+  bipartiteGraph.renderGraph(jason, globalScene, lay);
+
+  /** Build and render bipartite graphs from previous levels of coarsening */
+  this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, parseInt(numOfLevels), nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
 
   delete jason;
 
-  /* Create the camera and associate it with the scene */
-  if(camera !== undefined) delete camera;
-  camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 2000);
-  camera.position.set(0, 0, cameraPos);
-  camera.lookAt(scene.position);
-  camera.name = "camera";
-  scene.add(camera);
-
-  /* Create simple directional light */
-  if(light !== undefined) delete light;
-  light = new THREE.DirectionalLight();
-  light.position.set(0, 0, 10);
-  scene.add(light);
-
-  /* Using orbitControls for moving */
-  if(controls !== undefined) delete controls;
-  var controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-  /* Setting up params */
-  controls.minDistance = 1;
-  controls.maxDistance = 500;
-  controls.zoomSpeed = 1.5;
-  controls.target.set(0, 0, 0);
-  controls.enableRotate = false;
-  controls.enableKeys = false;
-
-  controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
-
-  /** Creating event listener */
-  if(eventHandler === undefined)
+  /** Create edge weights gradient legend */
+  if(this.gradientLegend !== undefined)
   {
-    eventHandler = new EventHandler(undefined);
-    /* Adding event listeners */
-    document.addEventListener('resize', function(evt){
-      camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
-    }, false);
-    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, scene);}, false);
-    document.addEventListener('dblclick', function(evt){
-      eventHandler.mouseDoubleClickEvent();
-      // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
-      // !clicked ? clicked = true : clicked = false;
-    }, false);
-    document.addEventListener('click', function(evt){
-      eventHandler.mouseClickEvent(evt, renderer, scene);
-    }, false);
+      this.gradientLegend.clear();
+      delete this.gradientLegend;
   }
+  /** Use minimum edge weight and maximum edge weight as domain values */
+  this.gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo.minEdgeWeight, bipartiteGraph.graphInfo.maxEdgeWeight, 300, 50, 5);
+  this.gradientLegend.createGradientLegend("gradientScale", "Edge weights:");
 
-  // console.log(renderer.info);
   animate();
-
-  function animate()
-  {
-      /* Render scene */
-      renderer.render(scene, camera);
-
-      /* Tell the browser to call this function when page is visible */
-      requestAnimationFrame(animate);
-
-      /* Capture graph image (when requested) */
-      if(capture)
-      {
-        capture = false;
-        var dataURL = document.getElementsByTagName('canvas')[0].toDataURL('image/png');
-        var wd = window.open('about:blank', 'graph');
-        wd.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
-        wd.document.close();
-      }
-  }
 }
+
+// /** Global variables */
+// var bipartiteGraph, gradientLegend, renderer, graph, scene, camera, light, controls, eventHandler, layout = 2, capture = false, clicked = {wasClicked: false}, graphName, numOfLevels = 0, firstSet, secondSet, bipartiteGraphs = [];
+// var cameraPos = document.getElementById("mainSection").clientHeight/4;
+// // var vueTableHeader, vueTableRows;
+// var vueTableHeader = new Vue({
+//   el: '#dynamicTableHeaders',
+//   data: {
+//     headers: ""
+//   }
+// });
+// var vueTableRows = new Vue({
+//   el: '#dynamicTableRows',
+//   data: {
+//     rows: ""
+//   }
+// });
+//
+// /**
+//  * Clear all bipartiteGraph info on HTML page.
+//  * @public
+//  */
+// function removeGraphInfo()
+// {
+//   document.getElementById("numberOfVertices").innerHTML = "";
+//   document.getElementById("numberOfEdges").innerHTML = "";
+//   document.getElementById("nVerticesFirstLayer").innerHTML = "";
+//   document.getElementById("nVerticesSecondLayer").innerHTML = "";
+// }
+//
+// /**
+//  * Display bipartiteGraph info on HTML page.
+//  * @public
+//  * @param {JSON} jason .json file representing bipartiteGraph.
+//  */
+// function displayGraphInfo(jason)
+// {
+//   /** Store innerHTML elements in variables for consistency */
+//   var numOfVertexes = document.getElementById("numberOfVertices"), vertexes;
+//   var numOfEdges = document.getElementById("numberOfEdges");
+//   var nVerticesFirstLayer = document.getElementById("nVerticesFirstLayer"), firstLevel;
+//   var nVerticesSecondLayer = document.getElementById("nVerticesSecondLayer"), secondLevel;
+//   /** Making necessary assignments according to information from graphInfo */
+//   if(jason.graphInfo[0].vlayer !== undefined)
+//   {
+//     vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+//     firstLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
+//     secondLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+//   }
+//   else
+//   {
+//     vertexes = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+//     firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
+//     secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+//   }
+//   /* Display number of vertices, edges, vertexes for first and second level separately */
+//   if(numOfVertexes.innerHTML == "")
+//   {
+//     numOfVertexes.innerHTML = vertexes;
+//     numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
+//     nVerticesFirstLayer.innerHTML = firstLevel;
+//     nVerticesSecondLayer.innerHTML = secondLevel;
+//   }
+//   else
+//   {
+//     numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
+//     numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
+//     nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
+//     nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
+//   }
+// }
+//
+// function disposeNode (node)
+// {
+//     if (node instanceof THREE.Mesh)
+//     {
+//         if (node.geometry)
+//         {
+//             node.geometry.dispose();
+//             node.geometry = null;
+//         }
+//
+//         if (node.material)
+//         {
+//             if (node.material instanceof THREE.MeshFaceMaterial)
+//             {
+//                 $.each (node.material.materials, function (idx, mtrl)
+//                 {
+//                     if (mtrl.map)           mtrl.map.dispose(), mtrl.map = null;
+//                     if (mtrl.lightMap)      mtrl.lightMap.dispose(), mtrl.lightMap = null;
+//                     if (mtrl.bumpMap)       mtrl.bumpMap.dispose(), mtrl.bumpMap = null;
+//                     if (mtrl.normalMap)     mtrl.normalMap.dispose(), mtrl.normalMap = null;
+//                     if (mtrl.specularMap)   mtrl.specularMap.dispose(), mtrl.specularMap = null;
+//                     if (mtrl.envMap)        mtrl.envMap.dispose(), mtrl.envMap = null;
+//
+//                     mtrl.dispose();    // disposes any programs associated with the material
+//                     mtrl = null;
+//                 });
+//             }
+//             else
+//             {
+//                 if (node.material.map)          node.material.map.dispose(), node.material.map = null;
+//                 if (node.material.lightMap)     node.material.lightMap.dispose(), node.material.lightMap = null;
+//                 if (node.material.bumpMap)      node.material.bumpMap.dispose(), node.material.bumpMap = null;
+//                 if (node.material.normalMap)    node.material.normalMap.dispose(), node.material.normalMap = null;
+//                 if (node.material.specularMap)  node.material.specularMap.dispose(), node.material.specularMap = null;
+//                 if (node.material.envMap)       node.material.envMap.dispose(), node.material.envMap = null;
+//
+//                 node.material.dispose();   // disposes any programs associated with the material
+//                 node.material = null;
+//             }
+//         }
+//
+//         node = null;
+//     }
+// }   // disposeNode
+//
+// function disposeHierarchy (node, callback)
+// {
+//     for (var i = node.children.length - 1; i >= 0; i--)
+//     {
+//         var child = node.children[i];
+//         disposeHierarchy (child, callback);
+//         callback (child);
+//     }
+// }
+//
+// /**
+//  * Connect vertexes from previous level to current level, according to .cluster file.
+//  * @param {Array} clusters .cluster file grouped as an array.
+//  * @param {Object} scene Scene to get meshes.
+//  * @param {int} outerBPLevel Outer bipartite graph level (previous coarsening level). Necessary to access proper mesh where such bipartite graph was built.
+//  * @param {int} outerBPLevel Inner bipartite graph level. Necessary to access proper mesh where such bipartite graph was built.
+//  */
+// function connectLevels(clusters, scene, outerBPLevel, innerBPLevel)
+// {
+//   /** Read char by char, storing numbers in an array */
+//   var clusterVertexes = clusters.toString().split("\n");
+//   /** Get specific meshes for each coarsened level */
+//   var outerMesh;
+//   parseInt(outerBPLevel) == 0 ? outerMesh = scene.getObjectByName("MainMesh", true) : outerMesh = scene.getObjectByName("MainMesh" + outerBPLevel.toString(), true);
+//   var innerMesh;
+//   parseInt(innerBPLevel) == 0 ? innerMesh = scene.getObjectByName("MainMesh", true) : innerMesh = scene.getObjectByName("MainMesh" + innerBPLevel.toString(), true);
+//   /** Iterate through clusterVertexes array, constructing edges between layers */
+//   var edgeGeometry = new THREE.Geometry();
+//   for(let i = 0, k = 0; i < innerMesh.geometry.faces.length && k < clusterVertexes.length; i = i + 32, k = k + 1)
+//   {
+//     var v1 = new THREE.Vector3(innerMesh.geometry.faces[i].position.x, innerMesh.geometry.faces[i].position.y, innerMesh.geometry.faces[i].position.z);
+//     var previousVertexes = clusterVertexes[k].split(" ");
+//     for(let j = 0; j < previousVertexes.length && outerMesh.geometry.faces[parseInt(previousVertexes[j])*32] !== undefined; j++)
+//     {
+//       // console.log("outerMesh:");
+//       // console.log(outerMesh.geometry.faces.length);
+//       // console.log("innerMesh:");
+//       // console.log(innerMesh.geometry.faces.length);
+//       // console.log("parseInt(previousVertexes[j])*32");
+//       // console.log(outerMesh.geometry.faces[parseInt(previousVertexes[j])*32]);
+//       var v2 = new THREE.Vector3(outerMesh.geometry.faces[parseInt(previousVertexes[j])*32].position.x, outerMesh.geometry.faces[parseInt(previousVertexes[j])*32].position.y, outerMesh.geometry.faces[parseInt(previousVertexes[j])*32].position.z);
+//       edgeGeometry.vertices.push(v1);
+//       edgeGeometry.vertices.push(v2);
+//     }
+//   }
+//   for(let i = 0; i < edgeGeometry.vertices.length; i++)
+//   {
+//     edgeGeometry.colors[i] = new THREE.Color(0xFF0000);
+//     edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+//   }
+//   edgeGeometry.verticesNeedUpdate = true;
+//   edgeGeometry.colorsNeedUpdate = true;
+//
+//   /** Create one LineSegments and add it to scene */
+//   var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+//   var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+//   scene.add(lineSegments);
+//
+//   edgeGeometry.dispose();
+//   edgeGeometry = null;
+//   edgeMaterial.dispose();
+//   edgeMaterial = null;
+//   // console.log("Hi, I'm a newborn function yet to be implemented :3");
+//   // console.log("outerBPLevel:");
+//   // console.log(outerBPLevel);
+//   // console.log("outerMesh:");
+//   // console.log(outerMesh);
+//   // console.log("innerBPLevel:");
+//   // console.log(innerBPLevel);
+//   // console.log("innerMesh:");
+//   // console.log(innerMesh);
+// }
+//
+// /**
+//  * Find index of object which contains specified value inside an array.
+//  * @param {(string|int|float)} value Value to be searched in objects.
+//  * @param {Array} objArray Object array.
+//  * @returns {int} Index of position or -1 if not found.
+//  */
+// function findPos(value, objArray)
+// {
+//   return objArray.map(function(e) { return e.id; }).indexOf(value);
+// }
+//
+// /**
+//  * Connect vertexes from previous level to current level, using information stored in nodes.
+//  * @param {JSON} innerNodes Coarsened nodes.
+//  * @param {JSON} outerNodes Uncoarsened nodes (from previous levels).
+//  * @param {int} innerBPLevel Inner bipartite graph level. Necessary to access proper mesh where such bipartite graph was built.
+//  * @param {int} outerBPLevel Outer bipartite graph level (previous coarsening level). Necessary to access proper mesh where such bipartite graph was built.
+//  */
+// function connectVertexes(innerNodes, outerNodes, innerBPLevel, outerBPLevel)
+// {
+//   // console.log("innerBPLevel: " + innerBPLevel);
+//   // console.log("outerBPLevel: " + outerBPLevel);
+//   /** Fetch meshes */
+//   var outerMesh;
+//   parseInt(outerBPLevel) == 0 ? outerMesh = scene.getObjectByName("MainMesh", true) : outerMesh = scene.getObjectByName("MainMesh" + outerBPLevel.toString(), true);
+//   var innerMesh;
+//   parseInt(innerBPLevel) == 0 ? innerMesh = scene.getObjectByName("MainMesh", true) : innerMesh = scene.getObjectByName("MainMesh" + innerBPLevel.toString(), true);
+//   /** Iterate through innerNodes to get predecessors */
+//   var edgeGeometry = new THREE.Geometry();
+//   for(let i = 0; i < innerNodes['nodes'].length; i++)
+//   {
+//     /** Store (array of) predecessor(s) */
+//     let predecessor = innerNodes['nodes'][i].predecessor;
+//     let innerIndex = parseInt(innerNodes['nodes'][i].id)*32;
+//     /** Store position(s) of predecessor(s) */
+//     predecessor = predecessor.split(",");
+//     var v1 = new THREE.Vector3(innerMesh.geometry.faces[innerIndex].position.x, innerMesh.geometry.faces[innerIndex].position.y, innerMesh.geometry.faces[innerIndex].position.z);
+//     for(let j = 0; j < predecessor.length; j++)
+//     {
+//       let pos = findPos(predecessor[j], outerNodes['nodes']);
+//       let outerIndex = parseInt(outerNodes['nodes'][pos].id)*32;
+//       var v2 = new THREE.Vector3(outerMesh.geometry.faces[outerIndex].position.x, outerMesh.geometry.faces[outerIndex].position.y, outerMesh.geometry.faces[outerIndex].position.z);
+//       edgeGeometry.vertices.push(v1);
+//       edgeGeometry.vertices.push(v2);
+//     }
+//   }
+//   for(let i = 0; i < edgeGeometry.vertices.length; i++)
+//   {
+//     edgeGeometry.colors[i] = new THREE.Color(0xFF0000);
+//     edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+//   }
+//   edgeGeometry.verticesNeedUpdate = true;
+//   edgeGeometry.colorsNeedUpdate = true;
+//
+//   /** Create one LineSegments and add it to scene */
+//   var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+//   var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+//   scene.add(lineSegments);
+//
+//   edgeGeometry.dispose();
+//   edgeGeometry = null;
+//   edgeMaterial.dispose();
+//   edgeMaterial = null;
+// }
+//
+// /**
+//  * Render a bipartite graph, given a .json file.
+//  * @public
+//  * @param {(string|Array)} data String of graph (or graphs) to be parsed into JSON notation and rendered.
+//  * @param {int} layout Graph layout. Default is 2 (bipartite horizontal).
+//  */
+// function build(data, layout, min, max)
+// {
+//   /** Remove any information from graphs */
+//   removeGraphInfo();
+//   /** Check and treat incoming response */
+//   data = JSON.parse(data);
+//   graphName = data.graphName;
+//   numOfLevels = data.nLevels;
+//   firstSet = data.firstSet;
+//   secondSet = data.secondSet;
+//   data = data.graph;
+//   min = ecmaStandard(min, 10);
+//   max = ecmaStandard(max, 70);
+//   lay = ecmaStandard(layout, 2);
+//   /* Converting text string to JSON */
+//   var jason = JSON.parse(data);
+//
+//   /* Display bipartite graph info */
+//   // displayGraphInfo(jason);
+//
+//   /* Instantiating Graph */
+//   if(bipartiteGraph !== undefined) delete bipartiteGraph;
+//   bipartiteGraph = new BipartiteGraph(jason, 8, "", min, max);
+//   // bipartiteGraph = new BipartiteGraph(jason, 10, 70);
+//
+//   if(renderer == undefined)
+//   {
+//       /* Get the size of the inner window (content area) to create a full size renderer */
+//       canvasWidth = (document.getElementById("mainSection").clientWidth);
+//       canvasHeight = (document.getElementById("mainSection").clientHeight);
+//       /* Create a new WebGL renderer */
+//       renderer = new THREE.WebGLRenderer({antialias:true});
+//       /* Set the background color of the renderer to black, with full opacity */
+//       renderer.setClearColor("rgb(255, 255, 255)", 1);
+//       /* Set the renderers size to the content area size */
+//       renderer.setSize(canvasWidth, canvasHeight);
+//   }
+//   else
+//   {
+//       renderer.setRenderTarget(null);
+//       renderer.clear();
+//   }
+//
+//   /* Create scene */
+//   if(scene !== undefined)
+//   {
+//     disposeHierarchy(scene, disposeNode);
+//     for(var i = scene.children.length - 1; i >= 0; i--)
+//     {
+//       scene.remove(scene.children[i]);
+//     }
+//     delete scene;
+//   }
+//   else
+//   {
+//     scene = new THREE.Scene();
+//   }
+//
+//   /* Get the DIV element from the HTML document by its ID and append the renderers' DOM object to it */
+//   document.getElementById("WebGL").appendChild(renderer.domElement);
+//
+//   /* Build bipartiteGraph */
+//   // bipartiteGraph.buildGraph(jason, scene, lay);
+//   /* Render bipartiteGraph */
+//   bipartiteGraph.renderGraph(jason, scene, lay);
+//
+//   if(bipartiteGraphs !== undefined) bipartiteGraphs = [];
+//   var nLevels = 0;
+//   // for(var i = 0; i < parseInt(numOfLevels)-1; i = i + 1)
+//   /** Construct new bipartite graphs from previous levels of coarsening */
+//   for(let i = parseInt(numOfLevels); i >= 0; i = i - 1)
+//   {
+//     var gName = graphName.split(".")[0];
+//     gName = gName.substring(0, gName.length-2);
+//     i == 0 ? gName = gName.substring(0, gName.lastIndexOf('Coarsened')) + ".json" : gName = gName + "n" + (i).toString() + ".json";
+//     if(gName !== ".json")
+//     {
+//       $.ajax({
+//         async: false,
+//         url: '/getLevels',
+//         type: 'POST',
+//         data: gName,
+//         processData: false,
+//         contentType: false,
+//         success: function(data){
+//           /** Store JSON graph in array */
+//           bipartiteGraphs.push(JSON.parse(JSON.parse(data).graph));
+//           displayGraphInfo(bipartiteGraphs[bipartiteGraphs.length-1]);
+//           // bipartiteGraphs[bipartiteGraphs.length-1].renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
+//           // nLevels = nLevels + 1;
+//           // var coarsenedBipartiteGraph = new BipartiteGraph(JSON.parse(JSON.parse(data).graph), bipartiteGraph.distanceBetweenSets - (nLevels+2), (nLevels+1).toString());
+//           // /** Render independent sets in scene */
+//           // coarsenedBipartiteGraph.renderNodes(JSON.parse(JSON.parse(data).graph), scene, lay, new IndependentSet(), new IndependentSet());
+//           // /** Make connections with coarsened vertexes - use ajax call to get .cluster file, containing coarsened super vertexes */
+//           // $.ajax({
+//           //   url: '/getClusters',
+//           //   type: 'POST',
+//           //   data: gName + "n" + (i).toString() + ".cluster",
+//           //   processData: false,
+//           //   contentType: false,
+//           //   success: function(data){
+//           //     connectLevels(data, scene, parseInt(numOfLevels)-1, i-1);
+//           //   },
+//           //   xhr: loadGraph
+//           // });
+//         },
+//         xhr: loadGraph
+//       });
+//     }
+//     else
+//     {
+//       displayGraphInfo(jason);
+//     }
+//   }
+//   /** Sort array */
+//   bipartiteGraphs.sort(function(a, b){
+//     if(a.graphInfo[0].graphSize < b.graphInfo[0].graphSize) return -1;
+//     else if(a.graphInfo[0].graphSize > b.graphInfo[0].graphSize) return 1;
+//     else return 0;
+//   });
+//   /** Render previous uncoarsened graphs */
+//   nLevels = 0;
+//   // for(let i = parseInt(numOfLevels); i > 0; i = i - 1)
+//   for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
+//   {
+//     var coarsenedBipartiteGraph;
+//     if(i != 0)
+//     {
+//       coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
+//       coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], scene, lay, new IndependentSet(), new IndependentSet());
+//     }
+//     nLevels = nLevels + 1;
+//     /** Connect super vertexes */
+//     // if(i == 1 || i < parseInt(numOfLevels))
+//     if(i < bipartiteGraphs.length-1)
+//     {
+//       connectVertexes(bipartiteGraphs[i], bipartiteGraphs[i+1], i, i+1);
+//     }
+//   }
+//   /** Fetch .cluster files and connect nodes based on such files */
+//   // nLevels = parseInt(numOfLevels);
+//   // for(let i = 0; i < parseInt(numOfLevels); i++)
+//   // {
+//   //   var gName = graphName.split(".")[0];
+//   //   gName = gName.substring(0, gName.length-2);
+//   //   gName = gName + "n" + nLevels.toString() + ".cluster";
+//   //   nLevels = nLevels - 1;
+//   //   $.ajax({
+//   //     async: false,
+//   //     url: '/getClusters',
+//   //     type: 'POST',
+//   //     data: gName,
+//   //     processData: false,
+//   //     contentType: false,
+//   //     success: function(data){
+//   //       connectLevels(data, scene, i+1, i);
+//   //     },
+//   //     xhr: loadGraph
+//   //   });
+//   // }
+//
+//   /** Create edge gradient legend */
+//   if(gradientLegend !== undefined)
+//   {
+//       gradientLegend.clear();
+//       delete gradientLegend;
+//   }
+//   // gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo, bipartiteGraph.minEdgeWeight, bipartiteGraph.maxEdgeWeight, 300, 50);
+//   /** Use minimum edge weight and maximum edge weight as domain values */
+//   gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo.minEdgeWeight, bipartiteGraph.graphInfo.maxEdgeWeight, 300, 50, 5);
+//   gradientLegend.createGradientLegend("gradientScale", "Edge weights:");
+//
+//   delete jason;
+//
+//   /* Create the camera and associate it with the scene */
+//   if(camera !== undefined) delete camera;
+//   camera = new THREE.PerspectiveCamera(120, canvasWidth / canvasHeight, 1, 2000);
+//   camera.position.set(0, 0, cameraPos);
+//   camera.lookAt(scene.position);
+//   camera.name = "camera";
+//   scene.add(camera);
+//
+//   /* Create simple directional light */
+//   if(light !== undefined) delete light;
+//   light = new THREE.DirectionalLight();
+//   light.position.set(0, 0, 10);
+//   scene.add(light);
+//
+//   /* Using orbitControls for moving */
+//   if(controls !== undefined) delete controls;
+//   var controls = new THREE.OrbitControls(camera, renderer.domElement);
+//
+//   /* Setting up params */
+//   controls.minDistance = 1;
+//   controls.maxDistance = 500;
+//   controls.zoomSpeed = 1.5;
+//   controls.target.set(0, 0, 0);
+//   controls.enableRotate = false;
+//   controls.enableKeys = false;
+//
+//   controls.mouseButtons = { PAN: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, ORBIT: THREE.MOUSE.RIGHT };
+//
+//   /** Creating event listener */
+//   if(eventHandler === undefined)
+//   {
+//     eventHandler = new EventHandler(undefined);
+//     /* Adding event listeners */
+//     document.addEventListener('resize', function(evt){
+//       camera.aspect = document.getElementById("WebGL").clientWidth / document.getElementById("WebGL").clientHeight;
+//       camera.updateProjectionMatrix();
+//       renderer.setSize(document.getElementById("WebGL").clientWidth, document.getElementById("WebGL").clientHeight);
+//     }, false);
+//     document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, renderer, scene);}, false);
+//     document.addEventListener('dblclick', function(evt){
+//       eventHandler.mouseDoubleClickEvent();
+//       // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
+//       // !clicked ? clicked = true : clicked = false;
+//     }, false);
+//     document.addEventListener('click', function(evt){
+//       eventHandler.mouseClickEvent(evt, renderer, scene);
+//     }, false);
+//   }
+//
+//   // console.log(renderer.info);
+//   animate();
+//
+//   function animate()
+//   {
+//       /* Render scene */
+//       renderer.render(scene, camera);
+//
+//       /* Tell the browser to call this function when page is visible */
+//       requestAnimationFrame(animate);
+//
+//       /* Capture graph image (when requested) */
+//       if(capture)
+//       {
+//         capture = false;
+//         var dataURL = document.getElementsByTagName('canvas')[0].toDataURL('image/png');
+//         var wd = window.open('about:blank', 'graph');
+//         wd.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
+//         wd.document.close();
+//       }
+//   }
+// }
 
 /**
  * @desc Base class for pre ECMAScript2015 standardization.
@@ -1160,6 +1443,7 @@ var EventHandler = function(raycaster)
     this.raycaster.linePrecision = 0.1;
     this.highlightedElements = [];
     this.neighbors = [];
+    this.clicked = {wasClicked: false};
 }
 
 /**
@@ -1230,10 +1514,11 @@ EventHandler.prototype.findEdgePairIndex = function(vertexArray, startEdge, endE
 /**
  * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges.
  * @public
+ * @param {Object} scene Scene for raycaster.
  */
-EventHandler.prototype.mouseDoubleClickEvent = function()
+EventHandler.prototype.mouseDoubleClickEvent = function(scene)
 {
-      if(!clicked.wasClicked)
+      if(!this.clicked.wasClicked)
       {
         var element = scene.getObjectByName("MainMesh", true);
         // var lineSegments = scene.getObjectById(8, true);
@@ -1253,7 +1538,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
             {
                 element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
             }
-            clicked.wasClicked = true;
+            this.clicked.wasClicked = true;
             /** Highlight connected edges */
             var neighborIndex = element.geometry.faces[this.highlightedElements[i]].neighbors[j] * 32;
             var endEdge = element.geometry.faces[neighborIndex].position;
@@ -1279,9 +1564,9 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
         element.geometry.colorsNeedUpdate = true;
         lineSegments.geometry.colorsNeedUpdate = true;
       }
-      else if(clicked.wasClicked)
+      else if(this.clicked.wasClicked)
       {
-        clicked.wasClicked = false;
+        this.clicked.wasClicked = false;
         /** An element was already clicked and its neighbors highlighted; unhighlight all */
         var element = scene.getObjectByName("MainMesh", true);
         // var lineSegments = scene.getObjectById(8, true);
@@ -1393,39 +1678,17 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       vueTableRows._data.rows = vertexVueRows;
     }
   }
-  // var element = scene.getObjectByName("MainMesh", true);
-  // for(var i = 0; i < this.highlightedElements.length; i++)
-  // {
-  //   var vertices = JSON.parse(element.geometry.faces[this.highlightedElements[i]].properties);
-  //   var vertexVueHeaders = [], vertexVueRows = [];
-  //   for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
-  //   {
-  //     if(j == 0)
-  //     {
-  //       for(key in vertices.vertexes[j])
-  //       {
-  //         vertexVueHeaders.push(key);
-  //       }
-  //       // console.log("vertexVueHeaders:");
-  //       // console.log(vertexVueHeaders);
-  //       /** Construct a new vue table header */
-  //       vueTableHeader._data.headers = vertexVueHeaders;
-  //     }
-  //     vertexVueRows.push(vertices.vertexes[j]);
-  //   }
-  //   /** Construct a new vue table data */
-  //   vueTableRows._data.rows = vertexVueRows;
-  // }
 }
 
 /**
  * Handles mouse move. If mouse hovers over element, invoke highlighting.
  * @public
  * @param {Object} evt Event dispatcher.
+ * @param {int} numOfLevels Number of levels for current visualization.
  * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
  * @param {Object} scene Scene for raycaster.
  */
-EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
+EventHandler.prototype.mouseMoveEvent = function(evt, numOfLevels, renderer, scene)
 {
     /* Execute ray tracing */
     // var intersects = this.raycaster.intersectObjects(scene.children, true);
@@ -2043,6 +2306,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	}
 
+	/**
+	* @author diego2337 - https://github.com/diego2337
+	* Adding specific changes to orbitControls.js file to work with threeGraph.
+	*/
+
 	/* Zoom in */
   $('#zoomIn').on('click', function(){
     /* Creates a jQuery event for mouseWheel */
@@ -2063,11 +2331,6 @@ THREE.OrbitControls = function ( object, domElement ) {
     dollyIn( getZoomScale() );
 		scope.update();
   });
-
-	/**
-	 * @author diego2337 - https://github.com/diego2337
-	 * Adding specific changes to orbitControls.js file to work with threeGraph.
-	 */
 
 	/** Pan left */
 	$('#panLeft').on('click', function(){

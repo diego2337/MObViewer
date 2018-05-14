@@ -240,30 +240,6 @@
             </div> -->
           </div>
         </section>
-        <!-- <section class="mdl-layout__tab-panel" id="fixed-tab-2">
-          <div class="mdl-grid page-content">
-            <table class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
-              <tbody>
-                <tr>
-                  <td class="mdl-data-table__cell--non-numeric">Number of vertices (total): </td>
-                  <td><span id="numberOfVertices"></span></td>
-                </tr>
-                <tr>
-                  <td class="mdl-data-table__cell--non-numeric">Number of edges: </td>
-                  <td><span id="numberOfEdges"></span></td>
-                </tr>
-                <tr>
-                  <td class="mdl-data-table__cell--non-numeric">Number of vertices for first layer: </td>
-                  <td><span id="nVerticesFirstLayer"></span></td>
-                </tr>
-                <tr>
-                  <td class="mdl-data-table__cell--non-numeric">Number of vertices for second layer: </td>
-                  <td><span id="nVerticesSecondLayer"></span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section> -->
         <section class="mdl-layout__tab-panel" id="fixed-tab-3">
           <div class="mdl-grid page-content">
             <table class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
@@ -272,8 +248,6 @@
                   <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
                     {{ header }}
                   </th>
-                  <!-- <th>Insert values</th>
-                  <th>Dynamically</th> -->
                 </tr>
               </thead>
               <tbody id="dynamicTableRows">
@@ -282,21 +256,6 @@
                     {{ key }}
                   </td>
                 </tr>
-                <!-- <tr>
-                  <td class="mdl-data-table__cell--non-numeric">Acrylic (Transparent)</td>
-                  <td>25</td>
-                  <td>$2.90</td>
-                </tr>
-                <tr>
-                  <td class="mdl-data-table__cell--non-numeric">Plywood (Birch)</td>
-                  <td>50</td>
-                  <td>$1.25</td>
-                </tr>
-                <tr>
-                  <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
-                  <td>10</td>
-                  <td>$2.35</td>
-                </tr> -->
               </tbody>
             </table>
           </div>
@@ -306,4 +265,37 @@
   </body>
   <script src="build/js/scripts.js"></script>
   <script src="build/js/threeGraph.js"></script>
+  <script type="text/javascript">
+    var vueTableHeader = new Vue({
+      el: '#dynamicTableHeaders',
+      data: {
+        headers: ""
+      }
+    });
+    var vueTableRows = new Vue({
+      el: '#dynamicTableRows',
+      data: {
+        rows: ""
+      }
+    });
+    var layout = new Layout();
+    function animate()
+    {
+      /* Render scene */
+      globalRenderer.render(globalScene, globalScene.getObjectByName("camera", true));
+
+      /* Tell the browser to call this function when page is visible */
+      requestAnimationFrame(animate);
+
+      /* Capture graph image (when requested) */
+      if(layout.capture)
+      {
+        layout.capture = false;
+        var dataURL = document.getElementsByTagName('canvas')[0].toDataURL('image/png');
+        var wd = window.open('about:blank', 'graph');
+        wd.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
+        wd.document.close();
+      }
+    }
+  </script>
 </html>

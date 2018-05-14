@@ -6,7 +6,7 @@
 
 /** Trigger image saving when button is clicked */
 $('#saveImgButton').on('click', function (){
-  capture = true;
+  layout.capture = true;
 });
 
 /** Generate .json file from graph */

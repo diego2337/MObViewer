@@ -13,6 +13,7 @@ var EventHandler = function(raycaster)
     this.raycaster.linePrecision = 0.1;
     this.highlightedElements = [];
     this.neighbors = [];
+    this.clicked = {wasClicked: false};
 }
 
 /**
@@ -83,10 +84,11 @@ EventHandler.prototype.findEdgePairIndex = function(vertexArray, startEdge, endE
 /**
  * Handles mouse double click. If mouse double clicks vertex, highlight it and its neighbors, as well as its edges.
  * @public
+ * @param {Object} scene Scene for raycaster.
  */
-EventHandler.prototype.mouseDoubleClickEvent = function()
+EventHandler.prototype.mouseDoubleClickEvent = function(scene)
 {
-      if(!clicked.wasClicked)
+      if(!this.clicked.wasClicked)
       {
         var element = scene.getObjectByName("MainMesh", true);
         // var lineSegments = scene.getObjectById(8, true);
@@ -106,7 +108,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
             {
                 element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
             }
-            clicked.wasClicked = true;
+            this.clicked.wasClicked = true;
             /** Highlight connected edges */
             var neighborIndex = element.geometry.faces[this.highlightedElements[i]].neighbors[j] * 32;
             var endEdge = element.geometry.faces[neighborIndex].position;
@@ -132,9 +134,9 @@ EventHandler.prototype.mouseDoubleClickEvent = function()
         element.geometry.colorsNeedUpdate = true;
         lineSegments.geometry.colorsNeedUpdate = true;
       }
-      else if(clicked.wasClicked)
+      else if(this.clicked.wasClicked)
       {
-        clicked.wasClicked = false;
+        this.clicked.wasClicked = false;
         /** An element was already clicked and its neighbors highlighted; unhighlight all */
         var element = scene.getObjectByName("MainMesh", true);
         // var lineSegments = scene.getObjectById(8, true);
@@ -246,39 +248,17 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       vueTableRows._data.rows = vertexVueRows;
     }
   }
-  // var element = scene.getObjectByName("MainMesh", true);
-  // for(var i = 0; i < this.highlightedElements.length; i++)
-  // {
-  //   var vertices = JSON.parse(element.geometry.faces[this.highlightedElements[i]].properties);
-  //   var vertexVueHeaders = [], vertexVueRows = [];
-  //   for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
-  //   {
-  //     if(j == 0)
-  //     {
-  //       for(key in vertices.vertexes[j])
-  //       {
-  //         vertexVueHeaders.push(key);
-  //       }
-  //       // console.log("vertexVueHeaders:");
-  //       // console.log(vertexVueHeaders);
-  //       /** Construct a new vue table header */
-  //       vueTableHeader._data.headers = vertexVueHeaders;
-  //     }
-  //     vertexVueRows.push(vertices.vertexes[j]);
-  //   }
-  //   /** Construct a new vue table data */
-  //   vueTableRows._data.rows = vertexVueRows;
-  // }
 }
 
 /**
  * Handles mouse move. If mouse hovers over element, invoke highlighting.
  * @public
  * @param {Object} evt Event dispatcher.
+ * @param {int} numOfLevels Number of levels for current visualization.
  * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
  * @param {Object} scene Scene for raycaster.
  */
-EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
+EventHandler.prototype.mouseMoveEvent = function(evt, numOfLevels, renderer, scene)
 {
     /* Execute ray tracing */
     // var intersects = this.raycaster.intersectObjects(scene.children, true);

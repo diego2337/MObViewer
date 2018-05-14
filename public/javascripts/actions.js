@@ -10,15 +10,15 @@
  */
 function layoutUpdate()
 {
-  if(layout == 2)
+  if(layout.lay == 2)
   {
-    layout = 3;
+    layout.lay = 3;
     document.getElementById("panLeft").disabled = "disabled";
     document.getElementById("panRight").disabled = "disabled";
   }
-  else if(layout == 3)
+  else if(layout.lay == 3)
   {
-    layout = 2;
+    layout.lay = 2;
     document.getElementById("panLeft").disabled = "";
     document.getElementById("panRight").disabled = "";
   }
@@ -41,7 +41,7 @@ $('#switchLayout').on('click', function(){
     type: 'POST',
     success: function(html){
       layoutUpdate();
-      graphUpdate(html, layout);
+      graphUpdate(html, layout.lay);
     },
     xhr: loadGraph
   });
@@ -51,9 +51,9 @@ $('#switchLayout').on('click', function(){
  * Build graph on screen using three.js.
  * @public
  */
-function graphUpdate(data, layout){
+function graphUpdate(data, lay){
   /* Render updated graph */
-  build(data, layout);
+  layout.build(data, layout.lay);
 }
 
 /**
@@ -120,7 +120,7 @@ $("#coarseGraph").on('click', function(){
     data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
     // success: graphUpdate,
     success: function(html){
-      graphUpdate(html, layout);
+      graphUpdate(html, layout.lay);
     },
     xhr: loadGraph
   });

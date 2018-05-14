@@ -409,6 +409,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	}
 
+	/**
+	* @author diego2337 - https://github.com/diego2337
+	* Adding specific changes to orbitControls.js file to work with threeGraph.
+	*/
+
 	/* Zoom in */
   $('#zoomIn').on('click', function(){
     /* Creates a jQuery event for mouseWheel */
@@ -429,11 +434,6 @@ THREE.OrbitControls = function ( object, domElement ) {
     dollyIn( getZoomScale() );
 		scope.update();
   });
-
-	/**
-	 * @author diego2337 - https://github.com/diego2337
-	 * Adding specific changes to orbitControls.js file to work with threeGraph.
-	 */
 
 	/** Pan left */
 	$('#panLeft').on('click', function(){
