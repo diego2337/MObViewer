@@ -14,6 +14,7 @@ var EventHandler = function(raycaster)
     this.highlightedElements = [];
     this.neighbors = [];
     this.clicked = {wasClicked: false};
+    this.updateData = {wasUpdated: false};
 }
 
 /**
@@ -246,6 +247,13 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       }
       /** Construct a new vue table data */
       vueTableRows._data.rows = vertexVueRows;
+      /** Updated data; update variable */
+      this.updateData.wasUpdated = true;
+    }
+    else
+    {
+      /** No data updated; update variable */
+      this.updateData.wasUpdated = false;
     }
   }
 }

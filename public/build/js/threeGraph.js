@@ -465,6 +465,8 @@ var Layout = function()
   this.gradientLegend = undefined;
   /** @desc Define standard layout - (2) for horizontal bipartite graph, (3) for vertical bipartite graph */
   this.lay = 2;
+  /** @desc Define events object */
+  this.eventHandler = undefined;
 }
 
 /**
@@ -602,11 +604,12 @@ Layout.prototype.connectVertexes = function(innerNodes, outerNodes, innerBPLevel
  */
 Layout.prototype.createEventListener = function(camera, WebGL)
 {
-  var eventHandler;
   var numOfLevels = this.numOfLevels;
-  if(eventHandler === undefined)
+
+  if(this.eventHandler === undefined)
   {
-    eventHandler = new EventHandler(undefined);
+    this.eventHandler = new EventHandler(undefined);
+    var eventHandler = this.eventHandler;
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
       camera.aspect = document.getElementById(WebGL).clientWidth / document.getElementById(WebGL).clientHeight;
@@ -1444,6 +1447,7 @@ var EventHandler = function(raycaster)
     this.highlightedElements = [];
     this.neighbors = [];
     this.clicked = {wasClicked: false};
+    this.updateData = {wasUpdated: false};
 }
 
 /**
@@ -1676,6 +1680,13 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       }
       /** Construct a new vue table data */
       vueTableRows._data.rows = vertexVueRows;
+      /** Updated data; update variable */
+      this.updateData.wasUpdated = true;
+    }
+    else
+    {
+      /** No data updated; update variable */
+      this.updateData.wasUpdated = false;
     }
   }
 }

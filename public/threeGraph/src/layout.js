@@ -20,6 +20,8 @@ var Layout = function()
   this.gradientLegend = undefined;
   /** @desc Define standard layout - (2) for horizontal bipartite graph, (3) for vertical bipartite graph */
   this.lay = 2;
+  /** @desc Define events object */
+  this.eventHandler = undefined;
 }
 
 /**
@@ -157,11 +159,12 @@ Layout.prototype.connectVertexes = function(innerNodes, outerNodes, innerBPLevel
  */
 Layout.prototype.createEventListener = function(camera, WebGL)
 {
-  var eventHandler;
   var numOfLevels = this.numOfLevels;
-  if(eventHandler === undefined)
+
+  if(this.eventHandler === undefined)
   {
-    eventHandler = new EventHandler(undefined);
+    this.eventHandler = new EventHandler(undefined);
+    var eventHandler = this.eventHandler;
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
       camera.aspect = document.getElementById(WebGL).clientWidth / document.getElementById(WebGL).clientHeight;
