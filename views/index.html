@@ -246,7 +246,6 @@
         </section>
         <section class="mdl-layout__tab-panel" id="fixed-tab-3">
           <div class="mdl-grid page-content">
-            <span id="example">I'm an example.</span>
             <table id="vertexInfoTable" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
               <thead id="dynamicTableHeaders">
                 <tr>
@@ -283,6 +282,8 @@
         rows: ""
       }
     });
+    /** Store vertexes clicked */
+    var clickedVertexes = [];
     var layout = new Layout();
     function animate()
     {
@@ -302,24 +303,5 @@
         wd.document.close();
       }
     }
-    $(document).ready(function() {
-      $('.tooltip').tooltipster({
-        // plugins: ['follower'],
-        content: $('#vertexInfoTable'),
-        trigger: 'click',
-        contentCloning: true
-      });
-      $('#mainSection').on('click', function(evt){
-        /** Only open tooltip when vertex is clicked */
-        if(layout.eventHandler !== undefined && layout.eventHandler.updateData.wasUpdated == true)
-        {
-          $('.tooltip').tooltipster('open');
-        }
-        else if(layout.eventHandler !== undefined && layout.eventHandler.updateData.wasUpdated == false)
-        {
-          $('.tooltip').tooltipster('close');
-        }
-      });
-    });
   </script>
 </html>

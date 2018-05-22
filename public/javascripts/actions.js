@@ -125,3 +125,14 @@ $("#coarseGraph").on('click', function(){
     xhr: loadGraph
   });
 });
+
+/** Store clicked vertexes to display on side bar */
+$("#mainSection").on('click', function(){
+  if(layout.updateData.wasUpdated == true)
+  {
+    for(var i = 0; i < vueTableRows.$data.rows.length; i++)
+    {
+      
+    }
+  }
+});
