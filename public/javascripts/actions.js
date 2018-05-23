@@ -128,11 +128,11 @@ $("#coarseGraph").on('click', function(){
 
 /** Store clicked vertexes to display on side bar */
 $("#mainSection").on('click', function(){
-  if(layout.updateData.wasUpdated == true)
+  if(layout.eventHandler.updateData.wasUpdated == true)
   {
     for(var i = 0; i < vueTableRows.$data.rows.length; i++)
     {
-      
+
     }
   }
 });

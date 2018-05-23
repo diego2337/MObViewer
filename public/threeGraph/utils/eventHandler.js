@@ -6,8 +6,10 @@
 /**
  * @constructor
  * @param {Object} raycaster Defined raycaster, defaults to creating a new one.
+ * @param {String} HTMLelement HTML element to build d3Tooltip div in.
+ * @param {int} numOfLevels Number of coarsened graphs.
  */
-var EventHandler = function(raycaster)
+var EventHandler = function(raycaster, HTMLelement, numOfLevels)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
     this.raycaster.linePrecision = 0.1;
@@ -15,6 +17,9 @@ var EventHandler = function(raycaster)
     this.neighbors = [];
     this.clicked = {wasClicked: false};
     this.updateData = {wasUpdated: false};
+    this.d3Tooltip = new d3Tooltip(HTMLelement);
+    this.d3Tooltip.created3Tooltip();
+    this.nLevels = numOfLevels;
 }
 
 /**
@@ -54,6 +59,25 @@ EventHandler.prototype.getHighlightedElements = function()
 EventHandler.prototype.setHighlightedElements = function(highlighted)
 {
     this.highlightedElements = highlighted;
+}
+
+/**
+ * Getter for number of levels.
+ * @public
+ * @returns {int} Number of levels.
+ */
+EventHandler.prototype.getNLevels = function()
+{
+  return this.nLevels;
+}
+
+/**
+ * Setter for number of levels.
+ * @param {int} numOfLevels Number of levels.
+ */
+EventHandler.prototype.setNLevels = function(numOfLevels)
+{
+  this.nLevels = numOfLevels;
 }
 
 /**
@@ -184,6 +208,8 @@ EventHandler.prototype.configAndExecuteRaytracing = function(evt, renderer, scen
   var x = evt.clientX - canvas.left;
   var y = evt.clientY - canvas.top;
   // console.log("x: " + x + " y: " + y);
+  /** Define tooltip position given x and y */
+  this.d3Tooltip.setPosition(x, y);
 
   /* Adjusting mouse coordinates to NDC [-1, 1] */
   var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
@@ -249,6 +275,9 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       vueTableRows._data.rows = vertexVueRows;
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
+      /** Populate and show tooltip information */
+      this.d3Tooltip.populateAndShowTooltip(vertices);
+      // this.d3Tooltip.populateAndShowTooltip("<span>Ok!</span>");
     }
     else
     {
@@ -262,11 +291,10 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
  * Handles mouse move. If mouse hovers over element, invoke highlighting.
  * @public
  * @param {Object} evt Event dispatcher.
- * @param {int} numOfLevels Number of levels for current visualization.
  * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
  * @param {Object} scene Scene for raycaster.
  */
-EventHandler.prototype.mouseMoveEvent = function(evt, numOfLevels, renderer, scene)
+EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
 {
     /* Execute ray tracing */
     // var intersects = this.raycaster.intersectObjects(scene.children, true);
@@ -276,7 +304,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, numOfLevels, renderer, sce
     /* Unhighlight any already highlighted element - FIXME this is problematic; highlightedElements might have index of an element that is being highlighted because of a double click. Must find a way to check from which specific mesh that index is */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-      for(var j = 0; j < parseInt(numOfLevels)+1; j++)
+      for(var j = 0; j < parseInt(this.nLevels)+1; j++)
       {
         var endPoint = this.highlightedElements[i] + 32;
         var element;
@@ -342,7 +370,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, numOfLevels, renderer, sce
       }
       else /** Intersection with edge */
       {
-        /** Do nothing (TODO - for now) */
+        /** Do nothing - TODO for now */
+        /** Remove tooltip from highlighting */
+        this.d3Tooltip.hideTooltip();
       }
     }
 }

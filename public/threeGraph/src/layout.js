@@ -163,7 +163,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
 
   if(this.eventHandler === undefined)
   {
-    this.eventHandler = new EventHandler(undefined);
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.numOfLevels);
     var eventHandler = this.eventHandler;
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
@@ -171,7 +171,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
       camera.updateProjectionMatrix();
       globalRenderer.setSize(document.getElementById(WebGL).clientWidth, document.getElementById(WebGL).clientHeight);
     }, false);
-    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, numOfLevels, globalRenderer, globalScene);}, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, globalRenderer, globalScene);}, false);
     document.addEventListener('dblclick', function(evt){
       eventHandler.mouseDoubleClickEvent(globalScene);
       // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
@@ -180,6 +180,11 @@ Layout.prototype.createEventListener = function(camera, WebGL)
     document.addEventListener('click', function(evt){
       eventHandler.mouseClickEvent(evt, globalRenderer, globalScene);
     }, false);
+  }
+  else
+  {
+    /** Update number of levels */
+    this.eventHandler.setNLevels(numOfLevels);
   }
 }
 
@@ -426,6 +431,8 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   var graphName = data.graphName;
   var numOfLevels = data.nLevels;
   this.numOfLevels = numOfLevels;
+  console.log("this.numOfLevels: " + this.numOfLevels);
+  console.log("numOfLevels: " + numOfLevels);
   var firstSet = data.firstSet;
   var secondSet = data.secondSet;
   var data = data.graph;

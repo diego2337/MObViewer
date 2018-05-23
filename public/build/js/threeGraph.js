@@ -608,7 +608,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
 
   if(this.eventHandler === undefined)
   {
-    this.eventHandler = new EventHandler(undefined);
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.numOfLevels);
     var eventHandler = this.eventHandler;
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
@@ -616,7 +616,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
       camera.updateProjectionMatrix();
       globalRenderer.setSize(document.getElementById(WebGL).clientWidth, document.getElementById(WebGL).clientHeight);
     }, false);
-    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, numOfLevels, globalRenderer, globalScene);}, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, globalRenderer, globalScene);}, false);
     document.addEventListener('dblclick', function(evt){
       eventHandler.mouseDoubleClickEvent(globalScene);
       // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
@@ -625,6 +625,11 @@ Layout.prototype.createEventListener = function(camera, WebGL)
     document.addEventListener('click', function(evt){
       eventHandler.mouseClickEvent(evt, globalRenderer, globalScene);
     }, false);
+  }
+  else
+  {
+    /** Update number of levels */
+    this.eventHandler.setNLevels(numOfLevels);
   }
 }
 
@@ -871,6 +876,8 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   var graphName = data.graphName;
   var numOfLevels = data.nLevels;
   this.numOfLevels = numOfLevels;
+  console.log("this.numOfLevels: " + this.numOfLevels);
+  console.log("numOfLevels: " + numOfLevels);
   var firstSet = data.firstSet;
   var secondSet = data.secondSet;
   var data = data.graph;
@@ -1423,6 +1430,147 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
 // }
 
 /**
+ * Base class for d3's tooltip, to visualize vertex info inside a node. Based on https://evortigosa.github.io/pollution/
+ * @author Diego Cintra
+ * Date: 22 may 2018
+ */
+
+/**
+ * @constructor
+ * @param {String} HTMLelement HTML element to build d3Tooltip div in.
+ */
+var d3Tooltip = function(HTMLelement)
+{
+  try
+  {
+    /** Store parent element to create tooltip */
+    this.parentElement = HTMLelement;
+    this.tooltip = undefined;
+    /** Offsets from mouse so that tooltip won't show on top of mouse */
+    this.xOffset = 70;
+    this.yOffset = 28;
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in d3Tooltip constructor. " + err;
+  }
+}
+
+/**
+ * @desc Creates a d3 tooltip on HTML page, to check for vertex info.
+ * @public
+ * @param {String} HTMLelement HTML element to build d3Tooltip div in; if specified, replaces "this.parentElement" value.
+ */
+d3Tooltip.prototype.created3Tooltip = function(HTMLelement)
+{
+  this.parentElement = ecmaStandard(HTMLelement, this.parentElement);
+  /** Create tooltip */
+  this.tooltip = d3.select(this.parentElement)
+    .append("div")
+    .attr("class", "tooltip");
+  /** Create tooltip initially hidden */
+  this.hideTooltip();
+}
+
+/**
+ * @desc Populates tooltip and set its opacity to 1.
+ * @public
+ * @param {String} data String-like data to populate tooltip.
+ */
+d3Tooltip.prototype.populateAndShowTooltip = function(data)
+{
+  this.populateTooltip(data);
+  this.showTooltip(data);
+}
+
+/**
+ * @desc Use input data to generate HTML table format, using classes from material design lite.
+ * @param {(String|Array)} data String-like or Array data to populate tooltip.
+ * @returns {String} HTML table.
+ */
+d3Tooltip.prototype.generateHTMLTable = function(data)
+{
+  var table = "<table class=\"mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp\"><thead><tr>";
+  for(var i = 0; i < data.length; i++)
+  {
+    for(key in data[i].rows)
+    {
+      table = table + "<th class=\"mdl-data-table__cell--non-numeric\">" + key + "</th>";
+    }
+    table = table + "</tr></thead>";
+    for(key in data[i].rows)
+    {
+
+    }
+  }
+  return table;
+}
+
+/**
+ * @desc Populates tooltip with information provided by data.
+ * @public
+ * @param {(String|Array)} data String-like or Array data to populate tooltip.
+ */
+d3Tooltip.prototype.populateTooltip = function(data)
+{
+  try
+  {
+    this.tooltip.html(JSON.stringify(data, undefined, 5));
+    // this.tooltip.html(this.generateHTMLTable(data));
+    // for(var i = 0; i < data.rows.length; i++)
+    // {
+    //   for(key in data.rows[i])
+    //   {
+    //     console.log(key);
+    //     console.log(data.rows[i][key]);
+    //   }
+    // }
+    // this.tooltip.html(data);
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function populateTooltip. " + err;
+  }
+}
+
+/**
+ * @desc Hides tooltip by setting opacity to 0.
+ * @public
+ */
+d3Tooltip.prototype.hideTooltip = function()
+{
+  this.tooltip.style("opacity", 0);
+}
+
+/**
+ * @desc Shows tooltip by setting opacity to 1.
+ * @public
+ */
+d3Tooltip.prototype.showTooltip = function()
+{
+  this.tooltip.style("opacity", 1);
+}
+
+/**
+ * @desc Clear tooltip content.
+ * @public
+ */
+d3Tooltip.prototype.clearTooltip = function()
+{
+  this.tooltip.html();
+}
+
+/**
+ * @desc Set tooltip position according to x and y values.
+ * @param {int} x X offset to place tooltip.
+ * @param {int} y Y offset to place tooltip.
+ */
+d3Tooltip.prototype.setPosition = function(x, y)
+{
+  this.tooltip.style("left", (x - this.xOffset) + "px").style("top", (y - this.yOffset) + "px");
+}
+
+/**
  * @desc Base class for pre ECMAScript2015 standardization.
  * @author Diego S. Cintra
  */
@@ -1439,8 +1587,10 @@ var ecmaStandard = function(variable, defaultValue)
 /**
  * @constructor
  * @param {Object} raycaster Defined raycaster, defaults to creating a new one.
+ * @param {String} HTMLelement HTML element to build d3Tooltip div in.
+ * @param {int} numOfLevels Number of coarsened graphs.
  */
-var EventHandler = function(raycaster)
+var EventHandler = function(raycaster, HTMLelement, numOfLevels)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
     this.raycaster.linePrecision = 0.1;
@@ -1448,6 +1598,9 @@ var EventHandler = function(raycaster)
     this.neighbors = [];
     this.clicked = {wasClicked: false};
     this.updateData = {wasUpdated: false};
+    this.d3Tooltip = new d3Tooltip(HTMLelement);
+    this.d3Tooltip.created3Tooltip();
+    this.nLevels = numOfLevels;
 }
 
 /**
@@ -1487,6 +1640,25 @@ EventHandler.prototype.getHighlightedElements = function()
 EventHandler.prototype.setHighlightedElements = function(highlighted)
 {
     this.highlightedElements = highlighted;
+}
+
+/**
+ * Getter for number of levels.
+ * @public
+ * @returns {int} Number of levels.
+ */
+EventHandler.prototype.getNLevels = function()
+{
+  return this.nLevels;
+}
+
+/**
+ * Setter for number of levels.
+ * @param {int} numOfLevels Number of levels.
+ */
+EventHandler.prototype.setNLevels = function(numOfLevels)
+{
+  this.nLevels = numOfLevels;
 }
 
 /**
@@ -1617,6 +1789,8 @@ EventHandler.prototype.configAndExecuteRaytracing = function(evt, renderer, scen
   var x = evt.clientX - canvas.left;
   var y = evt.clientY - canvas.top;
   // console.log("x: " + x + " y: " + y);
+  /** Define tooltip position given x and y */
+  this.d3Tooltip.setPosition(x, y);
 
   /* Adjusting mouse coordinates to NDC [-1, 1] */
   var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
@@ -1682,6 +1856,9 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       vueTableRows._data.rows = vertexVueRows;
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
+      /** Populate and show tooltip information */
+      this.d3Tooltip.populateAndShowTooltip(vertices);
+      // this.d3Tooltip.populateAndShowTooltip("<span>Ok!</span>");
     }
     else
     {
@@ -1695,11 +1872,10 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
  * Handles mouse move. If mouse hovers over element, invoke highlighting.
  * @public
  * @param {Object} evt Event dispatcher.
- * @param {int} numOfLevels Number of levels for current visualization.
  * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
  * @param {Object} scene Scene for raycaster.
  */
-EventHandler.prototype.mouseMoveEvent = function(evt, numOfLevels, renderer, scene)
+EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
 {
     /* Execute ray tracing */
     // var intersects = this.raycaster.intersectObjects(scene.children, true);
@@ -1709,7 +1885,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, numOfLevels, renderer, sce
     /* Unhighlight any already highlighted element - FIXME this is problematic; highlightedElements might have index of an element that is being highlighted because of a double click. Must find a way to check from which specific mesh that index is */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
-      for(var j = 0; j < parseInt(numOfLevels)+1; j++)
+      for(var j = 0; j < parseInt(this.nLevels)+1; j++)
       {
         var endPoint = this.highlightedElements[i] + 32;
         var element;
@@ -1775,7 +1951,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, numOfLevels, renderer, sce
       }
       else /** Intersection with edge */
       {
-        /** Do nothing (TODO - for now) */
+        /** Do nothing - TODO for now */
+        /** Remove tooltip from highlighting */
+        this.d3Tooltip.hideTooltip();
       }
     }
 }

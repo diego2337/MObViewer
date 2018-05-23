@@ -136,7 +136,7 @@ function readJsonFile(path, fs, req, res)
       /* Store graph size */
       if(graphSize.length == 0) JSON.parse(data).graphInfo[0].vlayer != undefined ? graphSize = JSON.parse(data).graphInfo[0].vlayer : graphSize = JSON.parse(data).graphInfo[0].vertices;
       /* Send data to client */
-      res.end(JSON.stringify({graph: addValues(data), nLevels: currentLevel, graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
+      res.end(JSON.stringify({graph: addValues(data), nLevels: parseInt(req.body.nLevels), graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
     }
   });
 }
@@ -375,6 +375,7 @@ app.post('/coarse', function(req, res) {
     fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data) {
       if(err) /* File doesn't exist */
       {
+
         createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req, res);
       }
       else /* File exists*/
