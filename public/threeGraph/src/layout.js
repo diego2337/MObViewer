@@ -20,6 +20,8 @@ var Layout = function()
   this.gradientLegend = undefined;
   /** @desc Define standard layout - (2) for horizontal bipartite graph, (3) for vertical bipartite graph */
   this.lay = 2;
+  /** @desc Define events object */
+  this.eventHandler = undefined;
 }
 
 /**
@@ -157,18 +159,19 @@ Layout.prototype.connectVertexes = function(innerNodes, outerNodes, innerBPLevel
  */
 Layout.prototype.createEventListener = function(camera, WebGL)
 {
-  var eventHandler;
   var numOfLevels = this.numOfLevels;
-  if(eventHandler === undefined)
+
+  if(this.eventHandler === undefined)
   {
-    eventHandler = new EventHandler(undefined);
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.numOfLevels);
+    var eventHandler = this.eventHandler;
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
       camera.aspect = document.getElementById(WebGL).clientWidth / document.getElementById(WebGL).clientHeight;
       camera.updateProjectionMatrix();
       globalRenderer.setSize(document.getElementById(WebGL).clientWidth, document.getElementById(WebGL).clientHeight);
     }, false);
-    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, numOfLevels, globalRenderer, globalScene);}, false);
+    document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, globalRenderer, globalScene);}, false);
     document.addEventListener('dblclick', function(evt){
       eventHandler.mouseDoubleClickEvent(globalScene);
       // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
@@ -177,6 +180,11 @@ Layout.prototype.createEventListener = function(camera, WebGL)
     document.addEventListener('click', function(evt){
       eventHandler.mouseClickEvent(evt, globalRenderer, globalScene);
     }, false);
+  }
+  else
+  {
+    /** Update number of levels */
+    this.eventHandler.setNLevels(numOfLevels);
   }
 }
 

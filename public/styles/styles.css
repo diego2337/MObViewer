@@ -1,3 +1,32 @@
+.fixed-div {
+	position: fixed;
+	top: 170px;
+	right: 10px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
 .z-index-front {
     z-index: 100;
 }

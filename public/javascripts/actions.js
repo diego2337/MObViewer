@@ -125,3 +125,9 @@ $("#coarseGraph").on('click', function(){
     xhr: loadGraph
   });
 });
+
+/** Reset vertex info being shown by clicking */
+$("#resetInfo").on('click', function(){
+  vueTableHeader._data.headers = "";
+  vueTableRows._data.rows = "";
+});

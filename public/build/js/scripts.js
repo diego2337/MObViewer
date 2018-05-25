@@ -126,6 +126,12 @@ $("#coarseGraph").on('click', function(){
   });
 });
 
+/** Reset vertex info being shown by clicking */
+$("#resetInfo").on('click', function(){
+  vueTableHeader._data.headers = "";
+  vueTableRows._data.rows = "";
+});
+
 /**
   * @ File to watch for clicks in buttons used for saving either .png graph image or .json file.
   * @author Diego Cintra

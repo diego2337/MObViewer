@@ -126,6 +126,8 @@ function addFolderPath()
  */
 function readJsonFile(path, fs, req, res)
 {
+  var nLev = 0;
+  req.body.nLevels == undefined ? nLevl = 0 : nLev = parseInt(req.body.nLevels);
   fs.readFile(path, 'utf8', function(err, data){
     if(err)
     {
@@ -136,7 +138,7 @@ function readJsonFile(path, fs, req, res)
       /* Store graph size */
       if(graphSize.length == 0) JSON.parse(data).graphInfo[0].vlayer != undefined ? graphSize = JSON.parse(data).graphInfo[0].vlayer : graphSize = JSON.parse(data).graphInfo[0].vertices;
       /* Send data to client */
-      res.end(JSON.stringify({graph: addValues(data), nLevels: currentLevel, graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
+      res.end(JSON.stringify({graph: addValues(data), nLevels: nLev, graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
     }
   });
 }
@@ -375,6 +377,7 @@ app.post('/coarse', function(req, res) {
     fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data) {
       if(err) /* File doesn't exist */
       {
+
         createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req, res);
       }
       else /* File exists*/
