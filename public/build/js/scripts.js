@@ -126,15 +126,10 @@ $("#coarseGraph").on('click', function(){
   });
 });
 
-/** Store clicked vertexes to display on side bar */
-$("#mainSection").on('click', function(){
-  if(layout.eventHandler.updateData.wasUpdated == true)
-  {
-    for(var i = 0; i < vueTableRows.$data.rows.length; i++)
-    {
-
-    }
-  }
+/** Reset vertex info being shown by clicking */
+$("#resetInfo").on('click', function(){
+  vueTableHeader._data.headers = "";
+  vueTableRows._data.rows = "";
 });
 
 /**

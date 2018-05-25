@@ -1,9 +1,16 @@
+.fixed-div {
+	position: fixed;
+	top: 170px;
+	right: 10px;
+}
+
 .small-margin {
 	margin: 10px;
 }
 
 .overflow-y-scroll {
 	overflow-y: scroll;
+	overflow: hidden;
 }
 
 div.tooltip {

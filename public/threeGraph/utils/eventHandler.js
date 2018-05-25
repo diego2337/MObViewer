@@ -242,6 +242,11 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
     {
       var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
       var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
+      /** Load already existing elements clicked in array of rows */
+      for(var j = 0; j < vueTableRows._data.rows.length; j++)
+      {
+        vertexVueRows.push(vueTableRows._data.rows[j]);
+      }
       /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
       if(vertices.vertexes !== undefined)
       {

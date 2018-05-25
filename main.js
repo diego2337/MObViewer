@@ -126,6 +126,8 @@ function addFolderPath()
  */
 function readJsonFile(path, fs, req, res)
 {
+  var nLev = 0;
+  req.body.nLevels == undefined ? nLevl = 0 : nLev = parseInt(req.body.nLevels);
   fs.readFile(path, 'utf8', function(err, data){
     if(err)
     {
@@ -136,7 +138,7 @@ function readJsonFile(path, fs, req, res)
       /* Store graph size */
       if(graphSize.length == 0) JSON.parse(data).graphInfo[0].vlayer != undefined ? graphSize = JSON.parse(data).graphInfo[0].vlayer : graphSize = JSON.parse(data).graphInfo[0].vertices;
       /* Send data to client */
-      res.end(JSON.stringify({graph: addValues(data), nLevels: parseInt(req.body.nLevels), graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
+      res.end(JSON.stringify({graph: addValues(data), nLevels: nLev, graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
     }
   });
 }

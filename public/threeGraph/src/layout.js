@@ -431,8 +431,6 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   var graphName = data.graphName;
   var numOfLevels = data.nLevels;
   this.numOfLevels = numOfLevels;
-  console.log("this.numOfLevels: " + this.numOfLevels);
-  console.log("numOfLevels: " + numOfLevels);
   var firstSet = data.firstSet;
   var secondSet = data.secondSet;
   var data = data.graph;

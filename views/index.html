@@ -66,7 +66,7 @@
         <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
           <a href="#fixed-tab-1" class="mdl-layout__tab is-active">Visualization</a>
           <!-- <a href="#fixed-tab-2" class="mdl-layout__tab">Display Info</a> -->
-          <a href="#fixed-tab-3" class="mdl-layout__tab">Vertex Info</a>
+          <!-- <a href="#fixed-tab-3" class="mdl-layout__tab">Vertex Info</a> -->
         </div>
       </header>
       <div id="settingsDrawer" class="mdl-layout__drawer">
@@ -131,6 +131,17 @@
                 <i class="material-icons">loop</i>
                 <div class="lower-case mdl-tooltip" for="switchLayout">
                     Switch to either vertical or horizontal bipartite graph layout.
+                </div>
+              </button>
+            </li>
+            <li class="mdl-list__item">
+              <span class="mdl-color-text--black-50 mdl-list__item-primary-content">
+                Reset vertex info:
+              </span>
+              <button id="resetInfo" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="showGraphConfigurationCollapsed">
+                <i class="material-icons">done</i>
+                <div class="lower-case mdl-tooltip" for="resetInfo">
+                    Click to reset vertex info showed by clicking on vertexes.
                 </div>
               </button>
             </li>
@@ -229,7 +240,7 @@
         <section class="mdl-layout__tab-panel is-active" id="fixed-tab-1">
           <div id="gradientScale" class="relative-div float-right z-index-front">
           </div>
-          <div class="absolute-div small-margin float-right z-index-front">
+          <div class="fixed-div right-side small-margin z-index-front">
             <!-- <span class="mdl-layout__title">Vertex info</span> -->
             <table id="vertexInfoTable" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
               <thead id="dynamicTableHeaders">
