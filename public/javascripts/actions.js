@@ -131,3 +131,8 @@ $("#resetInfo").on('click', function(){
   vueTableHeader._data.headers = "";
   vueTableRows._data.rows = "";
 });
+
+/** Show dialog to allow user to specify which information is to be shown on tooltip */
+$("#userInfo").on('click', function(){
+  $("#userDefinedInfo").css('visibility', 'visible');
+});

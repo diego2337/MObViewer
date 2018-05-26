@@ -7,42 +7,50 @@
 /**
  * @constructor
  */
-var vertexInfo = function()
+var VertexInfo = function()
 {
-  /** Create an empty array of properties */
-  this.properties = [];
+  /** Create an empty array of properties for first and second layer */
+  this.propertiesFirstLayer = this.propertiesSecondLayer = [];
 }
 
-/**
- * Getter for properties.
- * @public
- * @returns {Array} Properties property from vertexInfo.
- */
-vertexInfo.prototype.getProperties = function()
-{
-  return this.properties;
-}
-
-/**
- * Setter for raycaster.
- * @public
- * @param {Array} props Array of properties.
- */
-vertexInfo.prototype.setProperties = function(props)
-{
-  this.properties = props;
-}
+// /**
+//  * Getter for properties.
+//  * @public
+//  * @returns {Array} Properties property from vertexInfo.
+//  */
+// vertexInfo.prototype.getProperties = function()
+// {
+//   return this.propertiesFirstLayer;
+// }
+//
+// /**
+//  * Setter for raycaster.
+//  * @public
+//  * @param {Array} props Array of properties.
+//  */
+// vertexInfo.prototype.setProperties = function(props)
+// {
+//   this.propertiesFirstLayer = props;
+// }
 
 /**
  * @desc Parse a string into JSON object, and store its keys in an array.
  * @param {String} props Properties.
+ * @param {int} layer Used to identify from which layer "props" is being passed from - (0) from first layer, (1) from second layer.
  */
-vertexInfo.prototype.storeProperties = function(props)
+VertexInfo.prototype.storeProperties = function(props, layer)
 {
-  /** Transform into JSON object */
-  var p = JSON.parse(props);
-  for(key in p)
+  for(key in props)
   {
-    this.properties.push(key);
+    layer == 0 ? this.propertiesFirstLayer.push(key) : this.propertiesSecondLayer.push(key);
   }
+}
+
+/**
+ * @desc Concatenates arrays to display.
+
+ */
+VertexInfo.prototype.getProps = function()
+{
+
 }

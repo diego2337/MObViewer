@@ -42,13 +42,17 @@
     <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
   </head>
   <body>
-
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-tabs">
       <header class="mdl-layout__header">
         <div class="mdl-layout-icon"></div>
         <div class="mdl-layout__header-row">
           <span class="mdl-layout__title">threeGraph</span>
           <div class="mdl-layout-spacer"></div>
+          <button id="userInfo" class="upload-btn mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored dialog-button" disabled>
+            <span class="mdl-color-text--white ">Define vertex info</span>
+            <!-- <i class="material-icons">launch</i> -->
+          </button>
+          <div class="side-margin"></div>
           <button class="upload-btn mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored">
             <span class="mdl-color-text--white ">Load graph...</span>
             <!-- <i class="material-icons">launch</i> -->
@@ -265,6 +269,32 @@
                 <h6 >Loading graph...</h6>
               </div>
             </div>
+            <div class="fixed-div-center">
+              <table id="userDefinedInfo" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+                <thead id="userDefinedHeaders">
+                  <tr>
+                    <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
+                      Select all
+                    </th>
+                    <th class="mdl-data-table__cell--non-numeric">
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="userDefinedRows">
+                  <tr v-for="row in rows">
+                    <td class="mdl-data-table__cell--non-numeric" v-for="key in row">
+                      {{ key }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <button id="apply" class="upload-btn mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored dialog-button">
+                <span class="mdl-color-text--white ">Apply</span>
+              </button>
+              <button id="cancel" class="upload-btn mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored dialog-button">
+                <span class="mdl-color-text--white ">Cancel</span>
+              </button>
+            </div>
             <!-- <div id="vertexInfoId" class="lower-case mdl-tooltip mdl-tooltip--large" for="fixed-tab-1" style="display: none;">
                 <span id="vertexInfo"></span>
             </div> -->
@@ -304,6 +334,12 @@
     });
     var vueTableRows = new Vue({
       el: '#dynamicTableRows',
+      data: {
+        rows: ""
+      }
+    });
+    var vueTableUserRows = new Vue({
+      el: '#userDefinedRows',
       data: {
         rows: ""
       }

@@ -132,6 +132,11 @@ $("#resetInfo").on('click', function(){
   vueTableRows._data.rows = "";
 });
 
+/** Show dialog to allow user to specify which information is to be shown on tooltip */
+$("#userInfo").on('click', function(){
+  $("#userDefinedInfo").css('visibility', 'visible');
+});
+
 /**
   * @ File to watch for clicks in buttons used for saving either .png graph image or .json file.
   * @author Diego Cintra
@@ -206,6 +211,10 @@ $('#upload-input').on('change', function(){
           console.log('Upload successful!\n');
           /* Show slider's current value */
           showValue();
+          /** Allow button to selected user info to be enabled */
+          $("#userInfo").prop("disabled", false);
+          /** Update vertex data */
+          vueTableUserRows._data.rows = layout.vertexInfo;
           /* Build graph after loading .json file */
           layout.build(data);
       },

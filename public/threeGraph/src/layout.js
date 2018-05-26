@@ -22,6 +22,8 @@ var Layout = function()
   this.lay = 2;
   /** @desc Define events object */
   this.eventHandler = undefined;
+  /** @desc Define vertexInfo object, to hold vertexes properties */
+  this.vertexInfo = new VertexInfo();
 }
 
 /**
@@ -456,7 +458,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph = new BipartiteGraph(jason, 8, "");
 
   /* Render bipartiteGraph */
-  bipartiteGraph.renderGraph(jason, globalScene, lay);
+  bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo);
 
   /** Build and render bipartite graphs from previous levels of coarsening */
   this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, parseInt(numOfLevels), nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
