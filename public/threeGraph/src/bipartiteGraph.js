@@ -311,7 +311,7 @@ BipartiteGraph.prototype.renderGraph = function(graph, scene, layout, vertexInfo
     this.renderNodes(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo);
 
     /** Build edges */
-    this.renderEdges(graph, scene, layout, firstIndependentSet, secondIndependentSet);
+    // this.renderEdges(graph, scene, layout, firstIndependentSet, secondIndependentSet);
 
     /** Properly dispose of elements */
     delete firstIndependentSet;
