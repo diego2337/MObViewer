@@ -202,7 +202,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
     setNodes.push(graph.nodes[i]);
   }
   /** Store properties from vertexes in first layer */
-  vertexInfo.storeProperties(setNodes[0], 0);
+  if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 0);
   /** Create an independent set and render its nodes */
   firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Readjust x and y-axis values */
@@ -215,7 +215,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
     setNodes.push(graph.nodes[i+parseInt(this.firstLayer)]);
   }
   /** Store properties from vertexes in second layer */
-  vertexInfo.storeProperties(setNodes[0], 1);
+  if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 1);
   /** Create an independent set and render its nodes */
   secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Creating material for nodes */

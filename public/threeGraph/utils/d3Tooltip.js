@@ -36,7 +36,8 @@ d3Tooltip.prototype.created3Tooltip = function(HTMLelement)
   /** Create tooltip */
   this.tooltip = d3.select(this.parentElement)
     .append("div")
-    .attr("class", "tooltip");
+    .attr("class", "tooltip")
+    .style("z-index", "100");
   /** Create tooltip initially hidden */
   this.hideTooltip();
 }
@@ -49,7 +50,7 @@ d3Tooltip.prototype.created3Tooltip = function(HTMLelement)
 d3Tooltip.prototype.populateAndShowTooltip = function(data)
 {
   this.populateTooltip(data);
-  this.showTooltip(data);
+  if(data.length != 0) this.showTooltip();
 }
 
 /**
@@ -67,10 +68,10 @@ d3Tooltip.prototype.generateHTMLTable = function(data)
       table = table + "<th class=\"mdl-data-table__cell--non-numeric\">" + key + "</th>";
     }
     table = table + "</tr></thead>";
-    for(key in data[i].rows)
-    {
-
-    }
+    // for(key in data[i].rows)
+    // {
+    //
+    // }
   }
   return table;
 }

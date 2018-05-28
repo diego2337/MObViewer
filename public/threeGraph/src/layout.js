@@ -403,7 +403,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     if(i != 0)
     {
       coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
-      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet());
+      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
     }
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)

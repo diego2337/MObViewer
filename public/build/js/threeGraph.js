@@ -202,7 +202,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
     setNodes.push(graph.nodes[i]);
   }
   /** Store properties from vertexes in first layer */
-  vertexInfo.storeProperties(setNodes[0], 0);
+  if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 0);
   /** Create an independent set and render its nodes */
   firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Readjust x and y-axis values */
@@ -215,7 +215,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
     setNodes.push(graph.nodes[i+parseInt(this.firstLayer)]);
   }
   /** Store properties from vertexes in second layer */
-  vertexInfo.storeProperties(setNodes[0], 1);
+  if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 1);
   /** Create an independent set and render its nodes */
   secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Creating material for nodes */
@@ -854,7 +854,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     if(i != 0)
     {
       coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
-      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet());
+      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
     }
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
@@ -941,7 +941,8 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
 var VertexInfo = function()
 {
   /** Create an empty array of properties for first and second layer */
-  this.propertiesFirstLayer = this.propertiesSecondLayer = [];
+  this.propertiesFirstLayer = [];
+  this.propertiesSecondLayer = [];
 }
 
 // /**
@@ -973,17 +974,16 @@ VertexInfo.prototype.storeProperties = function(props, layer)
 {
   for(key in props)
   {
-    layer == 0 ? this.propertiesFirstLayer.push(key) : this.propertiesSecondLayer.push(key);
+    layer == 0 ? this.propertiesFirstLayer.push(key.trim()) : this.propertiesSecondLayer.push(key.trim());
   }
 }
 
 /**
  * @desc Concatenates arrays to display.
-
  */
 VertexInfo.prototype.getProps = function()
 {
-
+  return this.propertiesFirstLayer.concat(this.propertiesSecondLayer);
 }
 
 // /** Global variables */
@@ -1530,7 +1530,8 @@ d3Tooltip.prototype.created3Tooltip = function(HTMLelement)
   /** Create tooltip */
   this.tooltip = d3.select(this.parentElement)
     .append("div")
-    .attr("class", "tooltip");
+    .attr("class", "tooltip")
+    .style("z-index", "100");
   /** Create tooltip initially hidden */
   this.hideTooltip();
 }
@@ -1543,7 +1544,7 @@ d3Tooltip.prototype.created3Tooltip = function(HTMLelement)
 d3Tooltip.prototype.populateAndShowTooltip = function(data)
 {
   this.populateTooltip(data);
-  this.showTooltip(data);
+  if(data.length != 0) this.showTooltip();
 }
 
 /**
@@ -1561,10 +1562,10 @@ d3Tooltip.prototype.generateHTMLTable = function(data)
       table = table + "<th class=\"mdl-data-table__cell--non-numeric\">" + key + "</th>";
     }
     table = table + "</tr></thead>";
-    for(key in data[i].rows)
-    {
-
-    }
+    // for(key in data[i].rows)
+    // {
+    //
+    // }
   }
   return table;
 }
@@ -1664,6 +1665,7 @@ var EventHandler = function(raycaster, HTMLelement, numOfLevels)
     this.d3Tooltip = new d3Tooltip(HTMLelement);
     this.d3Tooltip.created3Tooltip();
     this.nLevels = numOfLevels;
+    this.userInfo = undefined;
 }
 
 /**
@@ -1870,6 +1872,37 @@ EventHandler.prototype.configAndExecuteRaytracing = function(evt, renderer, scen
 }
 
 /**
+ * Filters information to be shown on tooltip, based on userInfo.
+ * @public
+ * @param {Array} vertices Array of vertices.
+ * @returns {Array} Array of filtered information to be shown.
+ */
+EventHandler.prototype.getTooltipInfo = function(vertices)
+{
+  var filteredVerts = [];
+  if(this.userInfo !== undefined)
+  {
+    for(var i = 0; i < this.userInfo.length; i++)
+    {
+      this.userInfo[i] = this.userInfo[i].trim();
+    }
+    for(var i = 0; i < vertices.length; i++)
+    {
+      var obj = JSON.parse(JSON.stringify(vertices[i]));
+      for(key in vertices[i])
+      {
+        if(this.userInfo.indexOf(key) == -1)
+        {
+          obj[key] = undefined;
+        }
+      }
+      filteredVerts.push(obj);
+    }
+  }
+  return filteredVerts;
+}
+
+/**
  * Handles mouse click. If mouse clicks vertex, show its current id and weight, as well as vertexes associated with it.
  * @public
  * @param {Object} evt Event dispatcher.
@@ -1925,7 +1958,7 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */
-      this.d3Tooltip.populateAndShowTooltip(vertices);
+      this.d3Tooltip.populateAndShowTooltip(this.getTooltipInfo(vertices));
       // this.d3Tooltip.populateAndShowTooltip("<span>Ok!</span>");
     }
     else

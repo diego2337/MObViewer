@@ -48,10 +48,10 @@ $('#upload-input').on('change', function(){
           showValue();
           /** Allow button to selected user info to be enabled */
           $("#userInfo").prop("disabled", false);
-          /** Update vertex data */
-          vueTableUserRows._data.rows = layout.vertexInfo;
           /* Build graph after loading .json file */
           layout.build(data);
+          /** Update vertex data */
+          vueTableUserRows._data.rows = layout.vertexInfo.getProps();
       },
       xhr: loadGraph
     });

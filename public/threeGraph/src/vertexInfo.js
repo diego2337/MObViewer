@@ -10,7 +10,8 @@
 var VertexInfo = function()
 {
   /** Create an empty array of properties for first and second layer */
-  this.propertiesFirstLayer = this.propertiesSecondLayer = [];
+  this.propertiesFirstLayer = [];
+  this.propertiesSecondLayer = [];
 }
 
 // /**
@@ -42,15 +43,14 @@ VertexInfo.prototype.storeProperties = function(props, layer)
 {
   for(key in props)
   {
-    layer == 0 ? this.propertiesFirstLayer.push(key) : this.propertiesSecondLayer.push(key);
+    layer == 0 ? this.propertiesFirstLayer.push(key.trim()) : this.propertiesSecondLayer.push(key.trim());
   }
 }
 
 /**
  * @desc Concatenates arrays to display.
-
  */
 VertexInfo.prototype.getProps = function()
 {
-
+  return this.propertiesFirstLayer.concat(this.propertiesSecondLayer);
 }
