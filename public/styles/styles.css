@@ -1,3 +1,14 @@
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
 .fixed-div {
 	position: fixed;
 	top: 170px;

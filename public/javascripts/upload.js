@@ -46,8 +46,12 @@ $('#upload-input').on('change', function(){
           console.log('Upload successful!\n');
           /* Show slider's current value */
           showValue();
+          /** Allow button to selected user info to be enabled */
+          $("#userInfo").prop("disabled", false);
           /* Build graph after loading .json file */
           layout.build(data);
+          /** Update vertex data */
+          vueTableUserRows._data.rows = layout.vertexInfo.getProps();
       },
       xhr: loadGraph
     });

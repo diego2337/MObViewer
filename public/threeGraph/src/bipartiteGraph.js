@@ -184,8 +184,9 @@ BipartiteGraph.prototype.writeProperties = function(singleGeometry, jsonObject, 
  * @param {int} layout Graph layout.
  * @param {Object} firstIndependentSet Independent set where first set of nodes will be rendered.
  * @param {Object} secondIndependentSet Independent set where second set of nodes will be rendered.
+ * @param {Object} vertexInfo VertexInfo type object to store properties from vertexes.
  */
-BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndependentSet, secondIndependentSet)
+BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo)
 {
   /** Create single geometry which will contain all geometries */
   var singleGeometry = new THREE.Geometry();
@@ -200,6 +201,8 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   {
     setNodes.push(graph.nodes[i]);
   }
+  /** Store properties from vertexes in first layer */
+  if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 0);
   /** Create an independent set and render its nodes */
   firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Readjust x and y-axis values */
@@ -211,6 +214,8 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   {
     setNodes.push(graph.nodes[i+parseInt(this.firstLayer)]);
   }
+  /** Store properties from vertexes in second layer */
+  if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 1);
   /** Create an independent set and render its nodes */
   secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Creating material for nodes */
@@ -290,8 +295,9 @@ BipartiteGraph.prototype.renderEdges = function(graph, scene, layout, firstIndep
  * @param {Object} graph Object containing .json graph file.
  * @param {Object} scene The scene in which the graph will be built.
  * @param {int} layout Graph layout.
+ * @param {Object} vertexInfo VertexInfo type object to store properties from vertexes.
  */
-BipartiteGraph.prototype.renderGraph = function(graph, scene, layout)
+BipartiteGraph.prototype.renderGraph = function(graph, scene, layout, vertexInfo)
 {
   /** Apply default values to layout and scene, in case no scene is given (will be caught by 'catch') */
   layout = ecmaStandard(layout, 2);
@@ -302,7 +308,7 @@ BipartiteGraph.prototype.renderGraph = function(graph, scene, layout)
     var firstIndependentSet = new IndependentSet();
     var secondIndependentSet = new IndependentSet();
     /** Build and render nodes */
-    this.renderNodes(graph, scene, layout, firstIndependentSet, secondIndependentSet);
+    this.renderNodes(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo);
 
     /** Build edges */
     this.renderEdges(graph, scene, layout, firstIndependentSet, secondIndependentSet);

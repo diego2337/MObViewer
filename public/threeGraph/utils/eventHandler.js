@@ -20,6 +20,7 @@ var EventHandler = function(raycaster, HTMLelement, numOfLevels)
     this.d3Tooltip = new d3Tooltip(HTMLelement);
     this.d3Tooltip.created3Tooltip();
     this.nLevels = numOfLevels;
+    this.userInfo = undefined;
 }
 
 /**
@@ -226,6 +227,37 @@ EventHandler.prototype.configAndExecuteRaytracing = function(evt, renderer, scen
 }
 
 /**
+ * Filters information to be shown on tooltip, based on userInfo.
+ * @public
+ * @param {Array} vertices Array of vertices.
+ * @returns {Array} Array of filtered information to be shown.
+ */
+EventHandler.prototype.getTooltipInfo = function(vertices)
+{
+  var filteredVerts = [];
+  if(this.userInfo !== undefined)
+  {
+    for(var i = 0; i < this.userInfo.length; i++)
+    {
+      this.userInfo[i] = this.userInfo[i].trim();
+    }
+    for(var i = 0; i < vertices.length; i++)
+    {
+      var obj = JSON.parse(JSON.stringify(vertices[i]));
+      for(key in vertices[i])
+      {
+        if(this.userInfo.indexOf(key) == -1)
+        {
+          obj[key] = undefined;
+        }
+      }
+      filteredVerts.push(obj);
+    }
+  }
+  return filteredVerts;
+}
+
+/**
  * Handles mouse click. If mouse clicks vertex, show its current id and weight, as well as vertexes associated with it.
  * @public
  * @param {Object} evt Event dispatcher.
@@ -281,7 +313,7 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */
-      this.d3Tooltip.populateAndShowTooltip(vertices);
+      this.d3Tooltip.populateAndShowTooltip(this.getTooltipInfo(vertices));
       // this.d3Tooltip.populateAndShowTooltip("<span>Ok!</span>");
     }
     else

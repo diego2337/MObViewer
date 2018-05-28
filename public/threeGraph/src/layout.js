@@ -22,6 +22,8 @@ var Layout = function()
   this.lay = 2;
   /** @desc Define events object */
   this.eventHandler = undefined;
+  /** @desc Define vertexInfo object, to hold vertexes properties */
+  this.vertexInfo = new VertexInfo();
 }
 
 /**
@@ -401,7 +403,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     if(i != 0)
     {
       coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
-      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet());
+      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
     }
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
@@ -456,7 +458,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph = new BipartiteGraph(jason, 8, "");
 
   /* Render bipartiteGraph */
-  bipartiteGraph.renderGraph(jason, globalScene, lay);
+  bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo);
 
   /** Build and render bipartite graphs from previous levels of coarsening */
   this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, parseInt(numOfLevels), nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);

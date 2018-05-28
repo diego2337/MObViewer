@@ -131,3 +131,31 @@ $("#resetInfo").on('click', function(){
   vueTableHeader._data.headers = "";
   vueTableRows._data.rows = "";
 });
+
+/** Show dialog to allow user to specify which information is to be shown on tooltip */
+$("#userInfo").on('click', function(){
+  $("#userDefinedInfo").css('visibility', 'visible');
+});
+
+/** Cancel all user defined info */
+$("#cancel").on('click', function(){
+  $("#userDefinedInfo").css('visibility', 'hidden');
+});
+
+/** Store user defined info in eventHandler object */
+$("#apply").on('click', function(){
+  var allRows = $(".userRows");
+  var arrOfNames = [];
+  for(var i = 0; i < allRows.length; i++)
+  {
+    /** Check if checkbox was checked */
+    if(allRows[i].children[0].children[0].children[0].checked == true)
+    {
+      /** Store defined name */
+      arrOfNames.push(allRows[i].children[1].children[0].textContent);
+    }
+  }
+  /** Let eventHandler store array of names and hide checkboxes */
+  layout.eventHandler.userInfo = arrOfNames;
+  $("#userDefinedInfo").css('visibility', 'hidden');
+});

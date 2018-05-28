@@ -132,6 +132,34 @@ $("#resetInfo").on('click', function(){
   vueTableRows._data.rows = "";
 });
 
+/** Show dialog to allow user to specify which information is to be shown on tooltip */
+$("#userInfo").on('click', function(){
+  $("#userDefinedInfo").css('visibility', 'visible');
+});
+
+/** Cancel all user defined info */
+$("#cancel").on('click', function(){
+  $("#userDefinedInfo").css('visibility', 'hidden');
+});
+
+/** Store user defined info in eventHandler object */
+$("#apply").on('click', function(){
+  var allRows = $(".userRows");
+  var arrOfNames = [];
+  for(var i = 0; i < allRows.length; i++)
+  {
+    /** Check if checkbox was checked */
+    if(allRows[i].children[0].children[0].children[0].checked == true)
+    {
+      /** Store defined name */
+      arrOfNames.push(allRows[i].children[1].children[0].textContent);
+    }
+  }
+  /** Let eventHandler store array of names and hide checkboxes */
+  layout.eventHandler.userInfo = arrOfNames;
+  $("#userDefinedInfo").css('visibility', 'hidden');
+});
+
 /**
   * @ File to watch for clicks in buttons used for saving either .png graph image or .json file.
   * @author Diego Cintra
@@ -206,8 +234,12 @@ $('#upload-input').on('change', function(){
           console.log('Upload successful!\n');
           /* Show slider's current value */
           showValue();
+          /** Allow button to selected user info to be enabled */
+          $("#userInfo").prop("disabled", false);
           /* Build graph after loading .json file */
           layout.build(data);
+          /** Update vertex data */
+          vueTableUserRows._data.rows = layout.vertexInfo.getProps();
       },
       xhr: loadGraph
     });
