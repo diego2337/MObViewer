@@ -377,7 +377,6 @@ app.post('/coarse', function(req, res) {
     fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data) {
       if(err) /* File doesn't exist */
       {
-
         createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req, res);
       }
       else /* File exists*/

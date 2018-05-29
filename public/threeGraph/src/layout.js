@@ -24,6 +24,8 @@ var Layout = function()
   this.eventHandler = undefined;
   /** @desc Define vertexInfo object, to hold vertexes properties */
   this.vertexInfo = new VertexInfo();
+  /** @desc - Defines if parent connections of coarsened vertexes will be shown - (0) for false, (1) for true */
+  this.parentConnections = 0;
 }
 
 /**
@@ -175,7 +177,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
     }, false);
     document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, globalRenderer, globalScene);}, false);
     document.addEventListener('dblclick', function(evt){
-      eventHandler.mouseDoubleClickEvent(globalScene);
+      eventHandler.mouseDoubleClickEvent(evt, globalRenderer, globalScene);
       // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
       // !clicked ? clicked = true : clicked = false;
     }, false);
@@ -408,7 +410,8 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
     {
-      this.connectVertexes(bipartiteGraphs[i], bipartiteGraphs[i+1], i, i+1);
+      /** Only draw if allowed */
+      if(this.parentConnections == 1) this.connectVertexes(bipartiteGraphs[i], bipartiteGraphs[i+1], i, i+1);
     }
   }
 }
@@ -420,8 +423,8 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
  * @param {int} layout Graph layout. Default is 2 (bipartite horizontal).
  * @param {string} numberOfVertices "id" attribute of HTML element indicating number of vertexes to be shown.
  * @param {string} numberOfEdges "id" attribute of HTML element indicating number of edges to be shown.
- * @param {string} nVerticesFirstLayer "id" attribute of HTML element indicating number of verticesw in first layer to be shown.
- * @param {string} nVerticesSecondLayer "id" attribute of HTML element indicating number of verticesw in second layer to be shown.
+ * @param {string} nVerticesFirstLayer "id" attribute of HTML element indicating number of vertices in first layer to be shown.
+ * @param {string} nVerticesSecondLayer "id" attribute of HTML element indicating number of vertices in second layer to be shown.
  * @param {string} mainSectionID "id" attribute of HTML element indicating main section containing main canvas.
  * @param {string} WebGLID "id" attribute of HTML element indicating main section for canvas to be drawn.
  */

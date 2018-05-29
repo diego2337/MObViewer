@@ -160,6 +160,21 @@ $("#apply").on('click', function(){
   $("#userDefinedInfo").css('visibility', 'hidden');
 });
 
+/** Show connections between super vertexes and original vertexes */
+$("#showConnections").on('click', function(){
+  $.ajax({
+    url:'/coarse',
+    type: 'POST',
+    data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
+    success: function(html){
+      /** Tell layout to update variable "parentConnections" */
+      layout.parentConnections == 0 ? layout.parentConnections = 1 : layout.parentConnections = 0;
+      graphUpdate(html, layout.lay);
+    },
+    xhr: loadGraph
+  });
+});
+
 /**
   * @ File to watch for clicks in buttons used for saving either .png graph image or .json file.
   * @author Diego Cintra
