@@ -45,6 +45,7 @@ var BipartiteGraph = function(graph, distanceBetweenSets, nLevel, min, max)
        /** Store min and max edge weight normalized */
        this.minEdgeWeight = 1.0, this.maxEdgeWeight = 5.0;
        this.linearScale = undefined;
+       this.renderLayers = { renderFirstLayer: true, renderLastLayer: true };
    }
    catch(err)
    {
@@ -177,6 +178,16 @@ BipartiteGraph.prototype.writeProperties = function(singleGeometry, jsonObject, 
 }
 
 /**
+ * Set which independent sets are to be rendered on screen.
+ * @public
+ * @param {Object} renderLayers Object containing boolean for rendering both first and second layers.
+ */
+BipartiteGraph.prototype.setRenderedLayers = function(renderLayers)
+{
+  this.renderLayers = renderLayers;
+}
+
+/**
  * Renders nodes in the scene.
  * @public
  * @param {Object} graph Object containing .json graph file.
@@ -204,7 +215,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in first layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 0);
   /** Create an independent set and render its nodes */
-  firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  if(this.renderLayers.renderFirstLayer == true) firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Readjust x and y-axis values */
   y = y * (-1);
   pos = -1 * Math.floor(parseInt(this.lastLayer) / 2);
@@ -217,7 +228,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in second layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 1);
   /** Create an independent set and render its nodes */
-  secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  if(this.renderLayers.renderLastLayer == true) secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Creating material for nodes */
   var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
   /** Create one mesh from single geometry and add it to scene */
