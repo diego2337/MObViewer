@@ -273,12 +273,12 @@ EventHandler.prototype.showNeighbors = function(scene)
  */
 EventHandler.prototype.wasRendered = function(sourcePos, targetPos, layout)
 {
-  console.log("sourcePos:");
-  console.log(sourcePos);
-  console.log("targetPos:");
-  console.log(targetPos);
-  console.log("layout:");
-  console.log(layout);
+  // console.log("sourcePos:");
+  // console.log(sourcePos);
+  // console.log("targetPos:");
+  // console.log(targetPos);
+  // console.log("layout:");
+  // console.log(layout);
   /** Graph is displayed vertically; must compare x-axes */
   if(layout == 2)
   {
@@ -323,7 +323,7 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
       intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
     }
     intersection.object.geometry.colorsNeedUpdate = true;
-    this.neighbors.push({vertexInfo: JSON.parse(intersection.object.geometry.faces[startFace].properties).id, mesh: intersection.object.name});
+    this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id), mesh: intersection.object.name});
     /** Color predecessors */
     for(pred in properties)
     {
@@ -583,13 +583,18 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         var element;
         j == 0 ? element = scene.getObjectByName("MainMesh", true) : element = scene.getObjectByName("MainMesh" + j.toString(), true);
         // var element = scene.getObjectByName("MainMesh", true);
-        for(var k = this.highlightedElements[i]; k < endPoint; k++)
+        var el = (this.highlightedElements[i]/32) + 8;
+        var fd = this.neighbors.find(function(elmt){
+          return elmt.vertexInfo == el;
+          // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
+        });
+        for(var k = this.highlightedElements[i]; k < endPoint && fd === undefined; k++)
         {
           if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
         }
         element.geometry.colorsNeedUpdate = true;
       }
-      this.highlightedElements.splice(i, 1);
+      if(fd === undefined) this.highlightedElements.splice(i, 1);
     }
     /** Hiding vertex information */
     // document.getElementById("vertexInfo").innerHTML = "";
