@@ -265,11 +265,40 @@ EventHandler.prototype.showNeighbors = function(scene)
 }
 
 /**
+ * Check to see if a vertex has been rendered. Checking is made by comparing either y or x axis.
+ * @param {Object} sourcePos Coordinates (x,y,z) from clicked vertex.
+ * @param {Object} targetPos Coordinates (x,y,z) from parent vertex.
+ * @param {int} layout Graph layout.
+ * @return {int} (1) if both vertexes were rendered; (0) if only clicked vertex was rendered.
+ */
+EventHandler.prototype.wasRendered = function(sourcePos, targetPos, layout)
+{
+  console.log("sourcePos:");
+  console.log(sourcePos);
+  console.log("targetPos:");
+  console.log(targetPos);
+  console.log("layout:");
+  console.log(layout);
+  /** Graph is displayed vertically; must compare x-axes */
+  if(layout == 2)
+  {
+    // return Math.abs(targetPos.y) > Math.abs(sourcePos.y) ? 1 : 0;
+    return ( (targetPos.y < 0 && sourcePos.y < 0) || (targetPos.y > 0 && sourcePos.y > 0) ) ? 1 : 0;
+  }
+  else if(layout == 3)
+  {
+    // return Math.abs(targetPos.x) > Math.abs(sourcePos.x) ? 1 : 0;
+    return ( (targetPos.x < 0 && sourcePos.x < 0) || (targetPos.x > 0 && sourcePos.x > 0) ) ? 1 : 0;
+  }
+}
+
+/**
  * Show merged vertexes which formed super vertex clicked.
  * @param {Object} intersection Intersected object in specified scene.
  * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
  */
-EventHandler.prototype.showParents = function(intersection, scene)
+EventHandler.prototype.showParents = function(intersection, scene, layout)
 {
   if(intersection !== undefined)
   {
@@ -295,6 +324,7 @@ EventHandler.prototype.showParents = function(intersection, scene)
     }
     intersection.object.geometry.colorsNeedUpdate = true;
     this.neighbors.push({vertexInfo: JSON.parse(intersection.object.geometry.faces[startFace].properties).id, mesh: intersection.object.name});
+    /** Color predecessors */
     for(pred in properties)
     {
       if(pred == "predecessor")
@@ -302,18 +332,23 @@ EventHandler.prototype.showParents = function(intersection, scene)
         var predecessors = properties[pred].split(",");
         for(var i = 0; i < predecessors.length; i++)
         {
-          // console.log("previousMesh.geometry.faces[parseInt(predecessors[i])*32].position:");
-          // console.log(previousMesh.geometry.faces[parseInt(predecessors[i])*32].position);
-          /** Color predecessors */
-          this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
-          for(var j = 0; j < 32; j++)
+          if(previousMesh.geometry.faces[parseInt(predecessors[i])*32] !== undefined)
           {
-            previousMesh.geometry.faces[parseInt(predecessors[i])*32 + j].color.setRGB(1.0, 0.0, 0.0);
+            /** Color predecessors */
+            var targetPos = previousMesh.geometry.faces[parseInt(predecessors[i])*32].position;
+            /** Check if predecessor vertexes were rendered */
+            if(this.wasRendered(sourcePos, targetPos, layout))
+            {
+              this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+              var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+              for(var j = 0; j < 32; j++)
+              {
+                previousMesh.geometry.faces[parseInt(predecessors[i])*32 + j].color.setRGB(1.0, 0.0, 0.0);
+              }
+              edgeGeometry.vertices.push(v1);
+              edgeGeometry.vertices.push(v2);
+            }
           }
-          var targetPos = previousMesh.geometry.faces[parseInt(predecessors[i])*32].position;
-          var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
-          edgeGeometry.vertices.push(v1);
-          edgeGeometry.vertices.push(v2);
         }
       }
     }
@@ -360,8 +395,9 @@ EventHandler.prototype.showParents = function(intersection, scene)
  * @param {Object} evt Event dispatcher.
  * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
  * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
  */
-EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene)
+EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, layout)
 {
   /* Execute ray tracing */
   var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
@@ -381,7 +417,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene)
     {
       this.showNeighbors(scene);
     }
-    this.showParents(intersection, scene);
+    this.showParents(intersection, scene, layout);
     // else
     // {
     //   this.showParents(intersection, scene);
@@ -390,7 +426,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene)
   else
   {
     this.showNeighbors(scene);
-    this.showParents(intersection, scene);
+    this.showParents(intersection, scene, layout);
   }
 }
 

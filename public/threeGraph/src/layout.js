@@ -1,5 +1,5 @@
 /**
- * @desc Base class for abstraction of all elements in scene. Reponsible for rendering bipartite graph in scene, invoking functions to generate drawings, taking care of clearing and filling HTML page elements and invoking all objects in scene. TODO - to be implemented and modulated later
+ * @desc Base class for abstraction of all elements in scene. Reponsible for rendering bipartite graph in scene, invoking functions to generate drawings, taking care of clearing and filling HTML page elements and invoking all objects in scene.
  * @author Diego Cintra
  * 1 May 2018
  */
@@ -164,6 +164,7 @@ Layout.prototype.connectVertexes = function(innerNodes, outerNodes, innerBPLevel
 Layout.prototype.createEventListener = function(camera, WebGL)
 {
   var numOfLevels = this.numOfLevels;
+  var lay = this.lay;
 
   if(this.eventHandler === undefined)
   {
@@ -177,7 +178,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
     }, false);
     document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, globalRenderer, globalScene);}, false);
     document.addEventListener('dblclick', function(evt){
-      eventHandler.mouseDoubleClickEvent(evt, globalRenderer, globalScene);
+      eventHandler.mouseDoubleClickEvent(evt, globalRenderer, globalScene, lay);
       // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
       // !clicked ? clicked = true : clicked = false;
     }, false);
@@ -349,6 +350,25 @@ Layout.prototype.configAPIParams = function(mainSection, WebGL)
 }
 
 /**
+ * Check if any of the layers from less coarsened and most coarsened graphs are equal.
+ * @public
+ * @param {Object} coarsenedGraph Most coarsened bipartite graph.
+ * @param {Object} lessCoarsenedGraph Less coarsened bipartite graph.
+ * @return {int} (1) if graphs have equal layers, (0) otherwise.
+ */
+Layout.prototype.hasEqualLayers = function(coarsenedGraph, lessCoarsenedGraph)
+{
+  // console.log("coarsenedGraph:");
+  // console.log(coarsenedGraph);
+  // console.log("lessCoarsenedGraph:");
+  // console.log(lessCoarsenedGraph);
+  var equalLayer = { renderFirstLayer: true, renderSecondLayer: true };
+  parseInt(coarsenedGraph.firstLayer) == parseInt(lessCoarsenedGraph.firstLayer) ? equalLayer.renderFirstLayer = false : equalLayer.renderFirstLayer = true;
+  parseInt(coarsenedGraph.lastLayer) == parseInt(lessCoarsenedGraph.lastLayer) ? equalLayer.renderLastLayer = false : equalLayer.renderLastLayer = true;
+  return equalLayer;
+}
+
+/**
  * Build and render previous uncoarsened bipartite graphs.
  * @public
  * @param {Object} bipartiteGraph Most coarsened bipartite graph, already rendered.
@@ -405,6 +425,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     if(i != 0)
     {
       coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
+      coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
       coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
     }
     /** Connect super vertexes */

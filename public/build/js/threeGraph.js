@@ -45,6 +45,7 @@ var BipartiteGraph = function(graph, distanceBetweenSets, nLevel, min, max)
        /** Store min and max edge weight normalized */
        this.minEdgeWeight = 1.0, this.maxEdgeWeight = 5.0;
        this.linearScale = undefined;
+       this.renderLayers = { renderFirstLayer: true, renderLastLayer: true };
    }
    catch(err)
    {
@@ -177,6 +178,16 @@ BipartiteGraph.prototype.writeProperties = function(singleGeometry, jsonObject, 
 }
 
 /**
+ * Set which independent sets are to be rendered on screen.
+ * @public
+ * @param {Object} renderLayers Object containing boolean for rendering both first and second layers.
+ */
+BipartiteGraph.prototype.setRenderedLayers = function(renderLayers)
+{
+  this.renderLayers = renderLayers;
+}
+
+/**
  * Renders nodes in the scene.
  * @public
  * @param {Object} graph Object containing .json graph file.
@@ -204,7 +215,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in first layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 0);
   /** Create an independent set and render its nodes */
-  firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  if(this.renderLayers.renderFirstLayer == true) firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Readjust x and y-axis values */
   y = y * (-1);
   pos = -1 * Math.floor(parseInt(this.lastLayer) / 2);
@@ -217,7 +228,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in second layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 1);
   /** Create an independent set and render its nodes */
-  secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  if(this.renderLayers.renderLastLayer == true) secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Creating material for nodes */
   var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
   /** Create one mesh from single geometry and add it to scene */
@@ -450,7 +461,7 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
 }
 
 /**
- * @desc Base class for abstraction of all elements in scene. Reponsible for rendering bipartite graph in scene, invoking functions to generate drawings, taking care of clearing and filling HTML page elements and invoking all objects in scene. TODO - to be implemented and modulated later
+ * @desc Base class for abstraction of all elements in scene. Reponsible for rendering bipartite graph in scene, invoking functions to generate drawings, taking care of clearing and filling HTML page elements and invoking all objects in scene.
  * @author Diego Cintra
  * 1 May 2018
  */
@@ -615,6 +626,7 @@ Layout.prototype.connectVertexes = function(innerNodes, outerNodes, innerBPLevel
 Layout.prototype.createEventListener = function(camera, WebGL)
 {
   var numOfLevels = this.numOfLevels;
+  var lay = this.lay;
 
   if(this.eventHandler === undefined)
   {
@@ -628,7 +640,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
     }, false);
     document.addEventListener('mousemove', function(evt){eventHandler.mouseMoveEvent(evt, globalRenderer, globalScene);}, false);
     document.addEventListener('dblclick', function(evt){
-      eventHandler.mouseDoubleClickEvent(evt, globalRenderer, globalScene);
+      eventHandler.mouseDoubleClickEvent(evt, globalRenderer, globalScene, lay);
       // eventHandler.mouseDoubleClickEvent(clicked, evt, bipartiteGraph);
       // !clicked ? clicked = true : clicked = false;
     }, false);
@@ -800,6 +812,25 @@ Layout.prototype.configAPIParams = function(mainSection, WebGL)
 }
 
 /**
+ * Check if any of the layers from less coarsened and most coarsened graphs are equal.
+ * @public
+ * @param {Object} coarsenedGraph Most coarsened bipartite graph.
+ * @param {Object} lessCoarsenedGraph Less coarsened bipartite graph.
+ * @return {int} (1) if graphs have equal layers, (0) otherwise.
+ */
+Layout.prototype.hasEqualLayers = function(coarsenedGraph, lessCoarsenedGraph)
+{
+  // console.log("coarsenedGraph:");
+  // console.log(coarsenedGraph);
+  // console.log("lessCoarsenedGraph:");
+  // console.log(lessCoarsenedGraph);
+  var equalLayer = { renderFirstLayer: true, renderSecondLayer: true };
+  parseInt(coarsenedGraph.firstLayer) == parseInt(lessCoarsenedGraph.firstLayer) ? equalLayer.renderFirstLayer = false : equalLayer.renderFirstLayer = true;
+  parseInt(coarsenedGraph.lastLayer) == parseInt(lessCoarsenedGraph.lastLayer) ? equalLayer.renderLastLayer = false : equalLayer.renderLastLayer = true;
+  return equalLayer;
+}
+
+/**
  * Build and render previous uncoarsened bipartite graphs.
  * @public
  * @param {Object} bipartiteGraph Most coarsened bipartite graph, already rendered.
@@ -856,6 +887,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     if(i != 0)
     {
       coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
+      coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
       coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
     }
     /** Connect super vertexes */
@@ -1913,11 +1945,40 @@ EventHandler.prototype.showNeighbors = function(scene)
 }
 
 /**
+ * Check to see if a vertex has been rendered. Checking is made by comparing either y or x axis.
+ * @param {Object} sourcePos Coordinates (x,y,z) from clicked vertex.
+ * @param {Object} targetPos Coordinates (x,y,z) from parent vertex.
+ * @param {int} layout Graph layout.
+ * @return {int} (1) if both vertexes were rendered; (0) if only clicked vertex was rendered.
+ */
+EventHandler.prototype.wasRendered = function(sourcePos, targetPos, layout)
+{
+  console.log("sourcePos:");
+  console.log(sourcePos);
+  console.log("targetPos:");
+  console.log(targetPos);
+  console.log("layout:");
+  console.log(layout);
+  /** Graph is displayed vertically; must compare x-axes */
+  if(layout == 2)
+  {
+    // return Math.abs(targetPos.y) > Math.abs(sourcePos.y) ? 1 : 0;
+    return ( (targetPos.y < 0 && sourcePos.y < 0) || (targetPos.y > 0 && sourcePos.y > 0) ) ? 1 : 0;
+  }
+  else if(layout == 3)
+  {
+    // return Math.abs(targetPos.x) > Math.abs(sourcePos.x) ? 1 : 0;
+    return ( (targetPos.x < 0 && sourcePos.x < 0) || (targetPos.x > 0 && sourcePos.x > 0) ) ? 1 : 0;
+  }
+}
+
+/**
  * Show merged vertexes which formed super vertex clicked.
  * @param {Object} intersection Intersected object in specified scene.
  * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
  */
-EventHandler.prototype.showParents = function(intersection, scene)
+EventHandler.prototype.showParents = function(intersection, scene, layout)
 {
   if(intersection !== undefined)
   {
@@ -1943,6 +2004,7 @@ EventHandler.prototype.showParents = function(intersection, scene)
     }
     intersection.object.geometry.colorsNeedUpdate = true;
     this.neighbors.push({vertexInfo: JSON.parse(intersection.object.geometry.faces[startFace].properties).id, mesh: intersection.object.name});
+    /** Color predecessors */
     for(pred in properties)
     {
       if(pred == "predecessor")
@@ -1950,18 +2012,23 @@ EventHandler.prototype.showParents = function(intersection, scene)
         var predecessors = properties[pred].split(",");
         for(var i = 0; i < predecessors.length; i++)
         {
-          // console.log("previousMesh.geometry.faces[parseInt(predecessors[i])*32].position:");
-          // console.log(previousMesh.geometry.faces[parseInt(predecessors[i])*32].position);
-          /** Color predecessors */
-          this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
-          for(var j = 0; j < 32; j++)
+          if(previousMesh.geometry.faces[parseInt(predecessors[i])*32] !== undefined)
           {
-            previousMesh.geometry.faces[parseInt(predecessors[i])*32 + j].color.setRGB(1.0, 0.0, 0.0);
+            /** Color predecessors */
+            var targetPos = previousMesh.geometry.faces[parseInt(predecessors[i])*32].position;
+            /** Check if predecessor vertexes were rendered */
+            if(this.wasRendered(sourcePos, targetPos, layout))
+            {
+              this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+              var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+              for(var j = 0; j < 32; j++)
+              {
+                previousMesh.geometry.faces[parseInt(predecessors[i])*32 + j].color.setRGB(1.0, 0.0, 0.0);
+              }
+              edgeGeometry.vertices.push(v1);
+              edgeGeometry.vertices.push(v2);
+            }
           }
-          var targetPos = previousMesh.geometry.faces[parseInt(predecessors[i])*32].position;
-          var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
-          edgeGeometry.vertices.push(v1);
-          edgeGeometry.vertices.push(v2);
         }
       }
     }
@@ -2008,8 +2075,9 @@ EventHandler.prototype.showParents = function(intersection, scene)
  * @param {Object} evt Event dispatcher.
  * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
  * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
  */
-EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene)
+EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, layout)
 {
   /* Execute ray tracing */
   var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
@@ -2029,7 +2097,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene)
     {
       this.showNeighbors(scene);
     }
-    this.showParents(intersection, scene);
+    this.showParents(intersection, scene, layout);
     // else
     // {
     //   this.showParents(intersection, scene);
@@ -2038,7 +2106,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene)
   else
   {
     this.showNeighbors(scene);
-    this.showParents(intersection, scene);
+    this.showParents(intersection, scene, layout);
   }
 }
 
