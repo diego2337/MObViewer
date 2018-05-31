@@ -99,11 +99,18 @@ function loadGraph()
  * @param {String} value Value to check.
  * @returns {(int|undefined)} Returns int if value is integer; returns undefined otherwise.
  */
+
+/**
+ * Check to see if value is integer; if true, returns casted int value. Otherwise return zero.
+ * @param {String} value Value to check.
+ * @returns {(int|undefined)} Returns int if value is integer; returns zero otherwise.
+ */
 function getInteger(value)
 {
   if(parseInt(value) === NaN)
   {
-    return undefined;
+    // return undefined;
+    return 0;
   }
   else
   {
@@ -114,13 +121,15 @@ function getInteger(value)
 
 /** Apply multilevel coarsening with user defined reduction factor and number of levels */
 $("#coarseGraph").on('click', function(){
+  /** Iterate through a for loop to create nLevels of coarsened graphs */
   $.ajax({
     url:'/coarse',
     type: 'POST',
     data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
     // success: graphUpdate,
     success: function(html){
-      graphUpdate(html, layout.lay);
+      console.log("I'm finished.");
+      // graphUpdate(html, layout.lay);
     },
     xhr: loadGraph
   });
