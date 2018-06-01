@@ -183,43 +183,45 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
       nodeCmd.get('python ' + pyPath + pyProg + " " + pyParams, function(data, err, stderr) {
         if (!err)
         {
+          /** Finished coarsening; return to client-side */
+          res.end();
           // console.log("data from python script " + data);
           // if(req.body.nLevels !== undefined) pyName = pyName + "n" + req.body.nLevels;
-          /** FIXME - for loop works, however is incorrect; Only runs once and returns to client side, while all other data is created in background  */
-          for(let i = 0; req.body.nLevels !== undefined && i < req.body.nLevels; i++)
-          {
-            let hierarchicalPyName = pyName + "n" + (i+1).toString();
-            /* Execute .gml to .json conversion */
-            nodeCmd.get('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json", function(data, err, stderr) {
-              if(!err)
-              {
-                console.log('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json");
-                // if( (hierarchicalPyName) == (pyName + "n" + (req.body.nLevels).toString()) )
-                // {
-                //   /** Set properties properly using information from "source" attribue in .json file generated from multilevel paradigm */
-                //   nodeCmd.get('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet, function(data, err, stderr) {
-                //     if(!err)
-                //     {
-                //       console.log('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet);
-                //       // console.log("data from python script " + data);
-                //       readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, req, res);
-                //     }
-                //     else
-                //     {
-                //       console.log("python script cmd error: " + err);
-                //     }
-                //   });
-                // }
-              }
-              else
-              {
-                console.log("python script cmd error: " + err);
-              }
-            });
-            currentLevel = i+1;
-          }
-          /** If last graph conversion was made, return to client-side */
-          res.end();
+          // console.log("nodeCmd:");
+          // console.log(nodeCmd);
+          // /** FIXME - for loop works, however is incorrect; Only runs once and returns to client side, while all other data is created in background  */
+          // for(let i = 0; req.body.nLevels !== undefined && i < req.body.nLevels; i++)
+          // {
+          //   let hierarchicalPyName = pyName + "n" + (i+1).toString();
+          //   /* Execute .gml to .json conversion */
+          //   nodeCmd.get('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json", function(data, err, stderr) {
+          //     if(!err)
+          //     {
+          //       console.log('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json");
+          //       // if( (hierarchicalPyName) == (pyName + "n" + (req.body.nLevels).toString()) )
+          //       // {
+          //       //   /** Set properties properly using information from "source" attribue in .json file generated from multilevel paradigm */
+          //       //   nodeCmd.get('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet, function(data, err, stderr) {
+          //       //     if(!err)
+          //       //     {
+          //       //       console.log('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet);
+          //       //       // console.log("data from python script " + data);
+          //       //       readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, req, res);
+          //       //     }
+          //       //     else
+          //       //     {
+          //       //       console.log("python script cmd error: " + err);
+          //       //     }
+          //       //   });
+          //       // }
+          //     }
+          //     else
+          //     {
+          //       console.log("python script cmd error: " + err);
+          //     }
+          //   });
+          //   currentLevel = i+1;
+          // }
         }
         else
         {
@@ -399,6 +401,74 @@ app.post('/getClusters', function(req, res){
         res.end(dat);
       }
     });
+  });
+});
+
+/**
+ * Server-side callback function from 'express' framework for convert route. Convert coarsened graphs from .gml format to .json.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+app.post('/convert', function(req, res){
+  var folderChar = addFolderPath();
+  var pyPath = "mob" + folderChar;
+  /* Changing file name according to graph name */
+  pyName = fileName.split(".")[0] + "Coarsened" + "l" + req.body.coarsening.split(".").join("") + "r" + req.body.coarseningSecondSet.split(".").join("");
+  let hierarchicalPyName = pyName + "n" + req.body.currentLevel;
+  /** Execute .gml to .json conversion */
+  nodeCmd.get('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json", function(data, err, stderr) {
+    if(!err)
+    {
+      console.log('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json");
+      /** Finished conversion, return to client-side */
+      res.end();
+      // if( (hierarchicalPyName) == (pyName + "n" + (req.body.nLevels).toString()) )
+      // {
+      //   /** Set properties properly using information from "source" attribue in .json file generated from multilevel paradigm */
+      //   nodeCmd.get('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet, function(data, err, stderr) {
+      //     if(!err)
+      //     {
+      //       console.log('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet);
+      //       // console.log("data from python script " + data);
+      //       readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, req, res);
+      //     }
+      //     else
+      //     {
+      //       console.log("python script cmd error: " + err);
+      //     }
+      //   });
+      // }
+    }
+    else
+    {
+      console.log("python script cmd error: " + err);
+    }
+  });
+});
+
+/**
+ * Server-side callback function from 'express' framework for set properties route. Assign all .json properties for .json files after conversion from .gml.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+app.post('/setProperties', function(req, res){
+  var folderChar = addFolderPath();
+  var pyPath = "mob" + folderChar;
+  let hierarchicalPyName = pyName + "n" + req.body.nLevels;
+  /** Set properties properly using information from "source" attribue in .json file generated from multilevel paradigm */
+  nodeCmd.get('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet, function(data, err, stderr) {
+    if(!err)
+    {
+      console.log('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.nLevels + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet);
+      // console.log("data from python script " + data);
+      readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, req, res);
+    }
+    else
+    {
+      console.log("python script cmd error: " + err);
+    }
   });
 });
 

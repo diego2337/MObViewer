@@ -128,7 +128,35 @@ $("#coarseGraph").on('click', function(){
     data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
     // success: graphUpdate,
     success: function(html){
-      console.log("I'm finished.");
+      let nOfExecutions = getInteger($("#nLevels")[0].value);
+      /** Finished coarsening, perform multiple ajax calls to convert from .gml to .json */
+      for(let i = 0; i < getInteger($("#nLevels")[0].value); i++)
+      {
+        $.ajax({
+          url:'/convert',
+          type: 'POST',
+          data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+          success: function(html){
+            /** Finished all conversions; set properties properly */
+            if(nOfExecutions == 1)
+            {
+                $.ajax({
+                  url:'/setProperties',
+                  type: 'POST',
+                  data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
+                  success: function(html){
+                    graphUpdate(html, layout.lay);
+                  }
+                });
+            }
+            else
+            {
+              nOfExecutions = nOfExecutions - 1;
+              // console.log("nOfExecutions: " + nOfExecutions);
+            }
+          }
+        });
+      }
       // graphUpdate(html, layout.lay);
     },
     xhr: loadGraph
