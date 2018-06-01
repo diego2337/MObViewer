@@ -592,7 +592,7 @@ Layout.prototype.connectVertexes = function(innerNodes, outerNodes, innerBPLevel
     for(let j = 0; j < predecessor.length; j++)
     {
       let pos = findPos(predecessor[j], outerNodes['nodes']);
-      let outerIndex = parseInt(outerNodes['nodes'][pos].id)*32;
+      let outerIndex = (parseInt(outerNodes['nodes'][pos].id))*32;
       var v2 = new THREE.Vector3(outerMesh.geometry.faces[outerIndex].position.x, outerMesh.geometry.faces[outerIndex].position.y, outerMesh.geometry.faces[outerIndex].position.z);
       edgeGeometry.vertices.push(v1);
       edgeGeometry.vertices.push(v2);
@@ -2012,10 +2012,10 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
         var predecessors = properties[pred].split(",");
         for(var i = 0; i < predecessors.length; i++)
         {
-          if(previousMesh.geometry.faces[parseInt(predecessors[i])*32] !== undefined)
+          if(previousMesh.geometry.faces[(parseInt(predecessors[i]))*32] !== undefined)
           {
             /** Color predecessors */
-            var targetPos = previousMesh.geometry.faces[parseInt(predecessors[i])*32].position;
+            var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))*32].position;
             /** Check if predecessor vertexes were rendered */
             if(this.wasRendered(sourcePos, targetPos, layout))
             {
@@ -2023,7 +2023,7 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
               var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
               for(var j = 0; j < 32; j++)
               {
-                previousMesh.geometry.faces[parseInt(predecessors[i])*32 + j].color.setRGB(1.0, 0.0, 0.0);
+                previousMesh.geometry.faces[(parseInt(predecessors[i]))*32 + j].color.setRGB(1.0, 0.0, 0.0);
               }
               edgeGeometry.vertices.push(v1);
               edgeGeometry.vertices.push(v2);

@@ -130,7 +130,7 @@ Layout.prototype.connectVertexes = function(innerNodes, outerNodes, innerBPLevel
     for(let j = 0; j < predecessor.length; j++)
     {
       let pos = findPos(predecessor[j], outerNodes['nodes']);
-      let outerIndex = parseInt(outerNodes['nodes'][pos].id)*32;
+      let outerIndex = (parseInt(outerNodes['nodes'][pos].id))*32;
       var v2 = new THREE.Vector3(outerMesh.geometry.faces[outerIndex].position.x, outerMesh.geometry.faces[outerIndex].position.y, outerMesh.geometry.faces[outerIndex].position.z);
       edgeGeometry.vertices.push(v1);
       edgeGeometry.vertices.push(v2);
