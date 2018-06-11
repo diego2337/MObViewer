@@ -60,7 +60,8 @@ if __name__ == "__main__":
             for source in node['source'].split(","):
                 node['vertexes'].append(originalGraph['nodes'][int(source)])
         # Step 3.3: Open a new .json file for writing
-        newCoarsenedJson = open(options.folder + fileName + "n" + str(level) + "Weighted.json", 'w')
+        # newCoarsenedJson = open(options.folder + fileName + "n" + str(level) + "Weighted.json", 'w')
+        newCoarsenedJson = open(options.folder + fileName + "n" + str(level) + ".json", 'w')
         # Write graph info
         newCoarsenedJson.write("{\n\t\"graphInfo\":\n")
         json.dump(coarsenedGraph['graphInfo'], newCoarsenedJson, indent=4, sort_keys=True)
