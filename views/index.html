@@ -48,6 +48,14 @@
         <div class="mdl-layout__header-row">
           <span class="mdl-layout__title">threeGraph</span>
           <div class="mdl-layout-spacer"></div>
+          <button id="jsonInfo" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored dialog-button">
+            <span class="mdl-color-text--white ">Define json input...</span>
+            <!-- <i class="material-icons">launch</i> -->
+            <div class="lower-case mdl-tooltip" for="jsonInfo">
+                Toggle between showing or hiding dialog for input parameters.
+            </div>
+          </button>
+          <div class="side-margin"></div>
           <button id="userInfo" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored dialog-button" disabled>
             <span class="mdl-color-text--white ">Define vertex info</span>
             <!-- <i class="material-icons">launch</i> -->
@@ -275,6 +283,65 @@
             <div id="WebGL" class="middle-div z-index-behind">
               <div id="progressBar" class="hidden-visibility inner-div margin-zero-auto mdl-progress mdl-js-progress mdl-progress__indeterminate">
                 <h6 >Loading graph...</h6>
+              </div>
+            </div>
+            <div id="jsonInput" class="hidden-visibility fixed-div-center-2 mdl-grid">
+              <div class="mdl-card mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet mdl-shadow--2dp">
+                <div class="mdl-card__title">
+                  <h2 class="mdl-card__title-text">Choose parameters</h2>
+                </div>
+                <div class="mdl-card__supporting-text">
+                  <div class="mdl-textfield mdl-js-textfield">
+                     <textarea class="mdl-textfield__input" type="text" rows="20"
+                        id="jsonTextArea">
+{
+"vertices":
+[
+  "v1",
+  "v2"
+],
+"reduction_factor":
+[
+  "r1",
+  "r2"
+],
+"max_levels":
+[
+  "ml1",
+  "ml2"
+],
+"matching":
+[
+  "greedy_seed_twohops"
+],
+"similarity":
+[
+  "weighted_common_neighbors"
+],
+"directory": "fileName",
+"output": "fileNameCoarsened",
+"filename": "uploads/fileName.json",
+"save_conf": true,
+"save_ncol": false,
+"save_gml": true,
+"save_source": false,
+"save_predecessor": true,
+"show_timing": false,
+"save_timing": false,
+"save_hierarchy": true,
+"unique_key": false
+}
+                      </textarea>
+                  </div>
+                  <button id="coarseJson" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--colored dialog-button">
+                      <span class="mdl-color-text--white">Coarse graph</span>
+                  </button>
+                  <!-- <form action="/coarse" method="post">
+                    <label for="team_name">Enter name: </label>
+                    <input id="team_name" type="text" name="name_field" value="Default name for team.">
+                    <input class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="submit" value="OK">
+                </form> -->
+                </div>
               </div>
             </div>
             <div id="userDefinedInfo" class="hidden-visibility fixed-div-center">

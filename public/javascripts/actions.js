@@ -211,3 +211,66 @@ $("#showConnections").on('click', function(){
     xhr: loadGraph
   });
 });
+
+/** Coarse graph based on json input given by user */
+$("#coarseJson").on('click', function(){
+  $.ajax({
+    url:'/coarse',
+    type: 'POST',
+    data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
+    success: function(html){
+      let maxCoarsening = Math.max(JSON.parse($("#jsonTextArea")[0].value).max_levels[0], JSON.parse($("#jsonTextArea")[0].value).max_levels[1]);
+      let nOfExecutions = maxCoarsening;
+      if(maxCoarsening != 0)
+      {
+        /** Finished coarsening, perform multiple ajax calls to convert from .gml to .json */
+        for(let i = 0; i < maxCoarsening; i++)
+        {
+          $.ajax({
+            url:'/convert',
+            type: 'POST',
+            data: {nLevels: maxCoarsening, coarsening: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0], coarseningSecondSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1], firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+            success: function(html){
+              /** Finished all conversions; set properties properly */
+              if(nOfExecutions == 1)
+              {
+                  $.ajax({
+                    url:'/setProperties',
+                    type: 'POST',
+                    data: {nLevels: maxCoarsening, coarsening: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0], coarseningSecondSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1], firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0},
+                    success: function(html){
+                      graphUpdate(html, layout.lay);
+                    }
+                  });
+              }
+              else
+              {
+                nOfExecutions = nOfExecutions - 1;
+              }
+            }
+          });
+        }
+      }
+      else
+      {
+        $.ajax({
+          url:'/getGraph',
+          type: 'POST',
+          data: {graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0]},
+          success: function(html){
+            graphUpdate(html, layout.lay);
+          }
+        });
+      }
+      /** Tell layout to update variable "parentConnections" */
+      // layout.parentConnections == 0 ? layout.parentConnections = 1 : layout.parentConnections = 0;
+      // graphUpdate(html, layout.lay);
+    },
+    xhr: loadGraph
+  });
+});
+
+/** Show json input card on click */
+$("#jsonInfo").on('click', function(){
+    $("#jsonInput").css('visibility') == 'hidden' ?  $("#jsonInput").css('visibility', 'visible') : $("#jsonInput").css('visibility', 'hidden');
+});

@@ -116,6 +116,34 @@ function addFolderPath()
 }
 
 /**
+ * FIXME - shallow copy of object - needs to be deep copy
+ * Check and fix an object to see if attributes are integers.
+ * @param {Object} obj JSON object to be checked.
+ * @returns {Object} JSON object with fixed number values.
+ */
+function fixJSONInts(obj)
+{
+  var newObj = obj;
+  for(key in obj)
+  {
+    /** Recursively call function is property is Array */
+    if(obj[key] instanceof Array)
+    {
+      fixJSONInts(obj[key]);
+    }
+    else if(obj[key] === 'true' || obj[key] === 'false')
+    {
+      newObj[key] = obj[key] === 'true' ? true : false;
+    }
+    else if(!isNaN(obj[key]))
+    {
+      newObj[key] = parseFloat(obj[key]);
+    }
+  }
+  return newObj;
+}
+
+/**
  * Read .json file stored on server-side, sending it to client side.
  * @public
  * @param {string} path Path string for fs variable to read.
@@ -237,6 +265,63 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
 }
 
 /**
+ * Create folder with same name as file, containing uploaded and coarsened bipartite graphs.
+ * @public
+ * @param {string} name Uploaded file name.
+ * @param {string} uploadDir Upload directory.
+ * @param {string} folderChar Either '\' or '/' symbol for folder paths.
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+function mkdirAndCp(name, uploadDir, folderChar, req, res)
+{
+  /** Creates directory for uploaded graph */
+  nodeCmd.get('mkdir -p uploads' + folderChar + name.split(".")[0] + folderChar, function(data, err, stderr) {
+    if (!err)
+    {
+      // console.log("data from python script " + data);
+      /* Assign global variable with file name for later coarsening */
+      fileName = name;
+      /* Transforms .gml file into .json extension file if file is .gml */
+      if(name.split(".")[1] === "gml")
+      {
+        /** Convert to .json and move it to upload folder with same name */
+        nodeCmd.get('python mob' + folderChar + 'gmlToJson3.py uploads' + folderChar + name + ' uploads' + folderChar + name.split(".")[0] + folderChar + name.split(".")[0] + '.json', function(data, err, stderr) {
+                          if (!err)
+                          {
+                            /** Python script executed successfully; read .json file */
+                            readJsonFile(uploadDir + folderChar + name.split(".")[0] + folderChar + name.split(".")[0] + '.json', fs, req, res);
+                          }
+                          else
+                          {
+                              console.log("python script cmd error: " + err);
+                          }
+                        });
+      }
+      else if(name.split(".")[1] === "json")
+      {
+        /** Copy .json file to upload folder with same name */
+        nodeCmd.get('cp uploads' + folderChar + name + ' uploads' + folderChar + name.split(".")[0] + folderChar + name, function(data, err, stderr){
+          /** Python script executed successfully; read .json file */
+            if(!err)
+            {
+              readJsonFile(uploadDir + folderChar + name.split(".")[0] + folderChar + name.split(".")[0] + '.json', fs, req, res);
+            }
+            else
+            {
+              console.log("python script cmd error: " + err);
+            }
+        });
+      }
+    }
+    else
+    {
+      console.log("python script cmd error: " + err);
+    }
+  });
+}
+
+/**
  * Server-side callback function from 'express' framework for incoming graph. Create a local folder with same name as file, to store future coarsened graphs.
  * @public @callback
  * @param {Object} req header incoming from HTTP;
@@ -255,6 +340,7 @@ app.post('/upload', function(req, res) {
   /** Every time a file has been uploaded successfully, rename it to it's orignal name */
   form.on('file', function(field, file) {
     fs.rename(file.path, path.join(form.uploadDir, file.name), function(){return;});
+    // mkdirAndCp(file.name, form.uploadDir, folderChar, req, res);
     /** Creates directory for uploaded graph */
     nodeCmd.get('mkdir -p uploads' + folderChar + file.name.split(".")[0] + folderChar, function(data, err, stderr) {
       if (!err)
@@ -320,32 +406,148 @@ app.post('/upload', function(req, res) {
 // app.post('/slide', function(req, res) {
 app.post('/coarse', function(req, res) {
   var folderChar = addFolderPath();
-  /** Test if no coarsening has been applied to both sets; if such case is true, return original graph */
-  if(req.body.coarsening == "0" && req.body.coarseningSecondSet == "0")
+  req.body.jsonInput = fixJSONInts(req.body.jsonInput);
+  /** Check if input came from .json input */
+  if(req.body.jsonInput !== undefined)
   {
-    readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', fs, req, res);
-  }
-  else
-  {
-    /* Changing file name according to graph name */
-    pyName = fileName.split(".")[0] + "Coarsened" + "l" + req.body.coarsening.split(".").join("") + "r" + req.body.coarseningSecondSet.split(".").join("");
-    // if(req.body.nLevels !== undefined) pyName = pyName + "n" + req.body.nLevels;
-    var pyCoarsening = "-r " + req.body.coarsening + " " + req.body.coarseningSecondSet;
-    if(req.body.nLevels !== undefined && req.body.nLevels != 0) pyCoarsening = pyCoarsening + " --save_hierarchy ";
-    /** Check if coarsened file already exists; if not, generate a new coarsened file */
-    fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data) {
-      if(err) /* File doesn't exist */
+    var pyPath = "mob" + folderChar;
+    var pyProg = "coarsening.py";
+    /** Execute python scripts */
+    var file = { name: req.body.jsonInput.filename.split("/")[req.body.jsonInput.filename.split("/").length-1] } ;
+    /** Creates directory for uploaded graph */
+    nodeCmd.get('mkdir -p uploads' + folderChar + file.name.split(".")[0] + folderChar, function(data, err, stderr) {
+      if (!err)
       {
-        createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req, res);
+        /* Assign global variable with file name for later coarsening */
+        fileName = file.name;
+        /* Transforms .gml file into .json extension file if file is .gml */
+        if(file.name.split(".")[1] === "gml")
+        {
+          /** Convert to .json and move it to upload folder with same name */
+          nodeCmd.get('python mob' + folderChar + 'gmlToJson3.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
+                            if (!err)
+                            {
+                              /** Convert to .ncol format */
+                              nodeCmd.get('python ' + pyPath + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
+                                if(!err)
+                                {
+                                  req.body.jsonInput.filename = req.body.jsonInput.filename.split(".")[0] + ".ncol";
+                                  /** Save JSON input information in a file - from https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file */
+                                  fs.writeFile("input.json", JSON.stringify(req.body.jsonInput), function(err){
+                                    if(err)
+                                    {
+                                      console.log(err);
+                                    }
+                                    else
+                                    {
+                                      /** Execute coarsening with a given reduction factor */
+                                      console.log('python ' + pyPath + pyProg + " -cf input.json");
+                                      nodeCmd.get('python ' + pyPath + pyProg + " -cf input.json", function(data, err, stderr) {
+                                        if (!err)
+                                        {
+                                          res.end();
+                                        }
+                                        else
+                                        {
+                                          console.log("python script cmd error: " + err);
+                                        }
+                                      });
+                                    }
+                                  });
+                                }
+                                else
+                                {
+                                  console.log("python script cmd error: " + err);
+                                }
+                              });
+                            }
+                            else
+                            {
+                                console.log("python script cmd error: " + err);
+                            }
+                          });
+        }
+          else if(file.name.split(".")[1] === "json")
+          {
+            /** Copy .json file to upload folder with same name */
+            nodeCmd.get('cp uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name, function(data, err, stderr){
+                if(!err)
+                {
+                  /** Convert to .ncol format */
+                  nodeCmd.get('python ' + pyPath + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
+                    if(!err)
+                    {
+                      req.body.jsonInput.filename = req.body.jsonInput.filename.split(".")[0] + ".ncol";
+                      /** Save JSON input information in a file - from https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file */
+                      fs.writeFile("input.json", JSON.stringify(req.body.jsonInput), function(err){
+                        if(err)
+                        {
+                          console.log(err);
+                        }
+                        else
+                        {
+                          /** Execute coarsening with a given reduction factor */
+                          nodeCmd.get('python ' + pyPath + pyProg + " -cf input.json", function(data, err, stderr) {
+                            if (!err)
+                            {
+                              res.end();
+                            }
+                            else
+                            {
+                              console.log("python script cmd error: " + err);
+                            }
+                          });
+                        }
+                      });
+                    }
+                    else
+                    {
+                      console.log("python script cmd error: " + err);
+                    }
+                  });
+                }
+                else
+                {
+                  console.log("python script cmd error: " + err);
+                }
+            });
+          }
       }
-      else /* File exists*/
-      {
-        /* Send data to client */
-        res.end(addValues(data));
-      }
+        else
+        {
+          console.log("python script cmd error: " + err);
+        }
     });
   }
-
+  else /** Came from user settings in drawer menu */
+  {
+    var folderChar = addFolderPath();
+    /** Test if no coarsening has been applied to both sets; if such case is true, return original graph */
+    if(req.body.coarsening == "0" && req.body.coarseningSecondSet == "0")
+    {
+      readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', fs, req, res);
+    }
+    else
+    {
+      /* Changing file name according to graph name */
+      pyName = fileName.split(".")[0] + "Coarsened" + "l" + req.body.coarsening.split(".").join("") + "r" + req.body.coarseningSecondSet.split(".").join("");
+      // if(req.body.nLevels !== undefined) pyName = pyName + "n" + req.body.nLevels;
+      var pyCoarsening = "-r " + req.body.coarsening + " " + req.body.coarseningSecondSet;
+      if(req.body.nLevels !== undefined && req.body.nLevels != 0) pyCoarsening = pyCoarsening + " --save_hierarchy ";
+      /** Check if coarsened file already exists; if not, generate a new coarsened file */
+      fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data) {
+        if(err) /* File doesn't exist */
+        {
+          createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req, res);
+        }
+        else /* File exists*/
+        {
+          /* Send data to client */
+          res.end(addValues(data));
+        }
+      });
+    }
+  }
   // console.log(req);
   // console.log("graphSize: ");
   // console.log(graphSize);
@@ -470,6 +672,18 @@ app.post('/setProperties', function(req, res){
       console.log("python script cmd error: " + err);
     }
   });
+});
+
+/**
+ * Server-side callback function from 'express' framework for get graph route. Get uploaded graph according to file name.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+app.post('/getGraph', function(req, res){
+  var folderChar = addFolderPath();
+  /** Read file from its folder */
+  readJsonFile(req.body.graphName + '.json', fs, req, res);
 });
 
 /**
