@@ -1,3 +1,9 @@
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
 .fixed-div-center {
 	position: fixed;
 	top: 40%;

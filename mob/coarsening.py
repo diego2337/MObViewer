@@ -252,7 +252,7 @@ def main():
 					v['source'] = ','.join(map(str, v['source']))
 					v['predecessor'] = ','.join(map(str, v['predecessor']))
 				# graph.write(output + str(levels) + '.gml', format='gml')
-				graph.write(output + 'n' + str(getNonZeroValue(levels)) + '.gml', format='gml')
+				graph.write(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'n' + str(getNonZeroValue(levels)) + '.gml', format='gml')
 
 			if options.save_ncol:
 				# graph.write(output + str(levels) + '.ncol', format='ncol')
