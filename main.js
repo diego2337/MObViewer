@@ -10,6 +10,7 @@ var fileName = "";
 var graphSize = [];
 var pyName = "";
 var currentLevel = 0;
+var folderChar = addFolderPath();
 
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -322,6 +323,52 @@ function mkdirAndCp(name, uploadDir, folderChar, req, res)
 }
 
 /**
+ * Create .ncol file and perform coarsening.
+ * @public
+ * @param {string} pyPath Path to python program's directory.
+ * @param {string} pyProg Python program name.
+ * @param {Object} fs FileSystem API module.
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+function ncolAndCoarse(pyPath, pyProg, fs, req, res)
+{
+  /** Convert to .ncol format */
+  nodeCmd.get('python ' + pyPath + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
+    if(!err)
+    {
+      req.body.jsonInput.filename = req.body.jsonInput.filename.split(".")[0] + ".ncol";
+      /** Save JSON input information in a file - from https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file */
+      fs.writeFile("input.json", JSON.stringify(req.body.jsonInput), function(err){
+        if(err)
+        {
+          console.log(err);
+        }
+        else
+        {
+          /** Execute coarsening with a given reduction factor */
+          console.log('python ' + pyPath + pyProg + " -cf input.json");
+          nodeCmd.get('python ' + pyPath + pyProg + " -cf input.json", function(data, err, stderr) {
+            if (!err)
+            {
+              res.end();
+            }
+            else
+            {
+              console.log("python script cmd error: " + err);
+            }
+          });
+        }
+      });
+    }
+    else
+    {
+      console.log("python script cmd error: " + err);
+    }
+  });
+}
+
+/**
  * Server-side callback function from 'express' framework for incoming graph. Create a local folder with same name as file, to store future coarsened graphs.
  * @public @callback
  * @param {Object} req header incoming from HTTP;
@@ -330,7 +377,7 @@ function mkdirAndCp(name, uploadDir, folderChar, req, res)
 app.post('/upload', function(req, res) {
   graphSize = [];
   currentLevel = 0;
-  var folderChar = addFolderPath();
+  // var folderChar = addFolderPath();
   /* Create an incoming form object */
   var form = new formidable.IncomingForm();
   /* Specify that we want to allow the user to upload multiple files in a single request */
@@ -405,7 +452,7 @@ app.post('/upload', function(req, res) {
  */
 // app.post('/slide', function(req, res) {
 app.post('/coarse', function(req, res) {
-  var folderChar = addFolderPath();
+  // var folderChar = addFolderPath();
   req.body.jsonInput = fixJSONInts(req.body.jsonInput);
   /** Check if input came from .json input */
   if(req.body.jsonInput !== undefined)
@@ -427,39 +474,7 @@ app.post('/coarse', function(req, res) {
           nodeCmd.get('python mob' + folderChar + 'gmlToJson3.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
                             if (!err)
                             {
-                              /** Convert to .ncol format */
-                              nodeCmd.get('python ' + pyPath + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
-                                if(!err)
-                                {
-                                  req.body.jsonInput.filename = req.body.jsonInput.filename.split(".")[0] + ".ncol";
-                                  /** Save JSON input information in a file - from https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file */
-                                  fs.writeFile("input.json", JSON.stringify(req.body.jsonInput), function(err){
-                                    if(err)
-                                    {
-                                      console.log(err);
-                                    }
-                                    else
-                                    {
-                                      /** Execute coarsening with a given reduction factor */
-                                      console.log('python ' + pyPath + pyProg + " -cf input.json");
-                                      nodeCmd.get('python ' + pyPath + pyProg + " -cf input.json", function(data, err, stderr) {
-                                        if (!err)
-                                        {
-                                          res.end();
-                                        }
-                                        else
-                                        {
-                                          console.log("python script cmd error: " + err);
-                                        }
-                                      });
-                                    }
-                                  });
-                                }
-                                else
-                                {
-                                  console.log("python script cmd error: " + err);
-                                }
-                              });
+                                ncolAndCoarse(pyPath, pyProg, fs, req, res);
                             }
                             else
                             {
@@ -473,38 +488,7 @@ app.post('/coarse', function(req, res) {
             nodeCmd.get('cp uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name, function(data, err, stderr){
                 if(!err)
                 {
-                  /** Convert to .ncol format */
-                  nodeCmd.get('python ' + pyPath + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
-                    if(!err)
-                    {
-                      req.body.jsonInput.filename = req.body.jsonInput.filename.split(".")[0] + ".ncol";
-                      /** Save JSON input information in a file - from https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file */
-                      fs.writeFile("input.json", JSON.stringify(req.body.jsonInput), function(err){
-                        if(err)
-                        {
-                          console.log(err);
-                        }
-                        else
-                        {
-                          /** Execute coarsening with a given reduction factor */
-                          nodeCmd.get('python ' + pyPath + pyProg + " -cf input.json", function(data, err, stderr) {
-                            if (!err)
-                            {
-                              res.end();
-                            }
-                            else
-                            {
-                              console.log("python script cmd error: " + err);
-                            }
-                          });
-                        }
-                      });
-                    }
-                    else
-                    {
-                      console.log("python script cmd error: " + err);
-                    }
-                  });
+                  ncolAndCoarse(pyPath, pyProg, fs, req, res);
                 }
                 else
                 {
@@ -521,7 +505,7 @@ app.post('/coarse', function(req, res) {
   }
   else /** Came from user settings in drawer menu */
   {
-    var folderChar = addFolderPath();
+    // var folderChar = addFolderPath();
     /** Test if no coarsening has been applied to both sets; if such case is true, return original graph */
     if(req.body.coarsening == "0" && req.body.coarseningSecondSet == "0")
     {
@@ -560,7 +544,7 @@ app.post('/coarse', function(req, res) {
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 app.post('/switch', function(req, res){
-  var folderChar = addFolderPath();
+  // var folderChar = addFolderPath();
   // readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', fs, res);
   readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + "n" + currentLevel + '.json', fs, req, res);
 });
@@ -587,7 +571,7 @@ app.post('/getLevels', function(req, res){
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 app.post('/getClusters', function(req, res){
-  var folderChar = addFolderPath();
+  // var folderChar = addFolderPath();
   req.on('data', function(chunk) {
     let clusterFileName = chunk.toString('utf8');
     console.log("clusterFileName");
@@ -613,7 +597,7 @@ app.post('/getClusters', function(req, res){
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 app.post('/convert', function(req, res){
-  var folderChar = addFolderPath();
+  // var folderChar = addFolderPath();
   var pyPath = "mob" + folderChar;
   /* Changing file name according to graph name */
   pyName = fileName.split(".")[0] + "Coarsened" + "l" + req.body.coarsening.split(".").join("") + "r" + req.body.coarseningSecondSet.split(".").join("");
@@ -656,7 +640,7 @@ app.post('/convert', function(req, res){
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 app.post('/setProperties', function(req, res){
-  var folderChar = addFolderPath();
+  // var folderChar = addFolderPath();
   var pyPath = "mob" + folderChar;
   let hierarchicalPyName = pyName + "n" + req.body.nLevels;
   /** Set properties properly using information from "source" attribue in .json file generated from multilevel paradigm */
@@ -681,7 +665,7 @@ app.post('/setProperties', function(req, res){
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 app.post('/getGraph', function(req, res){
-  var folderChar = addFolderPath();
+  // var folderChar = addFolderPath();
   /** Read file from its folder */
   readJsonFile(req.body.graphName + '.json', fs, req, res);
 });

@@ -220,6 +220,7 @@ $("#coarseJson").on('click', function(){
     data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
     success: function(html){
       let maxCoarsening = Math.max(JSON.parse($("#jsonTextArea")[0].value).max_levels[0], JSON.parse($("#jsonTextArea")[0].value).max_levels[1]);
+      console.log("maxCoarsening:" + maxCoarsening);
       let nOfExecutions = maxCoarsening;
       if(maxCoarsening != 0)
       {
@@ -274,6 +275,11 @@ $("#coarseJson").on('click', function(){
 $("#jsonInfo").on('click', function(){
     $("#jsonInput").css('visibility') == 'hidden' ?  $("#jsonInput").css('visibility', 'visible') : $("#jsonInput").css('visibility', 'hidden');
 });
+
+/** */
+$("#coarseJson").on('click', function(){
+  $("#jsonInput").css('visibility', 'hidden');
+})
 
 /**
   * @ File to watch for clicks in buttons used for saving either .png graph image or .json file.
