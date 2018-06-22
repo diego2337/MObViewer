@@ -220,6 +220,7 @@ $("#coarseJson").on('click', function(){
     data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
     success: function(html){
       let maxCoarsening = Math.max(JSON.parse($("#jsonTextArea")[0].value).max_levels[0], JSON.parse($("#jsonTextArea")[0].value).max_levels[1]);
+      console.log("maxCoarsening:" + maxCoarsening);
       let nOfExecutions = maxCoarsening;
       if(maxCoarsening != 0)
       {
@@ -229,7 +230,7 @@ $("#coarseJson").on('click', function(){
           $.ajax({
             url:'/convert',
             type: 'POST',
-            data: {nLevels: maxCoarsening, coarsening: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0], coarseningSecondSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1], firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+            data: {nLevels: maxCoarsening, firstSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[0], secondSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[1], coarsening: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0], coarseningSecondSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1], firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
             success: function(html){
               /** Finished all conversions; set properties properly */
               if(nOfExecutions == 1)
@@ -237,7 +238,7 @@ $("#coarseJson").on('click', function(){
                   $.ajax({
                     url:'/setProperties',
                     type: 'POST',
-                    data: {nLevels: maxCoarsening, coarsening: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0], coarseningSecondSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1], firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0},
+                    data: {nLevels: maxCoarsening, firstSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[0], secondSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[1], coarsening: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0], coarseningSecondSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1], firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0},
                     success: function(html){
                       graphUpdate(html, layout.lay);
                     }
@@ -274,3 +275,8 @@ $("#coarseJson").on('click', function(){
 $("#jsonInfo").on('click', function(){
     $("#jsonInput").css('visibility') == 'hidden' ?  $("#jsonInput").css('visibility', 'visible') : $("#jsonInput").css('visibility', 'hidden');
 });
+
+/** */
+$("#coarseJson").on('click', function(){
+  $("#jsonInput").css('visibility', 'hidden');
+})

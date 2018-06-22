@@ -1,0 +1,75 @@
+{
+"vertices":
+[
+  8,
+  503
+],
+"reduction_factor":
+[
+  0.3,
+  0.3
+],
+"max_levels":
+[
+  3,
+  3
+],
+"matching":
+[
+  "greedy_seed_twohops"
+],
+"similarity":
+[
+  "weighted_common_neighbors"
+],
+"directory": "uploads/mlSmallest",
+"output": "mlSmallestCoarsened",
+"filename": "uploads/mlSmallest/mlSmallest.gml",
+"save_conf": true,
+"save_ncol": false,
+"save_gml": true,
+"save_source": false,
+"save_predecessor": true,
+"show_timing": false,
+"save_timing": false,
+"save_hierarchy": true,
+"unique_key": false
+}
+
+{
+"vertices":
+[
+  8,
+  503
+],
+"reduction_factor":
+[
+  0.0,
+  0.3
+],
+"max_levels":
+[
+  3,
+  3
+],
+"matching":
+[
+  "greedy_seed_twohops"
+],
+"similarity":
+[
+  "weighted_common_neighbors"
+],
+"directory": "uploads/mlSmallest",
+"output": "mlSmallestCoarsened",
+"filename": "uploads/mlSmallest/mlSmallest.gml",
+"save_conf": false,
+"save_ncol": false,
+"save_gml": true,
+"save_source": false,
+"save_predecessor": false,
+"show_timing": false,
+"save_timing": false,
+"save_hierarchy": true,
+"unique_key": false
+}
