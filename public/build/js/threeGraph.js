@@ -1989,67 +1989,70 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
     if(isNaN(previousMeshNumber)) previousMeshNumber = "h1";
     // var currentMesh = scene.getObjectByName(intersection.object.name);
     var previousMesh = scene.getObjectByName(originalMeshName + previousMeshNumber.toString());
-    /** Get array of predecessors */
-    var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
-    var properties = JSON.parse(intersection.object.geometry.faces[startFace].properties);
-    // console.log("intersection.object.geometry.faces[startFace].position:");
-    // console.log(intersection.object.geometry.faces[startFace].position);
-    var edgeGeometry = new THREE.Geometry();
-    var sourcePos = intersection.object.geometry.faces[startFace].position;
-    var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
-    /** Color vertexes */
-    for(var j = 0; j < 32; j++)
+    if(previousMesh != undefined)
     {
-      intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
-    }
-    intersection.object.geometry.colorsNeedUpdate = true;
-    this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id), mesh: intersection.object.name});
-    /** Color predecessors */
-    for(pred in properties)
-    {
-      if(pred == "predecessor")
+      /** Get array of predecessors */
+      var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
+      var properties = JSON.parse(intersection.object.geometry.faces[startFace].properties);
+      // console.log("intersection.object.geometry.faces[startFace].position:");
+      // console.log(intersection.object.geometry.faces[startFace].position);
+      var edgeGeometry = new THREE.Geometry();
+      var sourcePos = intersection.object.geometry.faces[startFace].position;
+      var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+      /** Color vertexes */
+      for(var j = 0; j < 32; j++)
       {
-        var predecessors = properties[pred].split(",");
-        for(var i = 0; i < predecessors.length; i++)
+        intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
+      }
+      intersection.object.geometry.colorsNeedUpdate = true;
+      this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id), mesh: intersection.object.name});
+      /** Color predecessors */
+      for(pred in properties)
+      {
+        if(pred == "predecessor")
         {
-          if(previousMesh.geometry.faces[(parseInt(predecessors[i]))*32] !== undefined)
+          var predecessors = properties[pred].split(",");
+          for(var i = 0; i < predecessors.length; i++)
           {
-            /** Color predecessors */
-            var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))*32].position;
-            /** Check if predecessor vertexes were rendered */
-            if(this.wasRendered(sourcePos, targetPos, layout))
+            if(previousMesh.geometry.faces[(parseInt(predecessors[i]))*32] !== undefined)
             {
-              this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
-              var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
-              for(var j = 0; j < 32; j++)
+              /** Color predecessors */
+              var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))*32].position;
+              /** Check if predecessor vertexes were rendered */
+              if(this.wasRendered(sourcePos, targetPos, layout))
               {
-                previousMesh.geometry.faces[(parseInt(predecessors[i]))*32 + j].color.setRGB(1.0, 0.0, 0.0);
+                this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+                var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+                for(var j = 0; j < 32; j++)
+                {
+                  previousMesh.geometry.faces[(parseInt(predecessors[i]))*32 + j].color.setRGB(1.0, 0.0, 0.0);
+                }
+                edgeGeometry.vertices.push(v1);
+                edgeGeometry.vertices.push(v2);
               }
-              edgeGeometry.vertices.push(v1);
-              edgeGeometry.vertices.push(v2);
             }
           }
         }
       }
-    }
-    previousMesh.geometry.colorsNeedUpdate = true;
-    for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
-    {
-      edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
-      edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
-    }
-    edgeGeometry.colorsNeedUpdate = true;
+      previousMesh.geometry.colorsNeedUpdate = true;
+      for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+      {
+        edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+        edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+      }
+      edgeGeometry.colorsNeedUpdate = true;
 
-    /** Create one LineSegments and add it to scene */
-    var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
-    var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
-    lineSegments.name = "parentConnections";
-    scene.add(lineSegments);
+      /** Create one LineSegments and add it to scene */
+      var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+      var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+      lineSegments.name = "parentConnections";
+      scene.add(lineSegments);
 
-    edgeGeometry.dispose();
-    edgeGeometry = null;
-    edgeMaterial.dispose();
-    edgeMaterial = null;
+      edgeGeometry.dispose();
+      edgeGeometry = null;
+      edgeMaterial.dispose();
+      edgeMaterial = null;
+    }
   }
   else
   {
