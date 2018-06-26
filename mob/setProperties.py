@@ -45,7 +45,8 @@ if __name__ == "__main__":
     # Step 2: Give file new name #
     reductionFactor1 = convert2String(options.reductionFactor[0])
     reductionFactor2 = convert2String(options.reductionFactor[1])
-    fileName = options.name.split(".")[0] + "Coarsened" + "l" + reductionFactor1 + 'r' + ''.join(str(options.reductionFactor[1]).split("."))
+    # fileName = options.name.split(".")[0] + "Coarsened" + "l" + reductionFactor1 + 'r' + ''.join(str(options.reductionFactor[1]).split("."))
+    fileName = options.name.split(".")[0] + "Coarsened" + "l" + reductionFactor1 + 'r' + reductionFactor2
     # Step 3: Iterate through all coarsened graphs and write new properties to .json file #
     for level in range(1, int(options.nLevels)+1):
         coarsenedFileName = fileName + "n" + str(level) + ".json"

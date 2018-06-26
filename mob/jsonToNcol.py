@@ -39,17 +39,20 @@ if __name__ == "__main__":
             linkObject = True
             linha = line.split(" ")
             # print linha[-1].split("\"")[1]
-            ncolFile.write(linha[-1].split("\"")[1])
+            ncolFile.write(line.split("\"")[-2])
+            # ncolFile.write(linha[-1].split("\"")[1])
             ncolFile.write(" ")
         elif "\"target\"" in line and linkObject == True:
             linha = line.split(" ")
             # print linha[-1].split("\"")[1]
-            ncolFile.write(linha[-1].split("\"")[1])
+            ncolFile.write(line.split("\"")[-2])
+            # ncolFile.write(linha[-1].split("\"")[1])
             ncolFile.write(" ")
         elif "\"weight\"" in line and linkObject == True:
             linha = line.split(" ")
             # print linha[-1].split("\"")[1]
-            ncolFile.write(linha[-1].split("\"")[1])
+            ncolFile.write(line.split("\"")[-2])
+            # ncolFile.write(linha[-1].split("\"")[1])
             ncolFile.write("\n")
             linkObject = False
     # Step 4 - Close files

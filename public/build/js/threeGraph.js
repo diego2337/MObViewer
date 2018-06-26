@@ -1941,6 +1941,8 @@ EventHandler.prototype.showNeighbors = function(scene)
     //     lineSegments.geometry.colorsNeedUpdate = true;
     //   }
     // }
+    /** Clearing array of neighbors */
+    this.neighbors = [];
   }
 }
 

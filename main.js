@@ -334,6 +334,7 @@ function mkdirAndCp(name, uploadDir, folderChar, req, res)
 function ncolAndCoarse(pyPath, pyProg, fs, req, res)
 {
   /** Convert to .ncol format */
+  console.log('python ' + pyPath + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol');
   nodeCmd.get('python ' + pyPath + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
     if(!err)
     {
