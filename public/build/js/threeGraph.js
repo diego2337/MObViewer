@@ -178,6 +178,16 @@ BipartiteGraph.prototype.writeProperties = function(singleGeometry, jsonObject, 
 }
 
 /**
+ * Get which independent sets are to be rendered on screen.
+ * @public
+ * @returns {Object} renderLayers Object containing boolean for rendering both first and second layers.
+ */
+BipartiteGraph.prototype.getRenderedLayers = function()
+{
+  return this.renderLayers;
+}
+
+/**
  * Set which independent sets are to be rendered on screen.
  * @public
  * @param {Object} renderLayers Object containing boolean for rendering both first and second layers.
@@ -215,7 +225,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in first layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 0);
   /** Create an independent set and render its nodes */
-  if(this.renderLayers.renderFirstLayer == true) firstIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  if(this.renderLayers.renderFirstLayer == true) firstIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Readjust x and y-axis values */
   y = y * (-1);
   pos = -1 * Math.floor(parseInt(this.lastLayer) / 2);
@@ -228,7 +238,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in second layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 1);
   /** Create an independent set and render its nodes */
-  if(this.renderLayers.renderLastLayer == true) secondIndependentSet.buildSet(singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  if(this.renderLayers.renderLastLayer == true) secondIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
   /** Creating material for nodes */
   var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
   /** Create one mesh from single geometry and add it to scene */
@@ -378,6 +388,9 @@ IndependentSet.prototype.findNeighbors = function(nodes, links, i)
 
 /**
  * @desc Builds an independent set, given a y-axis coordinate and a theta spacing between nodes.
+ * @param {Object} renderLayers Object containing boolean for rendering both first and second layers.
+ * @param {int} firstLayer Number of nodes in first layer.
+ * @param {int} lastLayer Number of nodes in last layer.
  * @param {Object} geometry Single geometry which will contain all node geometries, merged.
  * @param {Array} nodes Array of objects containing .json type nodes (id, weight...).
  * @param {Array} links Array of objects containing .json type edges (source, target, weight).
@@ -388,7 +401,7 @@ IndependentSet.prototype.findNeighbors = function(nodes, links, i)
  * @param {float} theta Theta value which defines spacing between nodes.
  * @param {int} layout Graph layout.
  */
-IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout)
+IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer, geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout)
 {
   try
   {
@@ -402,7 +415,7 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
     {
       circleGeometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
     }
-    for(var i = 0; i < nodes.length; i++, pos++)
+    for(var i = 0; i < nodes.length && nodes[i] !== undefined; i++, pos++)
     {
       var x = pos * theta;
       if(nodes[i].weight == undefined) nodes[i].weight = parseInt(minNodeWeight);
@@ -447,7 +460,12 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
       /** Store vertex position */
       geometry.faces[i].position = this.positions[j];
       /** Store vertex position */
-      geometry.faces[i].position = this.positions[j];
+      // geometry.faces[i].position = this.positions[j];
+      /** Store which layers are being rendered */
+      geometry.faces[i].layers = JSON.stringify(renderLayers);
+      /** Store number of vertexes for each layer */
+      geometry.faces[i].firstLayer = firstLayer;
+      geometry.faces[i].lastLayer = lastLayer;
     }
 
     /** Properly dispose of object */
@@ -456,7 +474,7 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
   }
   catch(err)
   {
-    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function IndependentSet.renderSet. " + err;
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function IndependentSet.buildSet. " + err;
   }
 }
 
@@ -831,6 +849,132 @@ Layout.prototype.hasEqualLayers = function(coarsenedGraph, lessCoarsenedGraph)
 }
 
 /**
+ * Compare two objects.
+ * @public
+ * @param {Object} item1 Object to be compared.
+ * @param {Object} item2 Object to be compared.
+ * @returns {Boolean} Returns false if objects are different, true otherwise.
+ */
+Layout.prototype.compare = function (item1, item2) {
+
+  // Get the object type
+  var itemType = Object.prototype.toString.call(item1);
+
+  // If an object or array, compare recursively
+  if (['[object Array]', '[object Object]'].indexOf(itemType) >= 0) {
+    if (!this.isEqual(item1, item2)) return false;
+  }
+
+  // Otherwise, do a simple comparison
+  else {
+
+    // If the two items are not the same type, return false
+    if (itemType !== Object.prototype.toString.call(item2)) return false;
+
+    // Else if it's a function, convert to a string and compare
+    // Otherwise, just compare
+    if (itemType === '[object Function]') {
+      if (item1.toString() !== item2.toString()) return false;
+    } else {
+      if (item1 !== item2) return false;
+    }
+
+  }
+  // Returns true
+  return true;
+};
+
+/**
+ * Helper function to check if both arrays have the same values, from https://gomakethings.com/check-if-two-arrays-or-objects-are-equal-with-javascript/
+ * @param {(Object|Array)} value First array or object to be compared.
+ * @param {(Object|Array)} other Second array or object to be compared.
+ * @returns {Boolean} true if arrays or objects are equal, false otherwise
+ */
+Layout.prototype.isEqual = function (value, other) {
+
+	// Get the value type
+	var type = Object.prototype.toString.call(value);
+
+	// If the two objects are not the same type, return false
+	if (type !== Object.prototype.toString.call(other)) return false;
+
+	// If items are not an object or array, return false
+	if (['[object Array]', '[object Object]'].indexOf(type) < 0) return false;
+
+	// Compare the length of the length of the two items
+	var valueLen = type === '[object Array]' ? value.length : Object.keys(value).length;
+	var otherLen = type === '[object Array]' ? other.length : Object.keys(other).length;
+	if (valueLen !== otherLen) return false;
+
+	// Compare properties
+	if (type === '[object Array]') {
+		for (var i = 0; i < valueLen; i++) {
+			if (this.compare(value[i], other[i]) === false) return false;
+		}
+	} else {
+		for (var key in value) {
+			if (value.hasOwnProperty(key)) {
+				if (this.compare(value[key], other[key]) === false) return false;
+			}
+		}
+	}
+
+	// If nothing failed, return true
+	return true;
+
+};
+
+/**
+ * Sort nodes from previous uncoarsened bipartite graph according to current bipartite graph's super vertexes.
+ * @public
+ * @param {int} index Index of current coarsening level.
+ * @param {Object} renderLayers Object containing boolean for rendering both first and second layers.
+ * @param {int} firstLayerNodes Number of nodes from first layer.
+ * @param {int} secondLayerNodes Number of nodes from second layer.
+ * @param {Object} currentBP Most coarsened bipartite graph.
+ * @param {Object} previousBP Previous uncoarsened bipartite graph.
+ * @returns {Object} Nodes in "sorted" order.
+ */
+Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, secondLayerNodes, currentBP, previousBP)
+{
+  var start = 0, end = currentBP.nodes.length, newNodes = [], newNodesIndexes = [];
+  if(renderLayers.renderFirstLayer == false) start = parseInt(firstLayerNodes);
+  if(renderLayers.renderLastLayer == false) end = parseInt(secondLayerNodes);
+  //console.log("start, end: " + parseInt(firstLayerNodes) + " " + parseInt(secondLayerNodes));
+  //for(let i = start; i < end; i++)
+  for(let i = 0; i < currentBP.nodes.length; i++)
+  {
+    // if(currentBP.nodes[i].predecessor !== undefined)
+    // {
+    /** Breaks values from "predecessor" value, e.g. "predecessor": "1307,1308" */
+    var predecessors = currentBP.nodes[i].predecessor.split(",");
+    for(let j = 0; j < predecessors.length; j++)
+    {
+      newNodes.push(previousBP.nodes[parseInt(predecessors[j])]);
+      newNodesIndexes.push(parseInt(predecessors[j]));
+      // var aux = previousBP.nodes[j];
+      // previousBP.nodes[j] = previousBP.nodes[parseInt(predecessors[j])];
+      // previousBP.nodes[parseInt(predecessors[j])] = aux;
+      /** Write "sorted" nodes server-side */
+      // $.ajax({
+      //   url: '/writeSorted',
+      //   type: 'POST',
+      //   data: { firstWrite: i == 0 ? true : false, idx: index, pred: i == currentBP.nodes.length -1 ? predecessors[j] : predecessors[j] + ' '},
+      //   xhr: loadGraph
+      // });
+    }
+    // }
+  }
+  $.ajax({
+    url: '/writeSorted',
+    type: 'POST',
+    data: {idx: index, nodes: newNodesIndexes},
+    xhr: loadGraph
+  });
+  return newNodes;
+}
+
+/**
  * Build and render previous uncoarsened bipartite graphs.
  * @public
  * @param {Object} bipartiteGraph Most coarsened bipartite graph, already rendered.
@@ -884,12 +1028,31 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
   for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
   {
     var coarsenedBipartiteGraph;
-    if(i != 0)
+    // if(i != 0)
+    // {
+    coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
+    coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
+    /** Sort nodes according to super-vertexes */
+    if(i == 0)
     {
-      coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
-      coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
-      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
+      // if(!this.isEqual(bipartiteGraphs[i].nodes, this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i])))
+      // {
+      //   console.log("I am not right, so I'm right!");
+      // }
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
     }
+    else
+    {
+      // if(!this.isEqual(bipartiteGraphs[i].nodes, this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i])))
+      // {
+      //   console.log("I am not right, so I'm right!");
+      // }
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    }
+    // i == 0 ? this.sortSVNodes(coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]) : this.sortSVNodes(coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    /** Render nodes */
+    coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
+    // }
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
     {
@@ -1905,7 +2068,14 @@ EventHandler.prototype.showNeighbors = function(scene)
       var mesh = scene.getObjectByName(this.neighbors[i].mesh);
       for(var j = 0; j < 32; j++)
       {
-        mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        else
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
         mesh.geometry.colorsNeedUpdate = true;
       }
       // var endPoint = (this.neighbors[i].vertexInfo * 32) + 32;
@@ -2007,53 +2177,98 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
         intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
       }
       intersection.object.geometry.colorsNeedUpdate = true;
-      this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id), mesh: intersection.object.name});
+      this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id)*32, mesh: intersection.object.name});
+      var predecessors;
       /** Color predecessors */
       for(pred in properties)
       {
         if(pred == "predecessor")
         {
-          var predecessors = properties[pred].split(",");
-          for(var i = 0; i < predecessors.length; i++)
+          predecessors = properties[pred].split(",");
+          // for(var i = 0; i < predecessors.length; i++)
+          // {
+          //   predecessors[i] = parseInt(predecessors[i]*32);
+          //   var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(predecessors[i]))].layers);
+          //   /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+          //   if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+          //   {
+          //     predecessors[i] = predecessors[i] - (parseInt(previousMesh.geometry.faces[(parseInt(predecessors[i]))].firstLayer)*32);
+          //   }
+          //   if(previousMesh.geometry.faces[(parseInt(predecessors[i]))] !== undefined)
+          //   {
+          //     /** Color predecessors */
+          //     var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))].position;
+          //     /** Check if predecessor vertexes were rendered */
+          //     if(this.wasRendered(sourcePos, targetPos, layout))
+          //     {
+          //       this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+          //       var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+          //       for(var j = 0; j < 32; j++)
+          //       {
+          //         previousMesh.geometry.faces[(parseInt(predecessors[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+          //       }
+          //       edgeGeometry.vertices.push(v1);
+          //       edgeGeometry.vertices.push(v2);
+          //     }
+          //   }
+          // }
+        }
+      }
+      var layScope = this;
+      $.ajax({
+        url: '/getSorted',
+        type: 'POST',
+        data: { name: previousMesh.name, pred: predecessors },
+        success: function(data){
+          data = JSON.parse(data);
+          for(var i = 0; i < data.array.length; i++)
           {
-            if(previousMesh.geometry.faces[(parseInt(predecessors[i]))*32] !== undefined)
+            data.array[i] = parseInt(data.array[i])*32;
+            var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(data.array[i]))].layers);
+            /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+            if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+            {
+              data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[(parseInt(data.array[i]))].firstLayer)*32);
+            }
+            if(previousMesh.geometry.faces[(parseInt(data.array[i]))] !== undefined)
             {
               /** Color predecessors */
-              var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))*32].position;
+              var targetPos = previousMesh.geometry.faces[(parseInt(data.array[i]))].position;
               /** Check if predecessor vertexes were rendered */
-              if(this.wasRendered(sourcePos, targetPos, layout))
+              if(layScope.wasRendered(sourcePos, targetPos, layout))
               {
-                this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+                layScope.neighbors.push({vertexInfo: parseInt(data.array[i]), mesh: previousMesh.name});
                 var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
                 for(var j = 0; j < 32; j++)
                 {
-                  previousMesh.geometry.faces[(parseInt(predecessors[i]))*32 + j].color.setRGB(1.0, 0.0, 0.0);
+                  previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
                 }
                 edgeGeometry.vertices.push(v1);
                 edgeGeometry.vertices.push(v2);
               }
             }
           }
-        }
-      }
-      previousMesh.geometry.colorsNeedUpdate = true;
-      for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
-      {
-        edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
-        edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
-      }
-      edgeGeometry.colorsNeedUpdate = true;
+          previousMesh.geometry.colorsNeedUpdate = true;
+          for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+          {
+            edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+            edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+          }
+          edgeGeometry.colorsNeedUpdate = true;
 
-      /** Create one LineSegments and add it to scene */
-      var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
-      var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
-      lineSegments.name = "parentConnections";
-      scene.add(lineSegments);
+          /** Create one LineSegments and add it to scene */
+          var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+          var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+          lineSegments.name = "parentConnections";
+          scene.add(lineSegments);
 
-      edgeGeometry.dispose();
-      edgeGeometry = null;
-      edgeMaterial.dispose();
-      edgeMaterial = null;
+          edgeGeometry.dispose();
+          edgeGeometry = null;
+          edgeMaterial.dispose();
+          edgeMaterial = null;
+        },
+        xhr: loadGraph
+      });
     }
   }
   else
@@ -2065,7 +2280,14 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
       var mesh = scene.getObjectByName(this.neighbors[i].mesh);
       for(var j = 0; j < 32; j++)
       {
-        mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
+        {
+            mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        else
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
         mesh.geometry.colorsNeedUpdate = true;
       }
     }

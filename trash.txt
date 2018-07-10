@@ -1,4 +1,4 @@
-1from main.js, function app.post('/upload', function(req, res):
+from main.js, function app.post('/upload', function(req, res):
 
 // once all the files have been uploaded, send a response to the client
 // form.on('end', function() {
@@ -1061,3 +1061,41 @@ app.get('/', function(req, res){
 var server = app.listen(serverPort, function(){
   console.log('Server listening on port ' + serverPort);
 });
+
+from eventHandler.js, method "showParents":
+// var layScope = this;
+// $.ajax({
+//   url: '/getSorted',
+//   type: 'POST',
+//   data: { name: previousMesh.name, pred: predecessors[i] },
+//   success: function(data){
+//     predecessors[i] = parseInt(data);
+//     if(predecessors[i] != -1)
+//     {
+//       var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(predecessors[i]))].layers);
+//       /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+//       if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+//       {
+//         predecessors[i] = predecessors[i] - (parseInt(previousMesh.geometry.faces[(parseInt(predecessors[i]))].firstLayer)*32);
+//       }
+//       if(previousMesh.geometry.faces[(parseInt(predecessors[i]))] !== undefined)
+//       {
+//         /** Color predecessors */
+//         var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))].position;
+//         /** Check if predecessor vertexes were rendered */
+//         if(layScope.wasRendered(sourcePos, targetPos, layout))
+//         {
+//           layScope.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+//           var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+//           for(var j = 0; j < 32; j++)
+//           {
+//             previousMesh.geometry.faces[(parseInt(predecessors[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+//           }
+//           edgeGeometry.vertices.push(v1);
+//           edgeGeometry.vertices.push(v2);
+//         }
+//       }
+//     }
+//   },
+//   xhr: loadGraph
+// });

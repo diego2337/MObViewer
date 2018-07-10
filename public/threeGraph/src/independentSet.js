@@ -42,6 +42,9 @@ IndependentSet.prototype.findNeighbors = function(nodes, links, i)
 
 /**
  * @desc Builds an independent set, given a y-axis coordinate and a theta spacing between nodes.
+ * @param {Object} renderLayers Object containing boolean for rendering both first and second layers.
+ * @param {int} firstLayer Number of nodes in first layer.
+ * @param {int} lastLayer Number of nodes in last layer.
  * @param {Object} geometry Single geometry which will contain all node geometries, merged.
  * @param {Array} nodes Array of objects containing .json type nodes (id, weight...).
  * @param {Array} links Array of objects containing .json type edges (source, target, weight).
@@ -52,7 +55,7 @@ IndependentSet.prototype.findNeighbors = function(nodes, links, i)
  * @param {float} theta Theta value which defines spacing between nodes.
  * @param {int} layout Graph layout.
  */
-IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout)
+IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer, geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout)
 {
   try
   {
@@ -66,7 +69,7 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
     {
       circleGeometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
     }
-    for(var i = 0; i < nodes.length; i++, pos++)
+    for(var i = 0; i < nodes.length && nodes[i] !== undefined; i++, pos++)
     {
       var x = pos * theta;
       if(nodes[i].weight == undefined) nodes[i].weight = parseInt(minNodeWeight);
@@ -111,7 +114,12 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
       /** Store vertex position */
       geometry.faces[i].position = this.positions[j];
       /** Store vertex position */
-      geometry.faces[i].position = this.positions[j];
+      // geometry.faces[i].position = this.positions[j];
+      /** Store which layers are being rendered */
+      geometry.faces[i].layers = JSON.stringify(renderLayers);
+      /** Store number of vertexes for each layer */
+      geometry.faces[i].firstLayer = firstLayer;
+      geometry.faces[i].lastLayer = lastLayer;
     }
 
     /** Properly dispose of object */
@@ -120,6 +128,6 @@ IndependentSet.prototype.buildSet = function(geometry, nodes, links, minNodeWeig
   }
   catch(err)
   {
-    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function IndependentSet.renderSet. " + err;
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function IndependentSet.buildSet. " + err;
   }
 }

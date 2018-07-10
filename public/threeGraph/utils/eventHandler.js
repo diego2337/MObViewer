@@ -225,7 +225,14 @@ EventHandler.prototype.showNeighbors = function(scene)
       var mesh = scene.getObjectByName(this.neighbors[i].mesh);
       for(var j = 0; j < 32; j++)
       {
-        mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        else
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
         mesh.geometry.colorsNeedUpdate = true;
       }
       // var endPoint = (this.neighbors[i].vertexInfo * 32) + 32;
@@ -327,53 +334,98 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
         intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
       }
       intersection.object.geometry.colorsNeedUpdate = true;
-      this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id), mesh: intersection.object.name});
+      this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id)*32, mesh: intersection.object.name});
+      var predecessors;
       /** Color predecessors */
       for(pred in properties)
       {
         if(pred == "predecessor")
         {
-          var predecessors = properties[pred].split(",");
-          for(var i = 0; i < predecessors.length; i++)
+          predecessors = properties[pred].split(",");
+          // for(var i = 0; i < predecessors.length; i++)
+          // {
+          //   predecessors[i] = parseInt(predecessors[i]*32);
+          //   var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(predecessors[i]))].layers);
+          //   /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+          //   if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+          //   {
+          //     predecessors[i] = predecessors[i] - (parseInt(previousMesh.geometry.faces[(parseInt(predecessors[i]))].firstLayer)*32);
+          //   }
+          //   if(previousMesh.geometry.faces[(parseInt(predecessors[i]))] !== undefined)
+          //   {
+          //     /** Color predecessors */
+          //     var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))].position;
+          //     /** Check if predecessor vertexes were rendered */
+          //     if(this.wasRendered(sourcePos, targetPos, layout))
+          //     {
+          //       this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+          //       var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+          //       for(var j = 0; j < 32; j++)
+          //       {
+          //         previousMesh.geometry.faces[(parseInt(predecessors[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+          //       }
+          //       edgeGeometry.vertices.push(v1);
+          //       edgeGeometry.vertices.push(v2);
+          //     }
+          //   }
+          // }
+        }
+      }
+      var layScope = this;
+      $.ajax({
+        url: '/getSorted',
+        type: 'POST',
+        data: { name: previousMesh.name, pred: predecessors },
+        success: function(data){
+          data = JSON.parse(data);
+          for(var i = 0; i < data.array.length; i++)
           {
-            if(previousMesh.geometry.faces[(parseInt(predecessors[i]))*32] !== undefined)
+            data.array[i] = parseInt(data.array[i])*32;
+            var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(data.array[i]))].layers);
+            /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+            if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+            {
+              data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[(parseInt(data.array[i]))].firstLayer)*32);
+            }
+            if(previousMesh.geometry.faces[(parseInt(data.array[i]))] !== undefined)
             {
               /** Color predecessors */
-              var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))*32].position;
+              var targetPos = previousMesh.geometry.faces[(parseInt(data.array[i]))].position;
               /** Check if predecessor vertexes were rendered */
-              if(this.wasRendered(sourcePos, targetPos, layout))
+              if(layScope.wasRendered(sourcePos, targetPos, layout))
               {
-                this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+                layScope.neighbors.push({vertexInfo: parseInt(data.array[i]), mesh: previousMesh.name});
                 var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
                 for(var j = 0; j < 32; j++)
                 {
-                  previousMesh.geometry.faces[(parseInt(predecessors[i]))*32 + j].color.setRGB(1.0, 0.0, 0.0);
+                  previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
                 }
                 edgeGeometry.vertices.push(v1);
                 edgeGeometry.vertices.push(v2);
               }
             }
           }
-        }
-      }
-      previousMesh.geometry.colorsNeedUpdate = true;
-      for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
-      {
-        edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
-        edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
-      }
-      edgeGeometry.colorsNeedUpdate = true;
+          previousMesh.geometry.colorsNeedUpdate = true;
+          for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+          {
+            edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+            edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+          }
+          edgeGeometry.colorsNeedUpdate = true;
 
-      /** Create one LineSegments and add it to scene */
-      var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
-      var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
-      lineSegments.name = "parentConnections";
-      scene.add(lineSegments);
+          /** Create one LineSegments and add it to scene */
+          var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+          var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+          lineSegments.name = "parentConnections";
+          scene.add(lineSegments);
 
-      edgeGeometry.dispose();
-      edgeGeometry = null;
-      edgeMaterial.dispose();
-      edgeMaterial = null;
+          edgeGeometry.dispose();
+          edgeGeometry = null;
+          edgeMaterial.dispose();
+          edgeMaterial = null;
+        },
+        xhr: loadGraph
+      });
     }
   }
   else
@@ -385,7 +437,14 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
       var mesh = scene.getObjectByName(this.neighbors[i].mesh);
       for(var j = 0; j < 32; j++)
       {
-        mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
+        {
+            mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        else
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
         mesh.geometry.colorsNeedUpdate = true;
       }
     }

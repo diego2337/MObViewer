@@ -369,6 +369,132 @@ Layout.prototype.hasEqualLayers = function(coarsenedGraph, lessCoarsenedGraph)
 }
 
 /**
+ * Compare two objects.
+ * @public
+ * @param {Object} item1 Object to be compared.
+ * @param {Object} item2 Object to be compared.
+ * @returns {Boolean} Returns false if objects are different, true otherwise.
+ */
+Layout.prototype.compare = function (item1, item2) {
+
+  // Get the object type
+  var itemType = Object.prototype.toString.call(item1);
+
+  // If an object or array, compare recursively
+  if (['[object Array]', '[object Object]'].indexOf(itemType) >= 0) {
+    if (!this.isEqual(item1, item2)) return false;
+  }
+
+  // Otherwise, do a simple comparison
+  else {
+
+    // If the two items are not the same type, return false
+    if (itemType !== Object.prototype.toString.call(item2)) return false;
+
+    // Else if it's a function, convert to a string and compare
+    // Otherwise, just compare
+    if (itemType === '[object Function]') {
+      if (item1.toString() !== item2.toString()) return false;
+    } else {
+      if (item1 !== item2) return false;
+    }
+
+  }
+  // Returns true
+  return true;
+};
+
+/**
+ * Helper function to check if both arrays have the same values, from https://gomakethings.com/check-if-two-arrays-or-objects-are-equal-with-javascript/
+ * @param {(Object|Array)} value First array or object to be compared.
+ * @param {(Object|Array)} other Second array or object to be compared.
+ * @returns {Boolean} true if arrays or objects are equal, false otherwise
+ */
+Layout.prototype.isEqual = function (value, other) {
+
+	// Get the value type
+	var type = Object.prototype.toString.call(value);
+
+	// If the two objects are not the same type, return false
+	if (type !== Object.prototype.toString.call(other)) return false;
+
+	// If items are not an object or array, return false
+	if (['[object Array]', '[object Object]'].indexOf(type) < 0) return false;
+
+	// Compare the length of the length of the two items
+	var valueLen = type === '[object Array]' ? value.length : Object.keys(value).length;
+	var otherLen = type === '[object Array]' ? other.length : Object.keys(other).length;
+	if (valueLen !== otherLen) return false;
+
+	// Compare properties
+	if (type === '[object Array]') {
+		for (var i = 0; i < valueLen; i++) {
+			if (this.compare(value[i], other[i]) === false) return false;
+		}
+	} else {
+		for (var key in value) {
+			if (value.hasOwnProperty(key)) {
+				if (this.compare(value[key], other[key]) === false) return false;
+			}
+		}
+	}
+
+	// If nothing failed, return true
+	return true;
+
+};
+
+/**
+ * Sort nodes from previous uncoarsened bipartite graph according to current bipartite graph's super vertexes.
+ * @public
+ * @param {int} index Index of current coarsening level.
+ * @param {Object} renderLayers Object containing boolean for rendering both first and second layers.
+ * @param {int} firstLayerNodes Number of nodes from first layer.
+ * @param {int} secondLayerNodes Number of nodes from second layer.
+ * @param {Object} currentBP Most coarsened bipartite graph.
+ * @param {Object} previousBP Previous uncoarsened bipartite graph.
+ * @returns {Object} Nodes in "sorted" order.
+ */
+Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, secondLayerNodes, currentBP, previousBP)
+{
+  var start = 0, end = currentBP.nodes.length, newNodes = [], newNodesIndexes = [];
+  if(renderLayers.renderFirstLayer == false) start = parseInt(firstLayerNodes);
+  if(renderLayers.renderLastLayer == false) end = parseInt(secondLayerNodes);
+  //console.log("start, end: " + parseInt(firstLayerNodes) + " " + parseInt(secondLayerNodes));
+  //for(let i = start; i < end; i++)
+  for(let i = 0; i < currentBP.nodes.length; i++)
+  {
+    // if(currentBP.nodes[i].predecessor !== undefined)
+    // {
+    /** Breaks values from "predecessor" value, e.g. "predecessor": "1307,1308" */
+    var predecessors = currentBP.nodes[i].predecessor.split(",");
+    for(let j = 0; j < predecessors.length; j++)
+    {
+      newNodes.push(previousBP.nodes[parseInt(predecessors[j])]);
+      newNodesIndexes.push(parseInt(predecessors[j]));
+      // var aux = previousBP.nodes[j];
+      // previousBP.nodes[j] = previousBP.nodes[parseInt(predecessors[j])];
+      // previousBP.nodes[parseInt(predecessors[j])] = aux;
+      /** Write "sorted" nodes server-side */
+      // $.ajax({
+      //   url: '/writeSorted',
+      //   type: 'POST',
+      //   data: { firstWrite: i == 0 ? true : false, idx: index, pred: i == currentBP.nodes.length -1 ? predecessors[j] : predecessors[j] + ' '},
+      //   xhr: loadGraph
+      // });
+    }
+    // }
+  }
+  $.ajax({
+    url: '/writeSorted',
+    type: 'POST',
+    data: {idx: index, nodes: newNodesIndexes},
+    xhr: loadGraph
+  });
+  return newNodes;
+}
+
+/**
  * Build and render previous uncoarsened bipartite graphs.
  * @public
  * @param {Object} bipartiteGraph Most coarsened bipartite graph, already rendered.
@@ -422,12 +548,31 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
   for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
   {
     var coarsenedBipartiteGraph;
-    if(i != 0)
+    // if(i != 0)
+    // {
+    coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
+    coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
+    /** Sort nodes according to super-vertexes */
+    if(i == 0)
     {
-      coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
-      coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
-      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
+      // if(!this.isEqual(bipartiteGraphs[i].nodes, this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i])))
+      // {
+      //   console.log("I am not right, so I'm right!");
+      // }
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
     }
+    else
+    {
+      // if(!this.isEqual(bipartiteGraphs[i].nodes, this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i])))
+      // {
+      //   console.log("I am not right, so I'm right!");
+      // }
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    }
+    // i == 0 ? this.sortSVNodes(coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]) : this.sortSVNodes(coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    /** Render nodes */
+    coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
+    // }
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
     {

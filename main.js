@@ -11,12 +11,16 @@ var graphSize = [];
 var pyName = "";
 var currentLevel = 0;
 var folderChar = addFolderPath();
+var exists = false;
 
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'build')));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: true }));
+/** Supporting large number of parameters */
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true, parameterLimit: 100000000000000}));
 
 app.set('views', __dirname+'/public/views');
 // app.engine('html', require('ejs').renderFile);
@@ -187,7 +191,7 @@ function readJsonFile(path, fs, req, res)
 function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req, res)
 {
   /* Convert .json file to .ncol */
-  nodeCmd.get('python mob' + folderChar + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
+  nodeCmd.get('python mob' + folderChar + 'jsonToNcol3.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
     if(!err)
     {
       // console.log("data from python script " + data);
@@ -334,8 +338,8 @@ function mkdirAndCp(name, uploadDir, folderChar, req, res)
 function ncolAndCoarse(pyPath, pyProg, fs, req, res)
 {
   /** Convert to .ncol format */
-  console.log('python ' + pyPath + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol');
-  nodeCmd.get('python ' + pyPath + 'jsonToNcol.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
+  console.log('python ' + pyPath + 'jsonToNcol3.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol');
+  nodeCmd.get('python ' + pyPath + 'jsonToNcol3.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
     if(!err)
     {
       req.body.jsonInput.filename = req.body.jsonInput.filename.split(".")[0] + ".ncol";
@@ -669,6 +673,93 @@ app.post('/getGraph', function(req, res){
   // var folderChar = addFolderPath();
   /** Read file from its folder */
   readJsonFile(req.body.graphName + '.json', fs, req, res);
+});
+
+/**
+ * Server-side callback function from 'express' framework for get graph route. Write "sorted" nodes in .s file, for later usage.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+ app.post('/writeSorted', function(req, res){
+  var fName = "n" + req.body.idx + ".s";
+  fs.stat('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, function(err, stat){
+    /** File already exists; no need to append anything else */
+    if(err == null)
+    {
+      res.end();
+    }
+    else if(err.code == 'ENOENT')
+    {
+      fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, req.body.nodes, function(err){
+        if(err)
+        {
+          console.log(err);
+        }
+        else
+        {
+          res.end();
+        }
+      });
+    }
+  });
+  /** If this is the first time writing, check if file already exists */
+  //  if(req.body.firstWrite == 'true')
+  //  {
+  //    fs.stat('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, function(err, stat){
+  //      /** File already exists; no need to append anything else */
+  //      if(err == null)
+  //      {
+  //        exists = true;
+  //      }
+  //      else if(err.code == 'ENOENT')
+  //      {
+  //        exists = false;
+  //      }
+  //    });
+  //  }
+  //  /** If file doesn't exist, create it */
+  //  if(exists == false)
+  //  {
+  //    var stream = fs.createWriteStream('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, { flags: 'a'});
+  //    /** Save node in current order */
+  //    stream.write(req.body.pred);
+  //    stream.end();
+  //  }
+  //  res.end();
+ });
+
+ /**
+  * Server-side callback function from 'express' framework for get graph route. Get "sorted" nodes .s file, and return index of node in array.
+  * @public @callback
+  * @param {Object} req header incoming from HTTP;
+  * @param {Object} res header to be sent via HTTP for HTML page.
+  */
+app.post('/getSorted', function(req, res){
+  /** Check name */
+  var level = 0;
+  if(req.body.name != "MainMesh") level = req.body.name[req.body.name.length-1];
+  /** Read file and find index */
+  fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + "n" + level + ".s", 'utf8', function(err, dat){
+    if(err)
+    {
+      return console.log(err);
+    }
+    else
+    {
+      /** Find and return index of nodes from 'dat' string */
+      var arr = dat.split(",");
+      var vect = [];
+      for(var i = 0; i < req.body.pred.length; i++)
+      {
+        // vect.push(arr.indexOf(req.body.pred[i]) != -1 ? arr.indexOf(req.body.pred[i]).toString() : 0);
+        vect.push(arr.indexOf(req.body.pred[i]).toString());
+      }
+      var jsonObj = { array: vect };
+      res.end(JSON.stringify(jsonObj));
+      // res.end(arr.indexOf(req.body.pred).toString());
+    }
+  });
 });
 
 /**
