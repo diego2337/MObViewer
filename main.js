@@ -683,50 +683,36 @@ app.post('/getGraph', function(req, res){
  */
  app.post('/writeSorted', function(req, res){
   var fName = "n" + req.body.idx + ".s";
-  fs.stat('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, function(err, stat){
-    /** File already exists; no need to append anything else */
-    if(err == null)
+  fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, req.body.nodes, function(err){
+    if(err)
+    {
+      console.log(err);
+    }
+    else
     {
       res.end();
     }
-    else if(err.code == 'ENOENT')
-    {
-      fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, req.body.nodes, function(err){
-        if(err)
-        {
-          console.log(err);
-        }
-        else
-        {
-          res.end();
-        }
-      });
-    }
   });
-  /** If this is the first time writing, check if file already exists */
-  //  if(req.body.firstWrite == 'true')
-  //  {
-  //    fs.stat('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, function(err, stat){
-  //      /** File already exists; no need to append anything else */
-  //      if(err == null)
-  //      {
-  //        exists = true;
-  //      }
-  //      else if(err.code == 'ENOENT')
-  //      {
-  //        exists = false;
-  //      }
-  //    });
-  //  }
-  //  /** If file doesn't exist, create it */
-  //  if(exists == false)
-  //  {
-  //    var stream = fs.createWriteStream('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, { flags: 'a'});
-  //    /** Save node in current order */
-  //    stream.write(req.body.pred);
-  //    stream.end();
-  //  }
-  //  res.end();
+  // fs.stat('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, function(err, stat){
+  //   /** File already exists; no need to append anything else */
+  //   if(err == null)
+  //   {
+  //     res.end();
+  //   }
+  //   else if(err.code == 'ENOENT')
+  //   {
+  //     fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, req.body.nodes, function(err){
+  //       if(err)
+  //       {
+  //         console.log(err);
+  //       }
+  //       else
+  //       {
+  //         res.end();
+  //       }
+  //     });
+  //   }
+  // });
  });
 
  /**

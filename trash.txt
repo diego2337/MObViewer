@@ -1259,3 +1259,30 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
     this.neighbors = [];
   }
 }
+
+from main.js, method '/writeSorted':
+
+/** If this is the first time writing, check if file already exists */
+//  if(req.body.firstWrite == 'true')
+//  {
+//    fs.stat('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, function(err, stat){
+//      /** File already exists; no need to append anything else */
+//      if(err == null)
+//      {
+//        exists = true;
+//      }
+//      else if(err.code == 'ENOENT')
+//      {
+//        exists = false;
+//      }
+//    });
+//  }
+//  /** If file doesn't exist, create it */
+//  if(exists == false)
+//  {
+//    var stream = fs.createWriteStream('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, { flags: 'a'});
+//    /** Save node in current order */
+//    stream.write(req.body.pred);
+//    stream.end();
+//  }
+//  res.end();

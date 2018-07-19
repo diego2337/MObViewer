@@ -649,7 +649,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
   if(this.eventHandler === undefined)
   {
     this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.numOfLevels);
-    var eventHandler = this.eventHandler;
+    var eventHandler = this.eventHandler
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
       camera.aspect = document.getElementById(WebGL).clientWidth / document.getElementById(WebGL).clientHeight;
@@ -945,25 +945,29 @@ Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, se
   for(let i = 0; i < currentBP.nodes.length; i++)
   {
     // if(currentBP.nodes[i].predecessor !== undefined)
-    // {
-    /** Breaks values from "predecessor" value, e.g. "predecessor": "1307,1308" */
-    var predecessors = currentBP.nodes[i].predecessor.split(",");
-    for(let j = 0; j < predecessors.length; j++)
+    if(currentBP.nodes[i] !== undefined)
     {
-      newNodes.push(previousBP.nodes[parseInt(predecessors[j])]);
-      newNodesIndexes.push(parseInt(predecessors[j]));
-      // var aux = previousBP.nodes[j];
-      // previousBP.nodes[j] = previousBP.nodes[parseInt(predecessors[j])];
-      // previousBP.nodes[parseInt(predecessors[j])] = aux;
-      /** Write "sorted" nodes server-side */
-      // $.ajax({
-      //   url: '/writeSorted',
-      //   type: 'POST',
-      //   data: { firstWrite: i == 0 ? true : false, idx: index, pred: i == currentBP.nodes.length -1 ? predecessors[j] : predecessors[j] + ' '},
-      //   xhr: loadGraph
-      // });
+      // console.log("i: " + i);
+      // console.log("currentBP.nodes[i]:");
+      // console.log(currentBP.nodes[i]);
+      /** Breaks values from "predecessor" value, e.g. "predecessor": "1307,1308" */
+      var predecessors = currentBP.nodes[i].predecessor.split(",");
+      for(let j = 0; j < predecessors.length; j++)
+      {
+        newNodes.push(previousBP.nodes[parseInt(predecessors[j])]);
+        newNodesIndexes.push(parseInt(predecessors[j]));
+        // var aux = previousBP.nodes[j];
+        // previousBP.nodes[j] = previousBP.nodes[parseInt(predecessors[j])];
+        // previousBP.nodes[parseInt(predecessors[j])] = aux;
+        /** Write "sorted" nodes server-side */
+        // $.ajax({
+        //   url: '/writeSorted',
+        //   type: 'POST',
+        //   data: { firstWrite: i == 0 ? true : false, idx: index, pred: i == currentBP.nodes.length -1 ? predecessors[j] : predecessors[j] + ' '},
+        //   xhr: loadGraph
+        // });
+      }
     }
-    // }
   }
   $.ajax({
     url: '/writeSorted',
@@ -1018,41 +1022,56 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
       layout.displayGraphInfo(jason, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer);
     }
   }
+  /** Create variable to hold graph size, to be used for ordering */
+  for(let i = 0; i < bipartiteGraphs.length; i++)
+  {
+    if(bipartiteGraphs[i].graphInfo[0].vlayer !== undefined)
+    {
+      bipartiteGraphs[i].graphInfo[0].graphSize = parseInt(bipartiteGraphs[i].graphInfo[0].vlayer.split(" ")[0]) + parseInt(bipartiteGraphs[i].graphInfo[0].vlayer.split(" ")[1]);
+    }
+    else if(bipartiteGraphs[i].graphInfo[0].vertices !== undefined)
+    {
+      bipartiteGraphs[i].graphInfo[0].graphSize = parseInt(bipartiteGraphs[i].graphInfo[0].vertices.split(" ")[0]) + parseInt(bipartiteGraphs[i].graphInfo[0].vertices.split(" ")[1]);
+    }
+  }
   /** Sort array */
   bipartiteGraphs.sort(function(a, b){
-    if(a.graphInfo[0].graphSize < b.graphInfo[0].graphSize) return -1;
-    else if(a.graphInfo[0].graphSize > b.graphInfo[0].graphSize) return 1;
-    else return 0;
+    // if((a.graphInfo[0].vlayer !== undefined && parseInt(a.graphInfo[0].vlayer.split(" ")[0]) + parseInt(a.graphInfo[0].vlayer.split(" ")[1]) < parseInt(b.graphInfo[0].vlayer.split(" ")[0]) + parseInt(b.graphInfo[0].vlayer.split(" ")[1])) || (a.graphInfo[0].vertices !== undefined && parseInt(a.graphInfo[0].vertices.split(" ")[0]) + parseInt(a.graphInfo[0].vertices.split(" ")[1]) < parseInt(b.graphInfo[0].vertices.split(" ")[0]) + parseInt(b.graphInfo[0].vertices.split(" ")[1])))
+    if(a.graphInfo[0].graphSize < b.graphInfo[0].graphSize)
+    {
+      return -1;
+    }
+    // else if((a.graphInfo[0].vlayer !== undefined && parseInt(a.graphInfo[0].vlayer.split(" ")[0]) + parseInt(a.graphInfo[0].vlayer.split(" ")[1]) > parseInt(b.graphInfo[0].vlayer.split(" ")[0]) + parseInt(b.graphInfo[0].vlayer.split(" ")[1])) || (a.graphInfo[0].vertices !== undefined && parseInt(a.graphInfo[0].vertices.split(" ")[0]) + parseInt(a.graphInfo[0].vertices.split(" ")[1]) > parseInt(b.graphInfo[0].vertices.split(" ")[0]) + parseInt(b.graphInfo[0].vertices.split(" ")[1])))
+    else if(a.graphInfo[0].graphSize > b.graphInfo[0].graphSize)
+    {
+      return 1;
+    }
+    else
+    {
+      return 0;
+    }
+    // if(a.graphInfo[0].graphSize < b.graphInfo[0].graphSize) return -1;
+    // else if(a.graphInfo[0].graphSize > b.graphInfo[0].graphSize) return 1;
+    // else return 0;
   });
   /** Render previous uncoarsened graphs */
-  for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
+  // for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
+  for(let i = 0; i < bipartiteGraphs.length; i = i + 1)
   {
     var coarsenedBipartiteGraph;
-    // if(i != 0)
-    // {
     coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
     coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
     /** Sort nodes according to super-vertexes */
     if(i == 0)
     {
-      // if(!this.isEqual(bipartiteGraphs[i].nodes, this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i])))
-      // {
-      //   console.log("I am not right, so I'm right!");
-      // }
       bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
     }
     else
     {
-      // if(!this.isEqual(bipartiteGraphs[i].nodes, this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i])))
-      // {
-      //   console.log("I am not right, so I'm right!");
-      // }
       bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
     }
-    // i == 0 ? this.sortSVNodes(coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]) : this.sortSVNodes(coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
     /** Render nodes */
     coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
-    // }
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
     {
@@ -2477,23 +2496,67 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
         simpleArr.push(vertices);
         vertices = simpleArr;
       }
+      /** Check if intersected vertex is either from first or second layer */
+      // if(intersection.object.geometry.faces[intersection.faceIndex
       // for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
       for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
       {
-        if(j == 0)
+        var tempArr = [];
+        for(key in vertices[j])
+        {
+          tempArr.push(key);
+        }
+        // if(j == 0)
+        if(vertexVueHeaders.length < tempArr.length)
         {
           // for(key in vertices.vertexes[j])
-          for(key in vertices[j])
-          {
-            vertexVueHeaders.push(key);
-          }
+          // for(key in vertices[j])
+          // {
+          //   vertexVueHeaders.push(key);
+          // }
+          vertexVueHeaders = tempArr;
           // console.log("vertexVueHeaders:");
           // console.log(vertexVueHeaders);
+          /** Sort headers */
+          vertexVueHeaders.sort(function(a, b){
+            return ('' + a).localeCompare(b);
+          });
           /** Construct a new vue table header */
           vueTableHeader._data.headers = vertexVueHeaders;
         }
+      }
+      for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
+      {
+        // if(j == 0)
+        // {
+        //   // for(key in vertices.vertexes[j])
+        //   for(key in vertices[j])
+        //   {
+        //     vertexVueHeaders.push(key);
+        //   }
+        //   // console.log("vertexVueHeaders:");
+        //   // console.log(vertexVueHeaders);
+        //   /** Sort headers */
+        //   vertexVueHeaders.sort(function(a, b){
+        //     return ('' + a).localeCompare(b);
+        //   });
+        //   /** Construct a new vue table header */
+        //   vueTableHeader._data.headers = vertexVueHeaders;
+        // }
+        /** Sort vertices[j] */
+        var ordered = {};
+        Object.keys(vertices[j]).sort().forEach(function(key) {
+          ordered[key] = vertices[j][key];
+        });
         // vertexVueRows.push(vertices.vertexes[j]);
-        vertexVueRows.push(vertices[j]);
+        for(key in vertexVueHeaders)
+        {
+          if(!(vertexVueHeaders[key] in ordered))
+          {
+            ordered[key] = "No value";
+          }
+        }
+        vertexVueRows.push(ordered);
       }
       /** Construct a new vue table data */
       vueTableRows._data.rows = vertexVueRows;

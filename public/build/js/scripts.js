@@ -260,6 +260,9 @@ $("#coarseJson").on('click', function(){
                     type: 'POST',
                     data: {nLevels: maxCoarsening, firstSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[0], secondSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[1], coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0},
                     success: function(html){
+                      $("#userInfo").prop("disabled", false);
+                      /** Update vertex data */
+                      vueTableUserRows._data.rows = layout.vertexInfo.getProps();
                       graphUpdate(html, layout.lay);
                     }
                   });
@@ -279,6 +282,9 @@ $("#coarseJson").on('click', function(){
           type: 'POST',
           data: {graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0]},
           success: function(html){
+            $("#userInfo").prop("disabled", false);
+            /** Update vertex data */
+            vueTableUserRows._data.rows = layout.vertexInfo.getProps();
             graphUpdate(html, layout.lay);
           }
         });
