@@ -616,6 +616,10 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
   {
     if(intersection.face) /** Intersection with vertice */
     {
+      // if(intersection.faceIndex > intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32)
+      // {
+      //   console.log("I'm from second layer");
+      // }
       var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
       var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
       /** Load already existing elements clicked in array of rows */
