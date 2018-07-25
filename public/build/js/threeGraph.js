@@ -2478,92 +2478,150 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
   {
     if(intersection.face) /** Intersection with vertice */
     {
-      if(intersection.faceIndex > intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32)
+      /** First layer */
+      if(intersection.faceIndex <= intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32)
       {
-        console.log("I'm from second layer");
-      }
-      var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
-      var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
-      /** Load already existing elements clicked in array of rows */
-      for(var j = 0; j < vueTableRows._data.rows.length; j++)
-      {
-        vertexVueRows.push(vueTableRows._data.rows[j]);
-      }
-      /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
-      if(vertices.vertexes !== undefined)
-      {
-        vertices = vertices.vertexes;
+        var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
+        var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
+        /** Load already existing elements clicked in array of rows */
+        for(var j = 0; j < vueTableRows._data.rows.length; j++)
+        {
+          vertexVueRows.push(vueTableRows._data.rows[j]);
+        }
+        /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
+        if(vertices.vertexes !== undefined)
+        {
+          vertices = vertices.vertexes;
+        }
+        else
+        {
+          var simpleArr = [];
+          simpleArr.push(vertices);
+          vertices = simpleArr;
+        }
+        /** Check if intersected vertex is either from first or second layer */
+        // if(intersection.object.geometry.faces[intersection.faceIndex
+        // for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
+        for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
+        {
+          var tempArr = [];
+          for(key in vertices[j])
+          {
+            tempArr.push(key);
+          }
+          // if(j == 0)
+          if(vertexVueHeaders.length < tempArr.length)
+          {
+            // for(key in vertices.vertexes[j])
+            // for(key in vertices[j])
+            // {
+            //   vertexVueHeaders.push(key);
+            // }
+            vertexVueHeaders = tempArr;
+            // console.log("vertexVueHeaders:");
+            // console.log(vertexVueHeaders);
+            /** Sort headers */
+            vertexVueHeaders.sort(function(a, b){
+              return ('' + a).localeCompare(b);
+            });
+            /** Construct a new vue table header */
+            vueTableHeader._data.headers = vertexVueHeaders;
+          }
+        }
+        for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
+        {
+          // if(j == 0)
+          // {
+          //   // for(key in vertices.vertexes[j])
+          //   for(key in vertices[j])
+          //   {
+          //     vertexVueHeaders.push(key);
+          //   }
+          //   // console.log("vertexVueHeaders:");
+          //   // console.log(vertexVueHeaders);
+          //   /** Sort headers */
+          //   vertexVueHeaders.sort(function(a, b){
+          //     return ('' + a).localeCompare(b);
+          //   });
+          //   /** Construct a new vue table header */
+          //   vueTableHeader._data.headers = vertexVueHeaders;
+          // }
+          /** Sort vertices[j] */
+          var ordered = {};
+          Object.keys(vertices[j]).sort().forEach(function(key) {
+            ordered[key] = vertices[j][key];
+          });
+          // vertexVueRows.push(vertices.vertexes[j]);
+          for(key in vertexVueHeaders)
+          {
+            if(!(vertexVueHeaders[key] in ordered))
+            {
+              ordered[key] = "No value";
+            }
+          }
+          vertexVueRows.push(ordered);
+        }
+        /** Construct a new vue table data */
+        vueTableRows._data.rows = vertexVueRows;
       }
       else
       {
-        var simpleArr = [];
-        simpleArr.push(vertices);
-        vertices = simpleArr;
-      }
-      /** Check if intersected vertex is either from first or second layer */
-      // if(intersection.object.geometry.faces[intersection.faceIndex
-      // for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
-      for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
-      {
-        var tempArr = [];
-        for(key in vertices[j])
+        var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
+        var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
+        /** Load already existing elements clicked in array of rows */
+        for(var j = 0; j < vueTableRowsSecondLayer._data.rows.length; j++)
         {
-          tempArr.push(key);
+          vertexVueRows.push(vueTableRowsSecondLayer._data.rows[j]);
         }
-        // if(j == 0)
-        if(vertexVueHeaders.length < tempArr.length)
+        /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
+        if(vertices.vertexes !== undefined)
         {
-          // for(key in vertices.vertexes[j])
-          // for(key in vertices[j])
-          // {
-          //   vertexVueHeaders.push(key);
-          // }
-          vertexVueHeaders = tempArr;
-          // console.log("vertexVueHeaders:");
-          // console.log(vertexVueHeaders);
-          /** Sort headers */
-          vertexVueHeaders.sort(function(a, b){
-            return ('' + a).localeCompare(b);
-          });
-          /** Construct a new vue table header */
-          vueTableHeader._data.headers = vertexVueHeaders;
+          vertices = vertices.vertexes;
         }
-      }
-      for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
-      {
-        // if(j == 0)
-        // {
-        //   // for(key in vertices.vertexes[j])
-        //   for(key in vertices[j])
-        //   {
-        //     vertexVueHeaders.push(key);
-        //   }
-        //   // console.log("vertexVueHeaders:");
-        //   // console.log(vertexVueHeaders);
-        //   /** Sort headers */
-        //   vertexVueHeaders.sort(function(a, b){
-        //     return ('' + a).localeCompare(b);
-        //   });
-        //   /** Construct a new vue table header */
-        //   vueTableHeader._data.headers = vertexVueHeaders;
-        // }
-        /** Sort vertices[j] */
-        var ordered = {};
-        Object.keys(vertices[j]).sort().forEach(function(key) {
-          ordered[key] = vertices[j][key];
-        });
-        // vertexVueRows.push(vertices.vertexes[j]);
-        for(key in vertexVueHeaders)
+        else
         {
-          if(!(vertexVueHeaders[key] in ordered))
+          var simpleArr = [];
+          simpleArr.push(vertices);
+          vertices = simpleArr;
+        }
+        for(var j = 0; j < vertices.length; j++)
+        {
+          var tempArr = [];
+          for(key in vertices[j])
           {
-            ordered[key] = "No value";
+            tempArr.push(key);
+          }
+          if(vertexVueHeaders.length < tempArr.length)
+          {
+            vertexVueHeaders = tempArr
+            /** Sort headers */
+            vertexVueHeaders.sort(function(a, b){
+              return ('' + a).localeCompare(b);
+            });
+            /** Construct a new vue table header */
+            vueTableHeaderSecondLayer._data.headers = vertexVueHeaders;
           }
         }
-        vertexVueRows.push(ordered);
+        for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
+        {
+          /** Sort vertices[j] */
+          var ordered = {};
+          Object.keys(vertices[j]).sort().forEach(function(key) {
+            ordered[key] = vertices[j][key];
+          });
+          // vertexVueRows.push(vertices.vertexes[j]);
+          for(key in vertexVueHeaders)
+          {
+            if(!(vertexVueHeaders[key] in ordered))
+            {
+              ordered[key] = "No value";
+            }
+          }
+          vertexVueRows.push(ordered);
+        }
+        /** Construct a new vue table data */
+        vueTableRowsSecondLayer._data.rows = vertexVueRows;
       }
-      /** Construct a new vue table data */
-      vueTableRows._data.rows = vertexVueRows;
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */

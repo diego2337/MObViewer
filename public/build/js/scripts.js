@@ -188,6 +188,8 @@ $("#coarseGraph").on('click', function(){
 $("#resetInfo").on('click', function(){
   vueTableHeader._data.headers = "";
   vueTableRows._data.rows = "";
+  vueTableHeaderSecondLayer._data.headers = "";
+  vueTableRowsSecondLayer._data.rows = "";
 });
 
 /** Show dialog to allow user to specify which information is to be shown on tooltip */

@@ -1,3 +1,9 @@
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 170px;
+	left: 10px;
+}
+
 .fixed-div-center-2 {
 	position: fixed;
 	top: 25%;

@@ -337,12 +337,30 @@
                       <span class="mdl-color-text--white">Coarse graph</span>
                   </button>
                   <!-- <form action="/coarse" method="post">
-                    <label for="team_name">Enter name: </label>
+                    <label for="tfixed-div-centeream_name">Enter name: </label>
                     <input id="team_name" type="text" name="name_field" value="Default name for team.">
                     <input class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="submit" value="OK">
                 </form> -->
                 </div>
               </div>
+            </div>
+            <div class="fixed-div-upperLeft small-margin z-index-front">
+              <table id="vertexInfoTableSecondLayer" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+                <thead id="dynamicTableHeadersSecondLayer">
+                  <tr>
+                    <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
+                      {{ header }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="dynamicTableRowsSecondLayer">
+                  <tr v-for="row in rows">
+                    <td class="mdl-data-table__cell--non-numeric" v-for="key in row">
+                      {{ key }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
             <div id="userDefinedInfo" class="hidden-visibility fixed-div-center">
               <!-- <ul id="userDefinedRows" class="demo-list-item mdl-list">
@@ -435,6 +453,18 @@
     });
     var vueTableRows = new Vue({
       el: '#dynamicTableRows',
+      data: {
+        rows: ""
+      }
+    });
+    var vueTableHeaderSecondLayer = new Vue({
+      el: '#dynamicTableHeadersSecondLayer',
+      data: {
+        headers: ""
+      }
+    });
+    var vueTableRowsSecondLayer = new Vue({
+      el: '#dynamicTableRowsSecondLayer',
       data: {
         rows: ""
       }
