@@ -171,6 +171,7 @@ function readJsonFile(path, fs, req, res)
       /* Store graph size */
       if(graphSize.length == 0) JSON.parse(data).graphInfo[0].vlayer != undefined ? graphSize = JSON.parse(data).graphInfo[0].vlayer : graphSize = JSON.parse(data).graphInfo[0].vertices;
       /* Send data to client */
+      res.type('text');
       res.end(JSON.stringify({graph: addValues(data), nLevels: nLev, graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
     }
   });
@@ -217,6 +218,7 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
         if (!err)
         {
           /** Finished coarsening; return to client-side */
+          res.type('text');
           res.end();
           // console.log("data from python script " + data);
           // if(req.body.nLevels !== undefined) pyName = pyName + "n" + req.body.nLevels;
@@ -356,6 +358,7 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
           nodeCmd.get('python ' + pyPath + pyProg + " -cf input.json", function(data, err, stderr) {
             if (!err)
             {
+              res.type('text');
               res.end();
             }
             else
@@ -613,6 +616,7 @@ app.post('/convert', function(req, res){
     {
       console.log('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json");
       /** Finished conversion, return to client-side */
+      res.type('text');
       res.end();
       // if( (hierarchicalPyName) == (pyName + "n" + (req.body.nLevels).toString()) )
       // {
@@ -690,6 +694,7 @@ app.post('/getGraph', function(req, res){
     }
     else
     {
+      res.type('text');
       res.end();
     }
   });
