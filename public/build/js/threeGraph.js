@@ -1852,6 +1852,75 @@ d3Tooltip.prototype.setPosition = function(x, y)
 }
 
 /**
+ * @desc Base class for DoubleClick, handling user's double click on layout.
+ * @author Diego Cintra
+ * Date: 27 July 2018
+ */
+
+/**
+ * @constructor
+ * @param {Object} clicked State variable to check if layout has been clicked or not.
+ */
+var DoubleClick = function(clicked)
+{
+  this.clicked = ecmaStandard(clicked, {wasClicked: false});
+}
+
+/**
+ * @desc Getter for clicked.
+ * @returns {Object} clicked object.
+ */
+DoubleClick.prototype.getClicked = function()
+{
+  return this.clicked;
+}
+
+/**
+ * @desc Setter for clicked.
+ * @param {Object} clicked Object indicating double-click state in layout.
+ */
+DoubleClick.prototype.setClicked = function(clicked)
+{
+  this.clicked = clicked;
+}
+
+/**
+ * @desc Update layout, removing edges and coloring vertexes to default color.
+ * @param {Object} scene Scene for raycaster.
+ * @param {Array} neighbors Array of neighbor vertexes.
+ * @param {Array} edges Array of edges displayed in layout.
+ */
+DoubleClick.prototype.updateLayout = function(scene, neighbors, edges)
+{
+  /** Change vertexes colors to original color */
+  for(var i = 0; i < neighbors.length; i++)
+  {
+    var mesh = scene.getObjectByName(neighbors[i].mesh);
+    for(var j = 0; j < 32; j++)
+    {
+      if(mesh.geometry.faces[(neighbors[i].vertexInfo*32)+j] !== undefined)
+      {
+        mesh.geometry.faces[(neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+      }
+      else if(mesh.geometry.faces[(neighbors[i].vertexInfo)+j] !== undefined)
+      {
+        mesh.geometry.faces[(neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+      }
+      mesh.geometry.colorsNeedUpdate = true;
+    }
+  }
+  /** Clearing array of neighbors */
+  neighbors = [];
+  /** Remove 'parentConnections' edges */
+  for(var i = 0; i < edges; i++)
+  {
+    scene.remove(scene.getObjectByName("parentConnections" + i.toString()));
+  }
+  /** Remove 'neighborEdges' edges */
+  scene.remove(scene.getObjectByName("neighborEdges"));
+}
+
+/**
  * @desc Base class for pre ECMAScript2015 standardization.
  * @author Diego S. Cintra
  */
@@ -1877,7 +1946,8 @@ var EventHandler = function(raycaster, HTMLelement, numOfLevels)
     this.raycaster.linePrecision = 0.1;
     this.highlightedElements = [];
     this.neighbors = [];
-    this.clicked = {wasClicked: false};
+    this.doubleClick = new DoubleClick();
+    // this.clicked = {wasClicked: false};
     this.updateData = {wasUpdated: false};
     this.d3Tooltip = new d3Tooltip(HTMLelement);
     this.d3Tooltip.created3Tooltip();
@@ -2012,129 +2082,92 @@ EventHandler.prototype.renderNeighborEdges = function(scene, mesh, neighbors)
 }
 
 /**
+ * Color vertex.
+ * @param {Array} faces Array of faces objects.
+ * @param {int} startFace Index for starting face.
+ * @param {int} endFace Index for end of face.
+ * @param {Array} color Array of color.
+ */
+EventHandler.prototype.colorVertex = function(faces, startFace, endFace, color)
+{
+  for(var i = startFace; i < endFace; i++)
+  {
+    faces[i].color.setRGB(color[0], color[1], color[2]);
+  }
+}
+
+/**
+ * Change neighbor vertexes colors.
+ * @param {Array} faces Array of faces objects.
+ * @param {Array} neighbors Neighbors to be colored.
+ */
+EventHandler.prototype.colorNeighbors = function(faces, neighbors)
+{
+  /** First element of 'neighbors' array is double-clicked vertex */
+  for(var i = 1; i < neighbors.length; i++)
+  {
+    var endPoint = ((faces[neighbors[0].vertexInfo].neighbors[i]) * 32) + 32;
+    this.colorVertex(faces, faces[neighbors[0].vertexInfo].neighbors[i]*32, endPoint, new Array(1.0, 0.0, 0.0));
+  }
+}
+
+/**
  * Show coarsened graph neighbors when double clicked.
  * @param {Object} scene Scene for raycaster.
  */
 EventHandler.prototype.showNeighbors = function(scene)
 {
   var element = scene.getObjectByName("MainMesh", true);
-  if(!this.clicked.wasClicked)
+  /** Find highlighted vertex and highlight its neighbors */
+  for(var i = 0; i < this.highlightedElements.length; i++)
   {
-    // // var lineSegments = scene.getObjectById(8, true);
-    // // var lineSegments = scene.children[1];
-    // var lineSegments = scene.getObjectByProperty("type", "LineSegments");
-    /** Find highlighted vertex and highlight its neighbors */
-    for(var i = 0; i < this.highlightedElements.length; i++)
+    /** Add itself for highlighting */
+    this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+    for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
     {
-      this.clicked.wasClicked = true;
-      /** Add itself for highlighting */
-      this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, mesh: element.name, edgeColor: {r:0, g:0, b:0}});
-      for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
-      {
-        this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
-      }
-      this.renderNeighborEdges(scene, element, element.geometry.faces[this.highlightedElements[i]]);
-      for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
-      {
-        var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
-        for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
-        {
-            element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
-        }
-      }
-      element.geometry.colorsNeedUpdate = true;
-      /** Remove itself so it won't unhighlight as soon as mouse moves out */
-      this.highlightedElements.splice(i, 1);
-    //   var startEdge = element.geometry.faces[this.highlightedElements[i]].position;
-    //   // var startPosition = element.geometry.faces[this.highlightedElements[i]].positionIndex;
-    //   for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
-    //   {
-    //     var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
-    //     for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
-    //     {
-    //         element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
-    //     }
-    //     this.clicked.wasClicked = true;
-    //     /** Highlight connected edges */
-    //     var neighborIndex = element.geometry.faces[this.highlightedElements[i]].neighbors[j] * 32;
-    //     var endEdge = element.geometry.faces[neighborIndex].position;
-    //     var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
-    //     /** Find index of end position */
-    //     // var endPosition = element.geometry.faces[neighborIndex].positionIndex;
-    //     var originalColor = {r:0, g:0, b:0};
-    //     if(index != -1)
-    //     {
-    //       // originalColor = lineSegments.geometry.colors[index];
-    //       originalColor.r = lineSegments.geometry.colors[index].r;
-    //       originalColor.g = lineSegments.geometry.colors[index].g;
-    //       originalColor.b = lineSegments.geometry.colors[index].b;
-    //       lineSegments.geometry.colors[index].setRGB(1.0, 0.0, 0.0);
-    //     }
-    //     this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], edgeColor: originalColor});
-    //   }
-    //   // lineSegments.geometry.colors[startPosition].setRGB(1.0, 0.0, 0.0);
-    //   // lineSegments.geometry.colors[0].setRGB(1.0, 0.0, 0.0);
-    //   /** Remove itself so it won't unhighlight as soon as mouse moves out */
-    //   this.highlightedElements.splice(i, 1);
+      this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
     }
-    // element.geometry.colorsNeedUpdate = true;
-    // lineSegments.geometry.colorsNeedUpdate = true;
-  }
-  else if(this.clicked.wasClicked)
-  {
-    this.clicked.wasClicked = false;
-    scene.remove(scene.getObjectByName("neighborEdges"));
-    for(var i = 0; i < this.neighbors.length; i++)
-    {
-      var mesh = scene.getObjectByName(this.neighbors[i].mesh);
-      for(var j = 0; j < 32; j++)
-      {
-        if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
-        {
-          mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
-        }
-        else
-        {
-          mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
-        }
-        mesh.geometry.colorsNeedUpdate = true;
-      }
-      // var endPoint = (this.neighbors[i].vertexInfo * 32) + 32;
-      // for(var j = this.neighbors[i].vertexInfo*32; j < endPoint; j++)
-      // {
-      //   element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
-      // }
-    }
-    element.geometry.colorsNeedUpdate = true;
-    /** An element was already clicked and its neighbors highlighted; unhighlight all */
-    // var element = scene.getObjectByName("MainMesh", true);
-    // // var lineSegments = scene.getObjectById(8, true);
-    // // var lineSegments = scene.children[1];
-    // var lineSegments = scene.getObjectByProperty("type", "LineSegments");
-    // var startEdge = element.geometry.faces[this.neighbors[0].vertexInfo*32].position;
-    // for(var i = 0; i < this.neighbors.length; i++)
+    this.renderNeighborEdges(scene, element, element.geometry.faces[this.highlightedElements[i]]);
+    this.colorNeighbors(element.geometry.faces, this.neighbors);
+    // for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
     // {
-    //   var endPoint = (this.neighbors[i].vertexInfo * 32) + 32;
-    //   for(var j = this.neighbors[i].vertexInfo*32; j < endPoint; j++)
+    //   var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
+    //   for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
     //   {
-    //     element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
-    //   }
-    //   element.geometry.colorsNeedUpdate = true;
-    //   if(i != 0)
-    //   {
-    //     var endEdge = element.geometry.faces[this.neighbors[i].vertexInfo*32].position;
-    //     var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
-    //     if(index != -1)
-    //     {
-    //       // lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
-    //       lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor.r, this.neighbors[i].edgeColor.g, this.neighbors[i].edgeColor.b);
-    //     }
-    //     lineSegments.geometry.colorsNeedUpdate = true;
+    //       element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
     //   }
     // }
-    /** Clearing array of neighbors */
-    this.neighbors = [];
+    element.geometry.colorsNeedUpdate = true;
+    /** Remove itself so it won't unhighlight as soon as mouse moves out */
+    this.highlightedElements.splice(i, 1);
   }
+  // if(!this.clicked.wasClicked)
+  // {
+  //
+  // }
+  // else if(this.clicked.wasClicked)
+  // {
+  //   scene.remove(scene.getObjectByName("neighborEdges"));
+  //   for(var i = 0; i < this.neighbors.length; i++)
+  //   {
+  //     var mesh = scene.getObjectByName(this.neighbors[i].mesh);
+  //     for(var j = 0; j < 32; j++)
+  //     {
+  //       if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
+  //       {
+  //         mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+  //       }
+  //       else if(mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j] !== undefined)
+  //       {
+  //         mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+  //       }
+  //       mesh.geometry.colorsNeedUpdate = true;
+  //     }
+  //   }
+  //   element.geometry.colorsNeedUpdate = true;
+  //   /** Clearing array of neighbors */
+  //   this.neighbors = [];
+  // }
 }
 
 /**
@@ -2146,12 +2179,6 @@ EventHandler.prototype.showNeighbors = function(scene)
  */
 EventHandler.prototype.wasRendered = function(sourcePos, targetPos, layout)
 {
-  // console.log("sourcePos:");
-  // console.log(sourcePos);
-  // console.log("targetPos:");
-  // console.log(targetPos);
-  // console.log("layout:");
-  // console.log(layout);
   /** Graph is displayed vertically; must compare x-axes */
   if(layout == 2)
   {
@@ -2211,14 +2238,14 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
         for(var i = 0; i < data.array.length; i++)
         {
           data.array[i] = parseInt(data.array[i])*32;
-          var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(data.array[i]))].layers);
-          /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
-          if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
-          {
-            data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[(parseInt(data.array[i]))].firstLayer)*32);
-          }
           if(previousMesh.geometry.faces[(parseInt(data.array[i]))] !== undefined)
           {
+            var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(data.array[i]))].layers);
+            /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+            if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+            {
+              data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[(parseInt(data.array[i]))].firstLayer)*32);
+            }
             /** Color predecessors */
             var targetPos = previousMesh.geometry.faces[(parseInt(data.array[i]))].position;
             /** Check if predecessor vertexes were rendered */
@@ -2280,10 +2307,10 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
       xhr: loadGraph
     });
   }
-  else
-  {
-    this.clicked.wasClicked = true;
-  }
+  // else
+  // {
+  //   this.clicked.wasClicked = true;
+  // }
 }
 
 /**
@@ -2324,6 +2351,7 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
       // console.log("parentConnections" + i.toString());
       scene.remove(scene.getObjectByName("parentConnections" + i.toString()));
     }
+    this.nEdges = 0;
     // for(var i = 0; i < this.nLevels; i++)
     // {
     //   if(i == 0)
@@ -2347,7 +2375,7 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
         {
             mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
         }
-        else
+        else if(mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j] !== undefined)
         {
           mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
         }
@@ -2356,6 +2384,168 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
     }
     /** Clearing array of neighbors */
     this.neighbors = [];
+  }
+}
+
+/**
+ * Show merged vertexes from a given node.
+ * @param {int} nEdges Number of edges created, constantly updated through recursion.
+ * @param {Object} scene Scene for raycaster.
+ * @param {int} startFace Face index from a given node.
+ * @param {Object} currentMesh Mesh where current node is.
+ * @param {Object} nextMesh Mesh where successor nodes are.
+ * @param {int} layout Graph layout.
+ * @return {int} Index of last successor in layout.
+ */
+EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, currentMesh, nextMesh, layout)
+{
+  /** Recursion termination condition */
+  if(nextMesh != undefined)
+  {
+    var properties = JSON.parse(currentMesh.geometry.faces[startFace].properties);
+    var edgeGeometry = new THREE.Geometry();
+    var sourcePos = currentMesh.geometry.faces[startFace].position;
+    var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+    // /** Color vertexes */
+    // for(var j = 0; j < 32; j++)
+    // {
+    //   currentMesh.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
+    // }
+    // currentMesh.geometry.colorsNeedUpdate = true;
+    // this.neighbors.push({vertexInfo: parseInt(JSON.parse(currentMesh.geometry.faces[startFace].properties).id)*32, mesh: currentMesh.name});
+    var successors = undefined;
+    /** Color successors */
+    for(suc in properties)
+    {
+      if(suc == "successor")
+      {
+        successors = properties[suc].split(",");
+      }
+    }
+    for(var i = 0; successors != undefined && i < successors.length; i++)
+    {
+      successors[i] = parseInt(successors[i])*32;
+      if(nextMesh.geometry.faces[(parseInt(successors[i]))] !== undefined)
+      {
+        var layers = JSON.parse(nextMesh.geometry.faces[(parseInt(successors[i]))].layers);
+        /** First layer isn't rendered; update successor ids so that it searches for proper parents */
+        // if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+        // {
+        //   successors[i] = successors[i] + (parseInt(nextMesh.geometry.faces[(parseInt(successors[i]))].firstLayer)*32);
+        // }
+        /** Color predecessors */
+        var targetPos = nextMesh.geometry.faces[(parseInt(successors[i]))].position;
+        /** Check if predecessor vertexes were rendered */
+        if(this.wasRendered(sourcePos, targetPos, layout))
+        {
+          this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
+          var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+          for(var j = 0; j < 32; j++)
+          {
+            nextMesh.geometry.faces[(parseInt(successors[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+          }
+          /** Add edges to 'parentConnections' geometry */
+          edgeGeometry.vertices.push(v1);
+          edgeGeometry.vertices.push(v2);
+        }
+      }
+    }
+    nextMesh.geometry.colorsNeedUpdate = true;
+    for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+    {
+      edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+      edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+    }
+    edgeGeometry.colorsNeedUpdate = true;
+
+    /** Create one LineSegments and add it to scene */
+    var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+    var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+    // lineSegments.name = isNaN(currentMesh.name[currentMesh.name.length-1]) ? "parentConnections" : "parentConnections" + currentMesh.name[currentMesh.name.length-1];
+    lineSegments.name = "parentConnections" + this.nEdges;
+    // console.log("lineSegments.name: " + lineSegments.name);
+    this.nEdges = this.nEdges + 1;
+    scene.add(lineSegments);
+
+    edgeGeometry.dispose();
+    edgeGeometry = null;
+    edgeMaterial.dispose();
+    edgeMaterial = null;
+
+    /** Check if there are previous meshes */
+    var nextMeshNumber = nextMesh.name[nextMesh.name.length-1];
+    // if(parseInt(nextMeshNumber) == 1)
+    if(isNaN(nextMeshNumber))
+    {
+      nextMeshNumber = -1;
+    }
+    else
+    {
+      nextMeshNumber = parseInt(nextMeshNumber);
+      nextMeshNumber = nextMeshNumber - 1;
+    }
+
+    /** Recursively highlight children */
+    for(var i = 0; successors != undefined && i < successors.length; i++)
+    {
+      return this.showNodeChildren(this.nEdges, scene, parseInt(successors[i]), nextMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), layout);
+      // this.showNodeParents(scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : nextMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + nextMeshNumber), layout);
+    }
+  }
+  else
+  {
+    return startFace;
+  }
+}
+
+/**
+ * Show both parents and children of a given node, highlighting vertexes and creating edges.
+ * @param {Object} intersection Intersected object in specified scene.
+ * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
+ */
+EventHandler.prototype.showHierarchy = function(intersection, scene, layout)
+{
+  if(intersection !== undefined)
+  {
+    var previousMeshNumber = parseInt(intersection.object.name[intersection.object.name.length-1]) + 1;
+    var nextMeshNumber = parseInt(intersection.object.name[intersection.object.name.length-1]) - 1;
+    var originalMeshName = intersection.object.name.substring(0, intersection.object.name.length-1);
+    if(isNaN(previousMeshNumber) || parseInt(previousMeshNumber) == 0) previousMeshNumber = "h1";
+    if(isNaN(nextMeshNumber) || parseInt(nextMeshNumber) == 0) nextMeshNumber = "";
+    var previousMesh = scene.getObjectByName(originalMeshName + previousMeshNumber.toString());
+    var nextMesh = scene.getObjectByName(originalMeshName + nextMeshNumber.toString());
+    /** Get array of predecessors */
+    var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
+    var lastSuccessor = -1;
+    if(previousMesh != undefined)
+    {
+      /** Recursively highlight parent nodes */
+      this.showNodeParents(this.nEdges, scene, startFace, intersection.object, previousMesh, layout);
+    }
+    if(nextMesh != undefined)
+    {
+      /** Recursively highlight child nodes */
+      lastSuccessor = this.showNodeChildren(this.nEdges, scene, startFace, intersection.object, nextMesh, layout);
+    }
+    /** Highlight 'neighbors' */
+    if(lastSuccessor == -1)
+    {
+      this.showNeighbors(scene);
+    }
+    else if(lastSuccessor != undefined)
+    {
+      this.renderNeighborEdges(scene, nextMesh, nextMesh.geometry.faces[lastSuccessor]);
+      var neighbors = [];
+      // this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
+      neighbors[0] = { vertexInfo: parseInt(lastSuccessor), mesh: nextMesh.name };
+      for(var i = 0, j = 1; i < nextMesh.geometry.faces[lastSuccessor].neighbors.length; i++, j++)
+      {
+        neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i])*32, mesh: nextMesh.name };
+        this.neighbors.push(neighbors[j]);
+      }
+      this.colorNeighbors(nextMesh.geometry.faces, neighbors);
+    }
   }
 }
 
@@ -2369,34 +2559,49 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
  */
 EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, layout)
 {
-  /* Execute ray tracing */
-  var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
-  var intersection = intersects[0];
-  if(intersection != undefined)
+  /** Check double-click state */
+  if(!this.doubleClick.getClicked().wasClicked)
   {
-    /** Delete vertex info from vueTableHeader and vueTableRows */
-    if(vueTableHeader._data.headers != "")
+    this.doubleClick.setClicked({wasClicked: true});
+    /* Execute ray tracing */
+    var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
+    var intersection = intersects[0];
+    if(intersection != undefined)
     {
-      vueTableHeader._data.headers = "";
+      /** Delete vertex info from vueTableHeader and vueTableRows - FIXME not EventHandler responsibility */
+      if(vueTableHeader._data.headers != "" || vueTableHeaderSecondLayer._data.headers != "")
+      {
+        vueTableHeader._data.headers = "";
+        vueTableHeaderSecondLayer._data.headers = "";
+      }
+      if(vueTableRows._data.rows != "" || vueTableRowsSecondLayer._data.rows != "")
+      {
+        vueTableRows._data.rows = "";
+        vueTableRowsSecondLayer._data.rows = "";
+      }
+      /** Show both parent and child edges */
+      this.showHierarchy(intersection, scene, layout);
+      if(intersection.object.name == "MainMesh")
+      {
+        this.showNeighbors(scene);
+      }
+      // this.showParents(intersection, scene, layout);
+      // else
+      // {
+      //   this.showParents(intersection, scene);
+      // }
     }
-    if(vueTableRows._data.rows != "")
-    {
-      vueTableRows._data.rows = "";
-    }
-    if(intersection.object.name == "MainMesh")
-    {
-      this.showNeighbors(scene);
-    }
-    this.showParents(intersection, scene, layout);
     // else
     // {
-    //   this.showParents(intersection, scene);
+    //   this.showNeighbors(scene);
+    //   this.showParents(intersection, scene, layout);
     // }
   }
   else
   {
-    this.showNeighbors(scene);
-    this.showParents(intersection, scene, layout);
+    /** Change click variable and update layout */
+    this.doubleClick.setClicked({wasClicked: false});
+    this.doubleClick.updateLayout(scene, this.neighbors, this.nEdges);
   }
 }
 

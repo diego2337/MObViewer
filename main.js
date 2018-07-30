@@ -747,6 +747,7 @@ app.post('/getSorted', function(req, res){
         vect.push(arr.indexOf(req.body.pred[i]).toString());
       }
       var jsonObj = { array: vect };
+      res.type('text');
       res.end(JSON.stringify(jsonObj));
       // res.end(arr.indexOf(req.body.pred).toString());
     }
