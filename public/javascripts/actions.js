@@ -140,6 +140,23 @@ function treatFloatZero(value)
   // }
 }
 
+/**
+ * Create 'categories.csv' file, containing data attributes and their respective types.
+ * @param {String} textarea "<textarea>" tag.
+ */
+function createCategoriesFile(textarea)
+{
+  $.ajax({
+    url: '/categories',
+    type: 'POST',
+    data: {jsonInput: textarea.value},
+    success: function(html){
+      alert(".csv file successfully created!");
+    },
+    xhr: loadGraph
+  });
+}
+
 /** Apply multilevel coarsening with user defined reduction factor and number of levels */
 $("#coarseGraph").on('click', function(){
   /** Iterate through a for loop to create nLevels of coarsened graphs */
@@ -302,6 +319,36 @@ $("#coarseJson").on('click', function(){
 /** Show json input card on click */
 $("#jsonInfo").on('click', function(){
     $("#jsonInput").css('visibility') == 'hidden' ?  $("#jsonInput").css('visibility', 'visible') : $("#jsonInput").css('visibility', 'hidden');
+});
+
+/** Show text area to define categories on click */
+$("#defineCategories").on('click', function(){
+  var meta = 'categories';
+  showDialog({
+        title: 'Define data categories',
+        metaTitle: meta,
+        text: 'Create a csv file associating data attributes with their respective types, e.g: attribute1,{categorical|ordinal} attribute2,{categorical|ordinal}...',
+        textArea: true,
+        negative: {
+            title: 'Go back'
+        },
+        positive: {
+            title: 'Create',
+            onClick: function(e) {
+              // console.log(document.getElementsByTagName("textarea"));
+              var text = document.getElementsByTagName("textarea");
+              var createCat = undefined;
+              for(t in text)
+              {
+                if(text[t].id == "")
+                {
+                  createCat = text[t];
+                }
+              }
+              createCategoriesFile(createCat);
+            }
+        }
+    });
 });
 
 /** */

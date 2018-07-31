@@ -720,12 +720,12 @@ app.post('/getGraph', function(req, res){
   // });
  });
 
- /**
-  * Server-side callback function from 'express' framework for get graph route. Get "sorted" nodes .s file, and return index of node in array.
-  * @public @callback
-  * @param {Object} req header incoming from HTTP;
-  * @param {Object} res header to be sent via HTTP for HTML page.
-  */
+/**
+ * Server-side callback function from 'express' framework for get graph route. Get "sorted" nodes .s file, and return index of node in array.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
 app.post('/getSorted', function(req, res){
   /** Check name */
   var level = 0;
@@ -750,6 +750,28 @@ app.post('/getSorted', function(req, res){
       res.type('text');
       res.end(JSON.stringify(jsonObj));
       // res.end(arr.indexOf(req.body.pred).toString());
+    }
+  });
+});
+
+/**
+ * Server-side callback function from 'express' framework for create categories route. Create 'categories.csv' file, containing current data attributes and their types.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+app.post('/categories', function(req, res){
+  /** Write 'categories.csv' file */
+  fs.writeFile("categories.csv", req.body.jsonInput, function(err){
+    if(err)
+    {
+      console.log(err);
+    }
+    else
+    {
+      /** Finished; return to client-side */
+      res.type('text');
+      res.end();
     }
   });
 });
