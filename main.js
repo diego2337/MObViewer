@@ -377,6 +377,114 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
 }
 
 /**
+ * Create 'vertedIdStats.csv' file, with information from 'categories.csv'.
+ * @param {String} categories Categories file converted in string format.
+ * @param {Object} vertex Vertex properties.
+ */
+function generateVertexStats(categories, vertex)
+{
+  var cats = categories.split("\n");
+  var catsDict = {};
+  var categoricalDict = {};
+  /** Create a dictionary for categories */
+  for (line in cats)
+  {
+    var l = cats[line].split(",");
+    if(!(l[0] in catsDict))
+    {
+      catsDict[l[0]] = { category:l[1], rangeNumber:l[2] };
+    }
+  }
+  /** Is root vertex */
+  if(vertex.vertexes == undefined)
+  {
+    vertex.vertexes = [];
+    vertex.vertexes.push(vertex);
+  }
+  for(var i = 0; i < vertex.vertexes.length; i++)
+  {
+    /** FIXME - Implement simplified parsing, not using dictionaries inside dictionaries */
+    for(prop in vertex.vertexes[i])
+    {
+      if(prop in catsDict)
+      {
+        if(catsDict[prop].rangeNumber != "" || catsDict[prop].rangeNumber != "\n" || catsDict[prop].rangeNumber != undefined)
+        {
+          /** Parsing categorical data */
+          if(catsDict[prop].category == "categorical")
+          {
+            if(!(prop in categoricalDict))
+            {
+              /** Create a dict of categories */
+              categoricalDict[prop] = {};
+              categoricalDict[prop][vertex.vertexes[i][prop]] = 0;
+            }
+            else
+            {
+              if(!(vertex.vertexes[i][prop] in categoricalDict[prop]))
+              {
+                categoricalDict[prop][vertex.vertexes[i][prop]] = 0;
+              }
+              else
+              {
+                categoricalDict[prop][vertex.vertexes[i][prop]] = categoricalDict[prop][vertex.vertexes[i][prop]] + 1;
+              }
+            }
+          }
+          /** TODO parse ordinal data */
+        }
+      }
+    }
+  }
+  /** Calculate %s for categorical data */
+  for(prop in categoricalDict)
+  {
+    var length = 0;
+    for(cat in categoricalDict[prop])
+    {
+       length = length + parseInt(categoricalDict[prop][cat]);
+    }
+    for(cat in categoricalDict[prop])
+    {
+      // var length = Object.keys(categoricalDict[prop]).length;
+      /** Get percentage */
+      categoricalDict[prop][cat] = (parseFloat(categoricalDict[prop][cat]) / parseFloat(length)) * 100.0;
+    }
+  }
+  /** Write vertex info */
+  fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + vertex.id + 'Stats.json', JSON.stringify(categoricalDict), function(err){
+    if(err)
+    {
+      console.log("Error writing " + vertex.id + 'Stats.json.');
+    }
+    // else
+    // {
+    //   /** Finished. Return to client-side */
+    // }
+  });
+}
+
+/**
+ * Process 'vertexIdStats.json' file, parsing it for usage in d3BarChart.
+ * @param {String} stats Stats file converted in string format.
+ */
+function processStats(stats)
+{
+  var idStats = JSON.parse(stats);
+  var d3Arr = [];
+  /** FIXME - Only using first categorical attribute; must be used for n categorical attributes */
+  for(prop in idStats)
+  {
+    /** FIXME - Completely biased towards one use case; must be generic */
+    for(cats in idStats[prop])
+    {
+        d3Arr.push({ categories: cats, percentage: idStats[prop][cats] });
+    }
+  }
+  return JSON.stringify({ arr:d3Arr });
+}
+
+/**
  * Server-side callback function from 'express' framework for incoming graph. Create a local folder with same name as file, to store future coarsened graphs.
  * @public @callback
  * @param {Object} req header incoming from HTTP;
@@ -772,6 +880,56 @@ app.post('/categories', function(req, res){
       /** Finished; return to client-side */
       res.type('text');
       res.end();
+    }
+  });
+});
+
+/**
+ * Server-side callback function from 'express' framework for generate stats route. Create statistics based on 'categories.csv' file.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+app.post('/generateStats', function(req, res){
+  /** Check and open 'categories.csv' file, if exists */
+  fs.readFile('categories.csv', "utf8", function(err, dat){
+    if(err)
+    {
+      /** No categories file found; finish without processing anything */
+      res.type('text');
+      res.end();
+    }
+    else
+    {
+      /** Create "vertexIdStats.csv" containing processed information */
+      generateVertexStats(dat, req.body.props);
+      res.type('text');
+      res.end();
+    }
+  });
+});
+
+/**
+ * Server-side callback function from 'express' framework for get stats route. Get and parse statistics based on vertexId.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+app.post('/getStats', function(req, res){
+  /** Open 'vertexIdStats.json' file */
+  fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + req.body.vertexId + 'Stats.json', 'utf8', function(err, dat){
+    if(err)
+    {
+      console.log(err);
+      /** No file found; finish without processing anything */
+      res.type('text');
+      res.end();
+    }
+    else
+    {
+      /** Create dict parsed for d3BarChart and send data */
+      res.type('text');
+      res.end(processStats(dat));
     }
   });
 });
