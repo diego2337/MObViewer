@@ -489,8 +489,9 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
 
 /**
  * @constructor
+ * @param {String} svgId Id to store <svg> id value.
  */
-var Layout = function()
+var Layout = function(svgId)
 {
   /** @desc Define trigger for saving a graph image in .png format */
   this.capture = false;
@@ -506,6 +507,8 @@ var Layout = function()
   this.vertexInfo = new VertexInfo();
   /** @desc - Defines if parent connections of coarsened vertexes will be shown - (0) for false, (1) for true */
   this.parentConnections = 0;
+  /** @desc String that defines svg tag id */
+  this.svgId = svgId;
 }
 
 /**
@@ -648,7 +651,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
 
   if(this.eventHandler === undefined)
   {
-    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.numOfLevels);
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels);
     var eventHandler = this.eventHandler
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
@@ -1710,6 +1713,324 @@ VertexInfo.prototype.getProps = function()
 // }
 
 /**
+ * Base class for d3's bar chart, to visualize vertex stats. Based on https://bl.ocks.org/mbostock/3885304#index.html
+ * @author Diego Cintra
+ * Date: 31 july 2018
+ */
+
+ /**
+  * @constructor
+  * @param {String} HTMLelement HTML element to build d3BarChart div in.
+  */
+var d3BarChart = function(HTMLelement)
+{
+  try
+  {
+    /** Store parent element to create bar chart */
+    this.parentElement = HTMLelement;
+    this.barChart = this.margin = this.width = this.height = this.x = this.y = this.g = undefined;
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in barChart constructor. " + err;
+  }
+}
+
+/**
+ * @desc Getter for margin.
+ * @returns {Object} Margin properties.
+ */
+d3BarChart.prototype.getMargin = function()
+{
+  return this.margin;
+}
+
+/**
+ * @desc Setter for margin.
+ * @param {Object} margin Margin properties.
+ */
+d3BarChart.prototype.setMargin = function(margin)
+{
+  this.margin = margin;
+}
+
+/**
+ * @desc Getter for width.
+ * @returns {Object} width.
+ */
+d3BarChart.prototype.getWidth = function()
+{
+  return this.width;
+}
+
+/**
+ * @desc Setter for width.
+ * @param {Object} width width.
+ */
+d3BarChart.prototype.setWidth = function(width)
+{
+  this.width = width;
+}
+
+/**
+ * @desc Getter for height.
+ * @returns {Object} height.
+ */
+d3BarChart.prototype.getHeight = function()
+{
+  return this.height;
+}
+
+/**
+ * @desc Setter for height.
+ * @param {Object} height height.
+ */
+d3BarChart.prototype.setHeight = function(height)
+{
+  this.height = height;
+}
+
+/**
+ * @desc Getter for x.
+ * @returns {Object} x.
+ */
+d3BarChart.prototype.getX = function()
+{
+  return this.x;
+}
+
+/**
+ * @desc Setter for x.
+ * @param {Object} x x.
+ */
+d3BarChart.prototype.setX = function(x)
+{
+  this.x = x;
+}
+
+/**
+ * @desc Getter for y.
+ * @returns {Object} y.
+ */
+d3BarChart.prototype.getY = function()
+{
+  return this.y;
+}
+
+/**
+ * @desc Setter for y.
+ * @param {Object} y y.
+ */
+d3BarChart.prototype.setY = function(y)
+{
+  this.y = y;
+}
+
+/**
+ * @desc Getter for g (group).
+ * @returns {Object} g group structure.
+ */
+d3BarChart.prototype.getG = function()
+{
+  return this.g;
+}
+
+/**
+ * @desc Setter for g (group).
+ * @param {Object} g g group structure.
+ */
+d3BarChart.prototype.setG = function(g)
+{
+  this.g = g;
+}
+
+/**
+ * @desc Define sizes.
+ * @param {Number} width Width size.
+ * @param {Number} height Height size.
+ */
+d3BarChart.prototype.defineSizes = function(width, height)
+{
+  this.setWidth(width);
+  this.setHeight(height);
+}
+
+/**
+ * @desc Define axes.
+ * @param {int} x X axis.
+ * @param {int} y Y axis.
+ */
+d3BarChart.prototype.defineAxes = function(x, y)
+{
+  this.setX(x);
+  this.setY(y);
+}
+
+/**
+ * @desc Define bar chart position.
+ * @param {string} position String-like parameter to be used in "transform" attribute, e.g. "translate(...)", "rotate(...)".
+ */
+d3BarChart.prototype.definePosition = function(position)
+{
+  try
+  {
+    if(this.getG() == undefined)
+    {
+      this.setG(this.barChart.append("g"));
+    }
+    this.getG()
+      .attr("transform", position);
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function definePosition. " + err;
+  }
+}
+
+/**
+ * @desc Creates a d3 bar chart on HTML page, to check for vertex info.
+ * @public
+ * @param {String} HTMLelement HTML element to build d3BarChart div in; if specified, replaces "this.parentElement" value.
+ */
+d3BarChart.prototype.created3BarChart = function(HTMLelement)
+{
+  /** FIXME - receive width and height from parameters */
+  var width = height = 300;
+  this.parentElement = ecmaStandard(HTMLelement, this.parentElement);
+  /** Create bar chart */
+  this.barChart = d3.select("#" + this.parentElement)
+    .append("svg")
+    .attr("id", "vStats")
+    .attr("width", width)
+    .attr("height", height)
+    .style("z-index", "100");
+  /** Define dimensions if none was defined */
+  if(this.getMargin() == undefined)
+  {
+    this.setMargin({top: 20, right: 20, bottom: 40, left: 80});
+    /** Define sizes */
+    this.defineSizes(+width - this.getMargin().left - this.getMargin().right, +height - this.getMargin().top - this.getMargin().bottom);
+    /** Define axes */
+    this.defineAxes(d3.scaleBand().rangeRound([0, this.getWidth()]).padding(0.1), d3.scaleLinear().rangeRound([this.getHeight(), 0]));
+    /** Define default position */
+    this.definePosition("translate(" + this.getMargin().left + "," + this.getMargin().top + ")");
+  }
+  /** Create barChart initially hidden */
+  this.hideBarChart();
+}
+
+/**
+ * @desc Populates bar chart and set its opacity to 1.
+ * @public
+ * @param {String} data String-like data to populate bar chart.
+ */
+d3BarChart.prototype.populateAndShowBarChart = function(data)
+{
+  this.populateBarChart(data);
+  if(data.length != 0) this.showBarChart();
+}
+
+/**
+ * @desc Populates bar chart with information provided by data, setting domains and ticks for axes.
+ * @public
+ * @param {(String|Array)} data String-like or Array data to populate bar chart.
+ */
+d3BarChart.prototype.populateBarChart = function(data)
+{
+  try
+  {
+    this.getX().domain(data.map(function(d) { return d.categories; }));
+    this.getY().domain([0, d3.max(data, function(d) { return d.percentage; })]);
+
+    this.getG().append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + this.getHeight() + ")")
+        .call(d3.axisBottom(this.getX()));
+
+    this.getG().append("g")
+        .attr("class", "axis axis--y")
+        .call(d3.axisLeft(this.getY()).ticks(10).tickFormat(function(d){ return d + "%"; }))
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", "0.71em")
+        .attr("text-anchor", "end")
+        .text("Frequency");
+
+  	// // text label for the x axis
+  	// this.barChart().append("text")
+  	//   .attr("transform",
+  	//         "translate(" + (this.getWidth()/2) + " ," +
+  	//                        (this.getHeight() + this.getMargin().top + 40) + ")")
+  	//   .style("text-anchor", "middle")
+  	//   .text("Date");
+    //
+  	// // text label for the y axis
+  	// this.barChart().append("text")
+  	//   .attr("transform", "rotate(-90)")
+  	//   .attr("y", 0 - this.getMargin().left)
+  	//   .attr("x", 0 - (this.getHeight() / 2))
+  	//   .attr("dy", "1em")
+  	//   .style("text-anchor", "middle")
+  	//   .text("Value");
+
+    /** Create bar chart */
+    this.createBarChart(data);
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function populateBarChart. " + err;
+  }
+}
+
+/**
+ * @desc Creates a bar chart, with given data.
+ * @public
+ * @param {(String|Array)} data String-like or Array data to populate bar chart.
+ */
+d3BarChart.prototype.createBarChart = function(data)
+{
+  var d3Scope = this;
+  this.getG().selectAll(".bar")
+    .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return d3Scope.getX()(d.categories); })
+      .attr("y", function(d) { return d3Scope.getY()(d.percentage); })
+      .attr("width", this.getX().bandwidth())
+      .attr("height", function(d) { return d3Scope.getHeight() - d3Scope.getY()(d.percentage); });
+}
+
+/**
+ * @desc Shows bar chart by setting opacity to 1.
+ * @public
+ */
+d3BarChart.prototype.showBarChart = function()
+{
+  this.barChart.style("opacity", 1);
+}
+
+/**
+ * @desc Hides bar chart by setting opacity to 0.
+ * @public
+ */
+d3BarChart.prototype.hideBarChart = function()
+{
+  this.barChart.style("opacity", 0);
+}
+
+/**
+ * @desc Clear bar chart content.
+ * @public
+ */
+d3BarChart.prototype.clearBarChart = function()
+{
+  // this.barChart.html();
+  d3.select("#vStats").remove();
+  this.barChart = this.margin = this.width = this.height = this.x = this.y = this.g = undefined;
+}
+
+/**
  * Base class for d3's tooltip, to visualize vertex info inside a node. Based on https://evortigosa.github.io/pollution/
  * @author Diego Cintra
  * Date: 22 may 2018
@@ -1938,9 +2259,10 @@ var ecmaStandard = function(variable, defaultValue)
  * @constructor
  * @param {Object} raycaster Defined raycaster, defaults to creating a new one.
  * @param {String} HTMLelement HTML element to build d3Tooltip div in.
+ * @param {String} SVGId Id to store <svg> id value.
  * @param {int} numOfLevels Number of coarsened graphs.
  */
-var EventHandler = function(raycaster, HTMLelement, numOfLevels)
+var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
     this.raycaster.linePrecision = 0.1;
@@ -1955,6 +2277,9 @@ var EventHandler = function(raycaster, HTMLelement, numOfLevels)
     this.userInfo = undefined;
     /** Counts number of edges to be created while showing parents */
     this.nEdges = 0;
+    /** Object to handle statistics processing and visualization */
+    this.statsHandler = new statsHandler(SVGId);
+    this.SVGId = SVGId;
 }
 
 /**
@@ -2769,7 +3094,7 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
         /** Construct a new vue table data */
         vueTableRows._data.rows = vertexVueRows;
       }
-      else
+      else /** Last layer */
       {
         var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
         var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
@@ -2827,6 +3152,8 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
         /** Construct a new vue table data */
         vueTableRowsSecondLayer._data.rows = vertexVueRows;
       }
+      /** Show stats in bar charts (if any is available) */
+      this.statsHandler.generateAndVisualizeStats(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */
@@ -4158,3 +4485,73 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 	}
 
 } );
+
+/**
+ * Base class for statsHandler, implementing basic statistical processing and visualization.
+ * @author Diego Cintra
+ * Date: 31 July 2018
+ */
+
+/**
+ * @constructor
+ * @param {String} SVGId Id to store <svg> id value.
+ */
+var statsHandler = function(SVGId)
+{
+  this.d3BarChart = new d3BarChart(SVGId);
+}
+
+/**
+ * @desc Generate vertex stats. Sends information server-side to generate statistics.
+ * @param {JSON} vertexProps Vertex properties, to generate statistics.
+ */
+statsHandler.prototype.generateStats = function(vertexProps)
+{
+  $.ajax({
+    url: '/generateStats',
+    type: 'POST',
+    /** FIXME - <bold>NEVER use async!</bold> */
+    async: false,
+    data: { props: vertexProps },
+    xhr: loadGraph
+  });
+}
+
+/**
+ * @desc Visualize vertex stats as bar charts. Invokes "barChart" class to render chart.
+ * @param {int} id Vertex id.
+ */
+statsHandler.prototype.visualizeStats = function(id)
+{
+  this.d3BarChart.created3BarChart();
+  var statsHandlerScope = this;
+  $.ajax({
+    url: '/getStats',
+    type: 'POST',
+    data: { vertexId: id },
+    success: function(html){
+      html = JSON.parse(html).arr;
+      if(html != undefined || html != "")
+      {
+          statsHandlerScope.d3BarChart.populateAndShowBarChart(html);
+      }
+    },
+    xhr: loadGraph
+  });
+}
+
+ /**
+  * @desc Generate and visualize vertex stats.
+  * @param {JSON} vertexProps Vertex properties, to generate statistics.
+  */
+statsHandler.prototype.generateAndVisualizeStats = function(vertexProps)
+{
+  if(this.d3BarChart != undefined)
+  {
+    this.d3BarChart.clearBarChart();
+  }
+  /** Generate statistics */
+  this.generateStats(vertexProps);
+  /** Visualize statistics */
+  this.visualizeStats(vertexProps.id);
+}

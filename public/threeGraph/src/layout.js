@@ -9,8 +9,9 @@
 
 /**
  * @constructor
+ * @param {String} svgId Id to store <svg> id value.
  */
-var Layout = function()
+var Layout = function(svgId)
 {
   /** @desc Define trigger for saving a graph image in .png format */
   this.capture = false;
@@ -26,6 +27,8 @@ var Layout = function()
   this.vertexInfo = new VertexInfo();
   /** @desc - Defines if parent connections of coarsened vertexes will be shown - (0) for false, (1) for true */
   this.parentConnections = 0;
+  /** @desc String that defines svg tag id */
+  this.svgId = svgId;
 }
 
 /**
@@ -168,7 +171,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
 
   if(this.eventHandler === undefined)
   {
-    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.numOfLevels);
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels);
     var eventHandler = this.eventHandler
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){

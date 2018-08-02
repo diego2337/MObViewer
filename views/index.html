@@ -424,6 +424,9 @@
                 <span id="vertexInfo"></span>
             </div> -->
           </div>
+          <!-- <div> to draw vertex stats -->
+          <div id="vertexStats" class="fixed-div-lowerRight z-index-front">
+          </div>
         </section>
         <!-- <section class="mdl-layout__tab-panel" id="fixed-tab-3">
           <div class="mdl-grid page-content">
@@ -483,7 +486,7 @@
     });
     /** Store vertexes clicked */
     // var clickedVertexes = [];
-    var layout = new Layout();
+    var layout = new Layout("vertexStats");
     function animate()
     {
       /* Render scene */

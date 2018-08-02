@@ -1,3 +1,21 @@
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+	bottom: 10px;
+	right: 10px;
+}
+
 .fixed-div-upperLeft {
 	position: fixed;
 	top: 170px;

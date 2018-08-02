@@ -327,7 +327,7 @@ $("#defineCategories").on('click', function(){
   showDialog({
         title: 'Define data categories',
         metaTitle: meta,
-        text: 'Create a csv file associating data attributes with their respective types, e.g: attribute1,{categorical|ordinal} attribute2,{categorical|ordinal}...',
+        text: 'Create a csv file associating data attributes with their respective types, e.g: attribute1,{categorical|ordinal},{nOfElem|[range-range]} attribute2,{categorical|ordinal},{nOfElem|[range-range]}...',
         textArea: true,
         negative: {
             title: 'Go back'

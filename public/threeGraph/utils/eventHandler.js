@@ -7,9 +7,10 @@
  * @constructor
  * @param {Object} raycaster Defined raycaster, defaults to creating a new one.
  * @param {String} HTMLelement HTML element to build d3Tooltip div in.
+ * @param {String} SVGId Id to store <svg> id value.
  * @param {int} numOfLevels Number of coarsened graphs.
  */
-var EventHandler = function(raycaster, HTMLelement, numOfLevels)
+var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
     this.raycaster.linePrecision = 0.1;
@@ -24,6 +25,9 @@ var EventHandler = function(raycaster, HTMLelement, numOfLevels)
     this.userInfo = undefined;
     /** Counts number of edges to be created while showing parents */
     this.nEdges = 0;
+    /** Object to handle statistics processing and visualization */
+    this.statsHandler = new statsHandler(SVGId);
+    this.SVGId = SVGId;
 }
 
 /**
@@ -838,7 +842,7 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
         /** Construct a new vue table data */
         vueTableRows._data.rows = vertexVueRows;
       }
-      else
+      else /** Last layer */
       {
         var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
         var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
@@ -896,6 +900,8 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
         /** Construct a new vue table data */
         vueTableRowsSecondLayer._data.rows = vertexVueRows;
       }
+      /** Show stats in bar charts (if any is available) */
+      this.statsHandler.generateAndVisualizeStats(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */
