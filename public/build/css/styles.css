@@ -174,6 +174,11 @@ _:-ms-input-placeholder, :root .demo-graph {
   align-items: center;
 }
 
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
 .bar {
   fill: steelblue;
 }
@@ -194,7 +199,8 @@ _:-ms-input-placeholder, :root .demo-graph {
 
 .fixed-div-upperLeft {
 	position: fixed;
-	top: 170px;
+	top: 150px;
+  bottom: 10px;
 	left: 10px;
 }
 
@@ -217,7 +223,8 @@ _:-ms-input-placeholder, :root .demo-graph {
 
 .fixed-div {
 	position: fixed;
-	top: 170px;
+	top: 150px;
+  bottom: 10px;
 	right: 10px;
 }
 

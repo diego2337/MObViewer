@@ -175,7 +175,7 @@ def main():
 			options.matching[index] = matching
 
 		# Validation of similarity measure
-		valid_similarity = ['common_neighbors', 'weighted_common_neighbors', 'salton', 'preferential_attachment', 'jaccard', 'adamic_adar', 'resource_allocation', 'sorensen', 'hub_promoted', 'hub_depressed', 'leicht_holme_newman', 'nmf_cosine', 'modularity']
+		valid_similarity = ['common_neighbors', 'mysimilarity', 'weighted_common_neighbors', 'salton', 'preferential_attachment', 'jaccard', 'adamic_adar', 'resource_allocation', 'sorensen', 'hub_promoted', 'hub_depressed', 'leicht_holme_newman', 'nmf_cosine', 'modularity']
 		for index, similarity in enumerate(options.similarity):
 			similarity = similarity.lower()
 			if similarity not in valid_similarity:
