@@ -351,6 +351,19 @@ $("#defineCategories").on('click', function(){
     });
 });
 
+/** Clear data table on click */
+$("#clearTable1").on('click', function(){
+  $("#divVertexInfoTable").css('visibility', 'hidden');
+  vueTableHeader._data.headers = "";
+  vueTableRows._data.rows = "";
+});
+
+$("#clearTable2").on('click', function(){
+  $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
+  vueTableHeaderSecondLayer._data.headers = "";
+  vueTableRowsSecondLayer._data.rows = "";
+});
+
 /** */
 $("#coarseJson").on('click', function(){
   $("#jsonInput").css('visibility', 'hidden');

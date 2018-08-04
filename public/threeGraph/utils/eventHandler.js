@@ -841,6 +841,8 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
         }
         /** Construct a new vue table data */
         vueTableRows._data.rows = vertexVueRows;
+        /** Show tables containing vertex info */
+        $("#divVertexInfoTable").css('visibility', 'visible');
       }
       else /** Last layer */
       {
@@ -899,6 +901,8 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
         }
         /** Construct a new vue table data */
         vueTableRowsSecondLayer._data.rows = vertexVueRows;
+        /** Show tables containing vertex info */
+        $("#divVertexInfoTableSecondLayer").css('visibility', 'visible');
       }
       /** Show stats in bar charts (if any is available) */
       this.statsHandler.generateAndVisualizeStats(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));

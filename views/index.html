@@ -266,24 +266,34 @@
         <section class="mdl-layout__tab-panel is-active" id="fixed-tab-1">
           <div id="gradientScale" class="relative-div float-right z-index-front">
           </div>
-          <div class="scrollable-y fixed-div small-margin z-index-front">
+          <div id="divVertexInfoTable" class="hidden-visibility mdl-grid scrollable-y fixed-div small-margin z-index-front">
             <!-- <span class="mdl-layout__title">Vertex info</span> -->
-            <table id="vertexInfoTable" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
-              <thead id="dynamicTableHeaders">
-                <tr>
-                  <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
-                    {{ header }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="dynamicTableRows">
-                <tr v-for="row in rows">
-                  <td class="mdl-data-table__cell--non-numeric" v-for="key in row">
-                    {{ key }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="mdl-cell mdl-cell--10-col">
+              <table id="vertexInfoTable" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+                <thead id="dynamicTableHeaders">
+                  <tr>
+                    <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
+                      {{ header }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="dynamicTableRows">
+                  <tr v-for="row in rows">
+                    <td class="mdl-data-table__cell--non-numeric" v-for="key in row">
+                      {{ key }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mdl-cell mdl-cell--2-col">
+              <button id="clearTable1" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                <i class="material-icons">clear</i>
+                <div class="lower-case mdl-tooltip" for="clearTable1">
+                    Clear table.
+                </div>
+              </button>
+            </div>
           </div>
           <div class="page-content outer-div">
             <div id="WebGL" class="middle-div z-index-behind">
@@ -350,23 +360,33 @@
                 </div>
               </div>
             </div>
-            <div class="scrollable-y fixed-div-upperLeft small-margin z-index-front">
-              <table id="vertexInfoTableSecondLayer" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
-                <thead id="dynamicTableHeadersSecondLayer">
-                  <tr>
-                    <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
-                      {{ header }}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody id="dynamicTableRowsSecondLayer">
-                  <tr v-for="row in rows">
-                    <td class="mdl-data-table__cell--non-numeric" v-for="key in row">
-                      {{ key }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div id="divVertexInfoTableSecondLayer" class="hidden-visibility mdl-grid scrollable-y fixed-div-upperLeft small-margin z-index-front">
+              <div class="mdl-cell mdl-cell--10-col">
+                <table id="vertexInfoTableSecondLayer" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+                  <thead id="dynamicTableHeadersSecondLayer">
+                    <tr>
+                      <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
+                        {{ header }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="dynamicTableRowsSecondLayer">
+                    <tr v-for="row in rows">
+                      <td class="mdl-data-table__cell--non-numeric" v-for="key in row">
+                        {{ key }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="mdl-cell mdl-cell--2-col">
+                <button id="clearTable2" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                  <i class="material-icons">clear</i>
+                  <div class="lower-case mdl-tooltip" for="clearTable2">
+                      Clear table.
+                  </div>
+                </button>
+              </div>
             </div>
             <div id="userDefinedInfo" class="hidden-visibility fixed-div-center">
               <!-- <ul id="userDefinedRows" class="demo-list-item mdl-list">
