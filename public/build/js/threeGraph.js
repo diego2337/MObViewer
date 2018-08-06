@@ -1729,6 +1729,7 @@ var d3BarChart = function(HTMLelement)
     /** Store parent element to create bar chart */
     this.parentElement = HTMLelement;
     this.barChart = this.margin = this.width = this.height = this.x = this.y = this.g = undefined;
+    this.setCreate(false);
   }
   catch(err)
   {
@@ -1842,6 +1843,24 @@ d3BarChart.prototype.getG = function()
 d3BarChart.prototype.setG = function(g)
 {
   this.g = g;
+}
+
+/**
+ * @desc Getter for created.
+ * @returns {Boolean} True if bar chart was created; false otherwise.
+ */
+d3BarChart.prototype.getCreate = function()
+{
+  return this.created;
+}
+
+/**
+ * @desc Setter for created.
+ * @param {Boolean} True if bar chart was created; false otherwise.
+ */
+d3BarChart.prototype.setCreate = function(created)
+{
+  this.created = created;
 }
 
 /**
@@ -1999,6 +2018,7 @@ d3BarChart.prototype.createBarChart = function(data)
       .attr("y", function(d) { return d3Scope.getY()(d.percentage); })
       .attr("width", this.getX().bandwidth())
       .attr("height", function(d) { return d3Scope.getHeight() - d3Scope.getY()(d.percentage); });
+  this.setCreate(true);
 }
 
 /**
@@ -2028,6 +2048,7 @@ d3BarChart.prototype.clearBarChart = function()
   // this.barChart.html();
   d3.select("#vStats").remove();
   this.barChart = this.margin = this.width = this.height = this.x = this.y = this.g = undefined;
+  this.setCreate(false);
 }
 
 /**
@@ -2898,6 +2919,8 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
       {
         vueTableHeader._data.headers = "";
         vueTableHeaderSecondLayer._data.headers = "";
+        $("#divVertexInfoTable").css('visibility', 'hidden');
+        $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
       }
       if(vueTableRows._data.rows != "" || vueTableRowsSecondLayer._data.rows != "")
       {

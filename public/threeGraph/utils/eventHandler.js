@@ -646,6 +646,8 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
       {
         vueTableHeader._data.headers = "";
         vueTableHeaderSecondLayer._data.headers = "";
+        $("#divVertexInfoTable").css('visibility', 'hidden');
+        $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
       }
       if(vueTableRows._data.rows != "" || vueTableRowsSecondLayer._data.rows != "")
       {
