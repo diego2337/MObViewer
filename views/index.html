@@ -268,7 +268,15 @@
           </div>
           <div id="divVertexInfoTable" class="hidden-visibility mdl-grid scrollable-y fixed-div small-margin z-index-front">
             <!-- <span class="mdl-layout__title">Vertex info</span> -->
-            <div class="mdl-cell mdl-cell--10-col">
+            <div class="mdl-cell mdl-cell--1-col">
+              <button id="clearTable1" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                <i class="material-icons">clear</i>
+                <div class="lower-case mdl-tooltip" for="clearTable1">
+                    Clear table.
+                </div>
+              </button>
+            </div>
+            <div class="mdl-cell mdl-cell--11-col">
               <table id="vertexInfoTable" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
                 <thead id="dynamicTableHeaders">
                   <tr>
@@ -285,14 +293,6 @@
                   </tr>
                 </tbody>
               </table>
-            </div>
-            <div class="mdl-cell mdl-cell--2-col">
-              <button id="clearTable1" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
-                <i class="material-icons">clear</i>
-                <div class="lower-case mdl-tooltip" for="clearTable1">
-                    Clear table.
-                </div>
-              </button>
             </div>
           </div>
           <div class="page-content outer-div">
@@ -361,7 +361,7 @@
               </div>
             </div>
             <div id="divVertexInfoTableSecondLayer" class="hidden-visibility mdl-grid scrollable-y fixed-div-upperLeft small-margin z-index-front">
-              <div class="mdl-cell mdl-cell--10-col">
+              <div>
                 <table id="vertexInfoTableSecondLayer" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
                   <thead id="dynamicTableHeadersSecondLayer">
                     <tr>
@@ -379,7 +379,7 @@
                   </tbody>
                 </table>
               </div>
-              <div class="mdl-cell mdl-cell--2-col">
+              <div class="mdl-cell mdl-cell--1-col">
                 <button id="clearTable2" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
                   <i class="material-icons">clear</i>
                   <div class="lower-case mdl-tooltip" for="clearTable2">
