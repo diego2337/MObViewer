@@ -485,6 +485,29 @@ function processStats(stats)
 }
 
 /**
+ * Concatenate float value.
+ * @param {Float} value Value to be concatenated.
+ */
+function catFloat(value)
+{
+  return value.toString().split(".")[1] == undefined ? value.toString().split(".")[0] : value.toString().split(".")[0] + value.toString().split(".")[1];
+}
+
+/**
+ * Get edge weight from .json file, given source and target nodes.
+ * @param {JSON} jsonFile Parsed .json file.
+ * @param {int} source Source node id.
+ * @param {int} target Target node id.
+ * @returns {float} Edge weight.
+ */
+function getEdgeWeight(jsonFile, source, target)
+{
+  /** Find in 'links' array */
+  var found = jsonFile['links'].find(x => (parseInt(x.source) == parseInt(source) && parseInt(x.target) == parseInt(target)) || (parseInt(x.source) == parseInt(target) && parseInt(x.target) == parseInt(source)));
+  return found != undefined ? found.weight : 0.0;
+}
+
+/**
  * Server-side callback function from 'express' framework for incoming graph. Create a local folder with same name as file, to store future coarsened graphs.
  * @public @callback
  * @param {Object} req header incoming from HTTP;
@@ -930,6 +953,53 @@ app.post('/getStats', function(req, res){
       /** Create dict parsed for d3BarChart and send data */
       res.type('text');
       res.end(processStats(dat));
+    }
+  });
+});
+
+/**
+ * Server-side callback function from 'express' framework for get edge weights route. Find edge with 'source' and 'target' ids and return its weight.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+app.post('/getEdgesWeights', function(req, res){
+  /** Open input.json file to store  */
+  fs.readFile('input.json', 'utf8', function(err, dat){
+    if(err)
+    {
+      console.log(err);
+    }
+    else
+    {
+      let inputJson = JSON.parse(dat);
+      let reductionFactor1 = inputJson['reduction_factor'][0];
+      let reductionFactor2 = inputJson['reduction_factor'][1];
+      let nLevels1 = inputJson['max_levels'][0];
+      let nLevels2 = inputJson['max_levels'][1];
+      /** Open file - FIXME treat when more than one nLevels starts being used */
+      fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + 'Coarsened' + 'l' + catFloat(reductionFactor1) + 'r' + catFloat(reductionFactor2) + 'n' + Math.max(nLevels1, nLevels2).toString() + '.json', 'utf8', function(err, dat){
+        if(err)
+        {
+          console.log(err);
+        }
+        else
+        {
+          let edgeWeights = [];
+          dat = addMinAndMaxEdge(dat);
+          let fileJson = JSON.parse(dat);
+          let sourceNode = req.body.neighbors[0];
+          for(let i = 1; i < req.body.neighbors.length; i++)
+          {
+            let targetNode = req.body.neighbors[i];
+            /** Get edge weight */
+            edgeWeights.push(getEdgeWeight(fileJson, sourceNode, targetNode));
+          }
+          /** Return from server-side */
+          res.type('text');
+          res.end(JSON.stringify({ edges: edgeWeights, minEdgeWeight: fileJson.graphInfo[0].minEdgeWeight, maxEdgeWeight: fileJson.graphInfo[0].maxEdgeWeight }));
+        }
+      });
     }
   });
 });

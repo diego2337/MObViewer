@@ -2229,37 +2229,41 @@ DoubleClick.prototype.setClicked = function(clicked)
 /**
  * @desc Update layout, removing edges and coloring vertexes to default color.
  * @param {Object} scene Scene for raycaster.
- * @param {Array} neighbors Array of neighbor vertexes.
- * @param {Array} edges Array of edges displayed in layout.
+ * @param {Object} eventHandler EventHandler type object containing neighbors and edges arrays.
  */
-DoubleClick.prototype.updateLayout = function(scene, neighbors, edges)
+DoubleClick.prototype.updateLayout = function(scene, eventHandler)
 {
   /** Change vertexes colors to original color */
-  for(var i = 0; i < neighbors.length; i++)
+  for(var i = 0; i < eventHandler.neighbors.length; i++)
   {
-    var mesh = scene.getObjectByName(neighbors[i].mesh);
+    var mesh = scene.getObjectByName(eventHandler.neighbors[i].mesh);
     for(var j = 0; j < 32; j++)
     {
-      if(mesh.geometry.faces[(neighbors[i].vertexInfo*32)+j] !== undefined)
+      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j] !== undefined)
       {
-        mesh.geometry.faces[(neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
       }
-      else if(mesh.geometry.faces[(neighbors[i].vertexInfo)+j] !== undefined)
+      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
       {
-        mesh.geometry.faces[(neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
       }
       mesh.geometry.colorsNeedUpdate = true;
     }
   }
   /** Clearing array of neighbors */
-  neighbors = [];
+  eventHandler.neighbors = [];
   /** Remove 'parentConnections' edges */
-  for(var i = 0; i < edges; i++)
+  // for(var i = 0; i < edges; i++)
+  for(var i = 0; i < eventHandler.nEdges; i++)
   {
     scene.remove(scene.getObjectByName("parentConnections" + i.toString()));
   }
   /** Remove 'neighborEdges' edges */
   scene.remove(scene.getObjectByName("neighborEdges"));
+  /**
+   * @param {Array} neighbors Array of neighbor vertexes.
+   * @param {Array} edges Array of edges displayed in layout.
+  */
 }
 
 /**
@@ -2388,6 +2392,40 @@ EventHandler.prototype.findEdgePairIndex = function(vertexArray, startEdge, endE
 }
 
 /**
+ * Get color based on d3's linear scale function.
+ * @param {float} value Value to apply feature scaling.
+ * @param {float} maxValue Maximum value.
+ * @param {float} minValue Minimum value.
+ * @param {String} color Base color, being either red ('r'), green ('g') or blue ('b').
+ */
+EventHandler.prototype.getColor = function(value, maxValue, minValue, color)
+{
+  var minColor = maxColor = '';
+  /** Assign colors */
+  switch(color)
+  {
+    case 'r':
+      minColor = 'rgb(255, 105, 0)';
+      maxColor = 'rgb(255, 0, 0)';
+    break;
+    case 'g':
+      minColor = 'rgb(200, 255, 0)';
+      maxColor = 'rgb(0, 255, 0)';
+    break;
+    /** Assuming default as blue */
+    default:
+      minColor = 'rgb(220, 255, 255)';
+      maxColor = 'rgb(0, 0, 255)';
+    break;
+  }
+  /** Create linear scale */
+  var linearScale = d3.scaleLinear().domain([minValue, maxValue]).range([minColor, maxColor]);
+  // var linearScale = d3.scaleLinear().domain([maxValue, minValue]).range([maxColor, minColor]);
+  /** Return feature scaling of value */
+  return linearScale(value);
+}
+
+/**
  * Render specific edges between source and neighbors. Non-optimal.
  * @public
  * @param {Object} scene Scene to add edges.
@@ -2399,32 +2437,49 @@ EventHandler.prototype.renderNeighborEdges = function(scene, mesh, neighbors)
   var edgeGeometry = new THREE.Geometry();
   var sourceNode = neighbors.neighbors[0];
   var sourcePos = mesh.geometry.faces[sourceNode*32].position;
-  for(var i = 1; i < neighbors.neighbors.length; i++)
-  {
-    /** Fetch positions from mesh */
-    var targetPos = mesh.geometry.faces[neighbors.neighbors[i]*32].position;
-    var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
-    var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
-    edgeGeometry.vertices.push(v1);
-    edgeGeometry.vertices.push(v2);
-  }
-  for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
-  {
-    edgeGeometry.colors[i] = new THREE.Color('rgb(0, 0, 255)');
-    edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
-  }
-  edgeGeometry.colorsNeedUpdate = true;
+  var edgeColor = [];
+  var eventHandlerScope = this;
+  /** Store edge color according to weight */
+  $.ajax({
+    url: '/getEdgesWeights',
+    type: 'POST',
+    // data: { source: mesh.geometry.faces[sourceNode*32].id, target: mesh.geometry.faces[neighbors.neighbors[i]*32].id },
+    data: { neighbors: neighbors.neighbors },
+    success: function(html){
+      html = JSON.parse(html);
+      console.log("html:");
+      console.log(html);
+      for(var i = 1; i < neighbors.neighbors.length; i++)
+      {
+        /** Fetch positions from mesh */
+        var targetPos = mesh.geometry.faces[neighbors.neighbors[i]*32].position;
+        var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+        var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+        edgeGeometry.vertices.push(v1);
+        edgeGeometry.vertices.push(v2);
+      }
+      for(var i = 0, j = 0; i < edgeGeometry.vertices.length && j < neighbors.neighbors.length; i = i + 2, j = j + 1)
+      {
+        // edgeGeometry.colors[i] = new THREE.Color('rgb(0, 0, 255)');
+        edgeGeometry.colors[i] = new THREE.Color(eventHandlerScope.getColor(html.edges[j], html.minEdgeWeight, html.maxEdgeWeight, 'b'));
+        // edgeGeometry.colors[i] = new THREE.Color();
+        edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+      }
+      edgeGeometry.colorsNeedUpdate = true;
 
-  /** Create one LineSegments and add it to scene */
-  var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
-  var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
-  lineSegments.name = "neighborEdges";
-  scene.add(lineSegments);
+      /** Create one LineSegments and add it to scene */
+      var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+      var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+      lineSegments.name = "neighborEdges";
+      scene.add(lineSegments);
 
-  edgeGeometry.dispose();
-  edgeGeometry = null;
-  edgeMaterial.dispose();
-  edgeMaterial = null;
+      edgeGeometry.dispose();
+      edgeGeometry = null;
+      edgeMaterial.dispose();
+      edgeMaterial = null;
+    },
+    xhr: loadGraph
+  });
 }
 
 /**
@@ -2453,6 +2508,8 @@ EventHandler.prototype.colorNeighbors = function(faces, neighbors)
   for(var i = 1; i < neighbors.length; i++)
   {
     var endPoint = ((faces[neighbors[0].vertexInfo].neighbors[i]) * 32) + 32;
+    // var endPoint = ((faces[neighbors[0].vertexInfo].neighbors[i])) + 32;
+    // var endPoint = ((faces[neighbors[0].vertexInfo*32].neighbors[i])) + 32;
     this.colorVertex(faces, faces[neighbors[0].vertexInfo].neighbors[i]*32, endPoint, new Array(1.0, 0.0, 0.0));
   }
 }
@@ -2468,7 +2525,7 @@ EventHandler.prototype.showNeighbors = function(scene)
   for(var i = 0; i < this.highlightedElements.length; i++)
   {
     /** Add itself for highlighting */
-    this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+    this.neighbors.push({vertexInfo: this.highlightedElements[i], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
     for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
     {
       this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
@@ -2949,7 +3006,8 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
   {
     /** Change click variable and update layout */
     this.doubleClick.setClicked({wasClicked: false});
-    this.doubleClick.updateLayout(scene, this.neighbors, this.nEdges);
+    // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
+    this.doubleClick.updateLayout(scene, this);
   }
 }
 
@@ -3342,7 +3400,6 @@ GradientLegend.prototype.clear = function()
     throw "Unexpected error ocurred at line " + err.lineNumber + ", in GradientLegend.clear. " + err;
   }
 }
-
 
 /**
  * @desc Creates a gradient legend on HTML page, defining type of legend and start and end values. Creates the rectangle for legend and appends it to HTML page.
