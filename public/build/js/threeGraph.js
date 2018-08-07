@@ -2447,8 +2447,6 @@ EventHandler.prototype.renderNeighborEdges = function(scene, mesh, neighbors)
     data: { neighbors: neighbors.neighbors },
     success: function(html){
       html = JSON.parse(html);
-      console.log("html:");
-      console.log(html);
       for(var i = 1; i < neighbors.neighbors.length; i++)
       {
         /** Fetch positions from mesh */
@@ -3266,7 +3264,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
     // var intersects = this.raycaster.intersectObjects(scene.children, true);
     var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
     var intersection = intersects[0];
-
     /* Unhighlight any already highlighted element - FIXME this is problematic; highlightedElements might have index of an element that is being highlighted because of a double click. Must find a way to check from which specific mesh that index is */
     for(var i = 0; i < this.highlightedElements.length; i++)
     {
@@ -3278,7 +3275,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         // var element = scene.getObjectByName("MainMesh", true);
         var el = (this.highlightedElements[i]/32) + 8;
         var fd = this.neighbors.find(function(elmt){
-          return elmt.vertexInfo == el;
+          return (elmt.vertexInfo == el && elmt.mesh == element.name);
           // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
         });
         for(var k = this.highlightedElements[i]; k < endPoint && fd === undefined; k++)
@@ -3308,7 +3305,11 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         intersection.object.geometry.colorsNeedUpdate = true;
         /** First check if vertex isn't already highlighted because of double-clicking */
         var found = this.neighbors.find(function(elmt){
-          return elmt.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)/32);
+          // console.log("elmt.vertexInfo:");
+          // console.log(elmt.vertexInfo);
+          // console.log("((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)):");
+          // console.log(((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)));
+          return ((elmt.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)) || elmt.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)/32)) && elmt.mesh == intersection.object.name);
         });
         if(found == undefined)
         {
