@@ -461,8 +461,8 @@ Layout.prototype.isEqual = function (value, other) {
 Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, secondLayerNodes, currentBP, previousBP)
 {
   var start = 0, end = currentBP.nodes.length, newNodes = [], newNodesIndexes = [];
-  if(renderLayers.renderFirstLayer == false) start = parseInt(firstLayerNodes);
-  if(renderLayers.renderLastLayer == false) end = parseInt(secondLayerNodes);
+  // if(renderLayers.renderFirstLayer == false) start = parseInt(firstLayerNodes);
+  // if(renderLayers.renderLastLayer == false) end = parseInt(secondLayerNodes);
   //console.log("start, end: " + parseInt(firstLayerNodes) + " " + parseInt(secondLayerNodes));
   //for(let i = start; i < end; i++)
   for(let i = 0; i < currentBP.nodes.length; i++)
@@ -518,11 +518,16 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
 {
   var bipartiteGraphs = [];
   var layout = this;
-  for(let i = parseInt(numOfLevels); i >= 0; i = i - 1)
+  /** Parsing strings to numbers */
+  numOfLevels = numOfLevels.map(Number);
+  // for(let i = parseInt(numOfLevels); i >= 0; i = i - 1)
+  for(let i = parseInt(numOfLevels[0]), j = parseInt(numOfLevels[1]); i >= 0 && j >= 0; )
   {
     var gName = graphName.split(".")[0];
-    gName = gName.substring(0, gName.length-2);
-    i == 0 ? gName = gName.substring(0, gName.lastIndexOf('Coarsened')) + ".json" : gName = gName + "n" + (i).toString() + ".json";
+    gName = gName.split("Coarsened")[0] + "Coarsened" + gName.split("Coarsened")[1].split("n")[0];
+    // gName = gName.substring(0, gName.length-2);
+    // i == 0 ? gName = gName.substring(0, gName.lastIndexOf('Coarsened')) + ".json" : gName = gName + "n" + (i).toString() + ".json";
+    (i == 0 && j == 0) ? gName = gName.substring(0, gName.lastIndexOf('Coarsened')) + ".json" : gName = gName + "nl" + (i).toString() + "nr" + (j).toString() + ".json";
     if(gName !== ".json")
     {
       $.ajax({
@@ -543,6 +548,16 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     else
     {
       layout.displayGraphInfo(jason, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer);
+    }
+    /** If both levels have equal values, decrement them; else decrement maximum value */
+    if(i != j)
+    {
+      i == Math.max(i, j) ? i = i - 1 : j = j - 1;
+    }
+    else
+    {
+      i = i - 1;
+      j = j - 1;
     }
   }
   /** Create variable to hold graph size, to be used for ordering */
@@ -585,11 +600,15 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
     coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
     /** Sort nodes according to super-vertexes */
-    if(i == 0)
-    {
-      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
-    }
-    else
+    // if(i == 0)
+    // {
+    //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
+    // }
+    // else
+    // {
+    //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    // }
+    if(i != 0)
     {
       bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
     }
@@ -623,7 +642,8 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   /** Assign values to variables */
   var graphName = data.graphName;
   var numOfLevels = data.nLevels;
-  this.numOfLevels = numOfLevels;
+  /** Number of levels is now an array */
+  this.numOfLevels = Math.max(...numOfLevels);
   var firstSet = data.firstSet;
   var secondSet = data.secondSet;
   var data = data.graph;
@@ -652,7 +672,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo);
 
   /** Build and render bipartite graphs from previous levels of coarsening */
-  this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, parseInt(numOfLevels), nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
 
   delete jason;
 
