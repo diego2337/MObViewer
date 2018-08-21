@@ -943,9 +943,11 @@ Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, se
   var start = 0, end = currentBP.nodes.length, newNodes = [], newNodesIndexes = [];
   // if(renderLayers.renderFirstLayer == false) start = parseInt(firstLayerNodes);
   // if(renderLayers.renderLastLayer == false) end = parseInt(secondLayerNodes);
-  //console.log("start, end: " + parseInt(firstLayerNodes) + " " + parseInt(secondLayerNodes));
-  //for(let i = start; i < end; i++)
-  for(let i = 0; i < currentBP.nodes.length; i++)
+  // console.log("renderLayers:");
+  // console.log(renderLayers);
+  // console.log("start, end: " + parseInt(firstLayerNodes) + " " + parseInt(secondLayerNodes));
+  // for(let i = 0; i < currentBP.nodes.length; i++)
+  for(let i = start; i < end; i++)
   {
     // if(currentBP.nodes[i].predecessor !== undefined)
     if(currentBP.nodes[i] !== undefined)
@@ -1074,24 +1076,24 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
   });
   /** Render previous uncoarsened graphs */
   // for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
-  for(let i = 0; i < bipartiteGraphs.length; i = i + 1)
+  for(let i = 1; i < bipartiteGraphs.length; i = i + 1)
   {
     var coarsenedBipartiteGraph;
     coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
     coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
     /** Sort nodes according to super-vertexes */
-    // if(i == 0)
-    // {
-    //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
-    // }
-    // else
-    // {
-    //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
-    // }
-    if(i != 0)
+    if(i == 0)
+    {
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
+    }
+    else
     {
       bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
     }
+    // if(i != 0)
+    // {
+    //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    // }
     /** Render nodes */
     coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
     /** Connect super vertexes */
@@ -2894,17 +2896,13 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
       data: { currentMesh: currentMesh.name, nextMesh: nextMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
       success: function(data){
         data = JSON.parse(data);
-        console.log("data:");
-        console.log(data);
         for(var i = 0; nextMesh.geometry.faces[(parseInt(data.array[i]))] != undefined && i < data.array.length; i++)
         {
-          data.array[i] = parseInt(data.array[i])*32;
+          data.array[i] = (parseInt(data.array[i]))*32;
           // if(JSON.parse(nextMesh.geometry.faces[(parseInt(data.array[i]))].layers).renderFirstLayer == false)
           if(nextMesh.geometry.faces[(parseInt(data.array[i]))] == undefined)
           {
             data.array[i] = data.array[i] - (parseInt(nextMesh.geometry.faces[0].firstLayer)*32);
-            console.log("data after if:");
-            console.log(data);
           }
           /** Color successors */
           var targetPos = nextMesh.geometry.faces[(parseInt(data.array[i]))].position;
@@ -3034,7 +3032,6 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
   /** If true, it means there are still meshes to search for children; they are not exactly one level before or after */
   else if(nextMesh == undefined && parseInt(nextMeshNumber) >= 0)
   {
-    console.log("entered else if");
     nextMeshNumber = parseInt(nextMeshNumber);
     nextMeshNumber = nextMeshNumber - 1;
     this.showNodeChildren(this.nEdges, scene, startFace, currentMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
@@ -3170,10 +3167,10 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
       }
       /** Show both parent and child edges */
       this.showHierarchy(intersection, scene, layout, layer);
-      if(intersection.object.name == "MainMesh")
-      {
-        this.showNeighbors(scene);
-      }
+      // if(intersection.object.name == "MainMesh")
+      // {
+      //   this.showNeighbors(scene);
+      // }
       // this.showParents(intersection, scene, layout);
       // else
       // {

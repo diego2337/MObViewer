@@ -463,9 +463,11 @@ Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, se
   var start = 0, end = currentBP.nodes.length, newNodes = [], newNodesIndexes = [];
   // if(renderLayers.renderFirstLayer == false) start = parseInt(firstLayerNodes);
   // if(renderLayers.renderLastLayer == false) end = parseInt(secondLayerNodes);
-  //console.log("start, end: " + parseInt(firstLayerNodes) + " " + parseInt(secondLayerNodes));
-  //for(let i = start; i < end; i++)
-  for(let i = 0; i < currentBP.nodes.length; i++)
+  // console.log("renderLayers:");
+  // console.log(renderLayers);
+  // console.log("start, end: " + parseInt(firstLayerNodes) + " " + parseInt(secondLayerNodes));
+  // for(let i = 0; i < currentBP.nodes.length; i++)
+  for(let i = start; i < end; i++)
   {
     // if(currentBP.nodes[i].predecessor !== undefined)
     if(currentBP.nodes[i] !== undefined)
@@ -594,24 +596,24 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
   });
   /** Render previous uncoarsened graphs */
   // for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
-  for(let i = 0; i < bipartiteGraphs.length; i = i + 1)
+  for(let i = 1; i < bipartiteGraphs.length; i = i + 1)
   {
     var coarsenedBipartiteGraph;
     coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
     coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
     /** Sort nodes according to super-vertexes */
-    // if(i == 0)
-    // {
-    //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
-    // }
-    // else
-    // {
-    //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
-    // }
-    if(i != 0)
+    if(i == 0)
+    {
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
+    }
+    else
     {
       bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
     }
+    // if(i != 0)
+    // {
+    //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    // }
     /** Render nodes */
     coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
     /** Connect super vertexes */

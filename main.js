@@ -1054,13 +1054,13 @@ app.post('/getSortedSuccessors', function(req, res){
                 }
                 else
                 {
-                  console.log('uploads' + folderChar + fileName.split(".")[0] + folderChar + "n" + level.toString() + ".s");
+                  // console.log('uploads' + folderChar + fileName.split(".")[0] + folderChar + "n" + level.toString() + ".s");
                   /** Find and return index of nodes from 'dat' string */
                   var arr = dat.split(",");
                   var vect = [];
                   for(var i = 0; i < suc.length; i++)
                   {
-                    var realValue = arr.indexOf(suc[i]) + 1;
+                    var realValue = parseInt(arr.indexOf(suc[i]));
                     vect.push(realValue.toString());
                     // vect.push(arr.indexOf(suc[i]).toString());
                   }
@@ -1073,8 +1073,6 @@ app.post('/getSortedSuccessors', function(req, res){
           else
           {
             var jsonObj = { array: suc };
-            console.log("jsonObj:");
-            console.log(jsonObj);
             res.type('text');
             res.end(JSON.stringify(jsonObj));
           }

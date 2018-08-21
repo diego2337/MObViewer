@@ -597,17 +597,13 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
       data: { currentMesh: currentMesh.name, nextMesh: nextMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
       success: function(data){
         data = JSON.parse(data);
-        console.log("data:");
-        console.log(data);
         for(var i = 0; nextMesh.geometry.faces[(parseInt(data.array[i]))] != undefined && i < data.array.length; i++)
         {
-          data.array[i] = parseInt(data.array[i])*32;
+          data.array[i] = (parseInt(data.array[i]))*32;
           // if(JSON.parse(nextMesh.geometry.faces[(parseInt(data.array[i]))].layers).renderFirstLayer == false)
           if(nextMesh.geometry.faces[(parseInt(data.array[i]))] == undefined)
           {
             data.array[i] = data.array[i] - (parseInt(nextMesh.geometry.faces[0].firstLayer)*32);
-            console.log("data after if:");
-            console.log(data);
           }
           /** Color successors */
           var targetPos = nextMesh.geometry.faces[(parseInt(data.array[i]))].position;
@@ -737,7 +733,6 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
   /** If true, it means there are still meshes to search for children; they are not exactly one level before or after */
   else if(nextMesh == undefined && parseInt(nextMeshNumber) >= 0)
   {
-    console.log("entered else if");
     nextMeshNumber = parseInt(nextMeshNumber);
     nextMeshNumber = nextMeshNumber - 1;
     this.showNodeChildren(this.nEdges, scene, startFace, currentMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
@@ -873,10 +868,10 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
       }
       /** Show both parent and child edges */
       this.showHierarchy(intersection, scene, layout, layer);
-      if(intersection.object.name == "MainMesh")
-      {
-        this.showNeighbors(scene);
-      }
+      // if(intersection.object.name == "MainMesh")
+      // {
+      //   this.showNeighbors(scene);
+      // }
       // this.showParents(intersection, scene, layout);
       // else
       // {
