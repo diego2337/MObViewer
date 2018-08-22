@@ -9,8 +9,9 @@
 
 /**
  * @constructor
+ * @param {String} svgId Id to store <svg> id value.
  */
-var Layout = function()
+var Layout = function(svgId)
 {
   /** @desc Define trigger for saving a graph image in .png format */
   this.capture = false;
@@ -26,6 +27,8 @@ var Layout = function()
   this.vertexInfo = new VertexInfo();
   /** @desc - Defines if parent connections of coarsened vertexes will be shown - (0) for false, (1) for true */
   this.parentConnections = 0;
+  /** @desc String that defines svg tag id */
+  this.svgId = svgId;
 }
 
 /**
@@ -168,8 +171,8 @@ Layout.prototype.createEventListener = function(camera, WebGL)
 
   if(this.eventHandler === undefined)
   {
-    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.numOfLevels);
-    var eventHandler = this.eventHandler;
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels);
+    var eventHandler = this.eventHandler
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
       camera.aspect = document.getElementById(WebGL).clientWidth / document.getElementById(WebGL).clientHeight;
@@ -369,6 +372,138 @@ Layout.prototype.hasEqualLayers = function(coarsenedGraph, lessCoarsenedGraph)
 }
 
 /**
+ * Compare two objects.
+ * @public
+ * @param {Object} item1 Object to be compared.
+ * @param {Object} item2 Object to be compared.
+ * @returns {Boolean} Returns false if objects are different, true otherwise.
+ */
+Layout.prototype.compare = function (item1, item2) {
+
+  // Get the object type
+  var itemType = Object.prototype.toString.call(item1);
+
+  // If an object or array, compare recursively
+  if (['[object Array]', '[object Object]'].indexOf(itemType) >= 0) {
+    if (!this.isEqual(item1, item2)) return false;
+  }
+
+  // Otherwise, do a simple comparison
+  else {
+
+    // If the two items are not the same type, return false
+    if (itemType !== Object.prototype.toString.call(item2)) return false;
+
+    // Else if it's a function, convert to a string and compare
+    // Otherwise, just compare
+    if (itemType === '[object Function]') {
+      if (item1.toString() !== item2.toString()) return false;
+    } else {
+      if (item1 !== item2) return false;
+    }
+
+  }
+  // Returns true
+  return true;
+};
+
+/**
+ * Helper function to check if both arrays have the same values, from https://gomakethings.com/check-if-two-arrays-or-objects-are-equal-with-javascript/
+ * @param {(Object|Array)} value First array or object to be compared.
+ * @param {(Object|Array)} other Second array or object to be compared.
+ * @returns {Boolean} true if arrays or objects are equal, false otherwise
+ */
+Layout.prototype.isEqual = function (value, other) {
+
+	// Get the value type
+	var type = Object.prototype.toString.call(value);
+
+	// If the two objects are not the same type, return false
+	if (type !== Object.prototype.toString.call(other)) return false;
+
+	// If items are not an object or array, return false
+	if (['[object Array]', '[object Object]'].indexOf(type) < 0) return false;
+
+	// Compare the length of the length of the two items
+	var valueLen = type === '[object Array]' ? value.length : Object.keys(value).length;
+	var otherLen = type === '[object Array]' ? other.length : Object.keys(other).length;
+	if (valueLen !== otherLen) return false;
+
+	// Compare properties
+	if (type === '[object Array]') {
+		for (var i = 0; i < valueLen; i++) {
+			if (this.compare(value[i], other[i]) === false) return false;
+		}
+	} else {
+		for (var key in value) {
+			if (value.hasOwnProperty(key)) {
+				if (this.compare(value[key], other[key]) === false) return false;
+			}
+		}
+	}
+
+	// If nothing failed, return true
+	return true;
+
+};
+
+/**
+ * Sort nodes from previous uncoarsened bipartite graph according to current bipartite graph's super vertexes.
+ * @public
+ * @param {int} index Index of current coarsening level.
+ * @param {Object} renderLayers Object containing boolean for rendering both first and second layers.
+ * @param {int} firstLayerNodes Number of nodes from first layer.
+ * @param {int} secondLayerNodes Number of nodes from second layer.
+ * @param {Object} currentBP Most coarsened bipartite graph.
+ * @param {Object} previousBP Previous uncoarsened bipartite graph.
+ * @returns {Object} Nodes in "sorted" order.
+ */
+Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, secondLayerNodes, currentBP, previousBP)
+{
+  var start = 0, end = currentBP.nodes.length, newNodes = [], newNodesIndexes = [];
+  // if(renderLayers.renderFirstLayer == false) start = parseInt(firstLayerNodes);
+  // if(renderLayers.renderLastLayer == false) end = parseInt(secondLayerNodes);
+  // console.log("renderLayers:");
+  // console.log(renderLayers);
+  // console.log("start, end: " + parseInt(firstLayerNodes) + " " + parseInt(secondLayerNodes));
+  // for(let i = 0; i < currentBP.nodes.length; i++)
+  for(let i = start; i < end; i++)
+  {
+    // if(currentBP.nodes[i].predecessor !== undefined)
+    if(currentBP.nodes[i] !== undefined)
+    {
+      // console.log("i: " + i);
+      // console.log("currentBP.nodes[i]:");
+      // console.log(currentBP.nodes[i]);
+      /** Breaks values from "predecessor" value, e.g. "predecessor": "1307,1308" */
+      var predecessors = currentBP.nodes[i].predecessor.split(",");
+      for(let j = 0; j < predecessors.length; j++)
+      {
+        newNodes.push(previousBP.nodes[parseInt(predecessors[j])]);
+        newNodesIndexes.push(parseInt(predecessors[j]));
+        // var aux = previousBP.nodes[j];
+        // previousBP.nodes[j] = previousBP.nodes[parseInt(predecessors[j])];
+        // previousBP.nodes[parseInt(predecessors[j])] = aux;
+        /** Write "sorted" nodes server-side */
+        // $.ajax({
+        //   url: '/writeSorted',
+        //   type: 'POST',
+        //   data: { firstWrite: i == 0 ? true : false, idx: index, pred: i == currentBP.nodes.length -1 ? predecessors[j] : predecessors[j] + ' '},
+        //   xhr: loadGraph
+        // });
+      }
+    }
+  }
+  $.ajax({
+    url: '/writeSorted',
+    type: 'POST',
+    data: {idx: index, nodes: newNodesIndexes},
+    xhr: loadGraph
+  });
+  return newNodes;
+}
+
+/**
  * Build and render previous uncoarsened bipartite graphs.
  * @public
  * @param {Object} bipartiteGraph Most coarsened bipartite graph, already rendered.
@@ -385,11 +520,16 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
 {
   var bipartiteGraphs = [];
   var layout = this;
-  for(let i = parseInt(numOfLevels); i >= 0; i = i - 1)
+  /** Parsing strings to numbers */
+  numOfLevels = numOfLevels.map(Number);
+  // for(let i = parseInt(numOfLevels); i >= 0; i = i - 1)
+  for(let i = parseInt(numOfLevels[0]), j = parseInt(numOfLevels[1]); i >= 0 && j >= 0; )
   {
     var gName = graphName.split(".")[0];
-    gName = gName.substring(0, gName.length-2);
-    i == 0 ? gName = gName.substring(0, gName.lastIndexOf('Coarsened')) + ".json" : gName = gName + "n" + (i).toString() + ".json";
+    gName = gName.split("Coarsened")[0] + "Coarsened" + gName.split("Coarsened")[1].split("n")[0];
+    // gName = gName.substring(0, gName.length-2);
+    // i == 0 ? gName = gName.substring(0, gName.lastIndexOf('Coarsened')) + ".json" : gName = gName + "n" + (i).toString() + ".json";
+    (i == 0 && j == 0) ? gName = gName.substring(0, gName.lastIndexOf('Coarsened')) + ".json" : gName = gName + "nl" + (i).toString() + "nr" + (j).toString() + ".json";
     if(gName !== ".json")
     {
       $.ajax({
@@ -411,23 +551,71 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     {
       layout.displayGraphInfo(jason, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer);
     }
+    /** If both levels have equal values, decrement them; else decrement maximum value */
+    if(i != j)
+    {
+      i == Math.max(i, j) ? i = i - 1 : j = j - 1;
+    }
+    else
+    {
+      i = i - 1;
+      j = j - 1;
+    }
+  }
+  /** Create variable to hold graph size, to be used for ordering */
+  for(let i = 0; i < bipartiteGraphs.length; i++)
+  {
+    if(bipartiteGraphs[i].graphInfo[0].vlayer !== undefined)
+    {
+      bipartiteGraphs[i].graphInfo[0].graphSize = parseInt(bipartiteGraphs[i].graphInfo[0].vlayer.split(" ")[0]) + parseInt(bipartiteGraphs[i].graphInfo[0].vlayer.split(" ")[1]);
+    }
+    else if(bipartiteGraphs[i].graphInfo[0].vertices !== undefined)
+    {
+      bipartiteGraphs[i].graphInfo[0].graphSize = parseInt(bipartiteGraphs[i].graphInfo[0].vertices.split(" ")[0]) + parseInt(bipartiteGraphs[i].graphInfo[0].vertices.split(" ")[1]);
+    }
   }
   /** Sort array */
   bipartiteGraphs.sort(function(a, b){
-    if(a.graphInfo[0].graphSize < b.graphInfo[0].graphSize) return -1;
-    else if(a.graphInfo[0].graphSize > b.graphInfo[0].graphSize) return 1;
-    else return 0;
+    // if((a.graphInfo[0].vlayer !== undefined && parseInt(a.graphInfo[0].vlayer.split(" ")[0]) + parseInt(a.graphInfo[0].vlayer.split(" ")[1]) < parseInt(b.graphInfo[0].vlayer.split(" ")[0]) + parseInt(b.graphInfo[0].vlayer.split(" ")[1])) || (a.graphInfo[0].vertices !== undefined && parseInt(a.graphInfo[0].vertices.split(" ")[0]) + parseInt(a.graphInfo[0].vertices.split(" ")[1]) < parseInt(b.graphInfo[0].vertices.split(" ")[0]) + parseInt(b.graphInfo[0].vertices.split(" ")[1])))
+    if(a.graphInfo[0].graphSize < b.graphInfo[0].graphSize)
+    {
+      return -1;
+    }
+    // else if((a.graphInfo[0].vlayer !== undefined && parseInt(a.graphInfo[0].vlayer.split(" ")[0]) + parseInt(a.graphInfo[0].vlayer.split(" ")[1]) > parseInt(b.graphInfo[0].vlayer.split(" ")[0]) + parseInt(b.graphInfo[0].vlayer.split(" ")[1])) || (a.graphInfo[0].vertices !== undefined && parseInt(a.graphInfo[0].vertices.split(" ")[0]) + parseInt(a.graphInfo[0].vertices.split(" ")[1]) > parseInt(b.graphInfo[0].vertices.split(" ")[0]) + parseInt(b.graphInfo[0].vertices.split(" ")[1])))
+    else if(a.graphInfo[0].graphSize > b.graphInfo[0].graphSize)
+    {
+      return 1;
+    }
+    else
+    {
+      return 0;
+    }
+    // if(a.graphInfo[0].graphSize < b.graphInfo[0].graphSize) return -1;
+    // else if(a.graphInfo[0].graphSize > b.graphInfo[0].graphSize) return 1;
+    // else return 0;
   });
   /** Render previous uncoarsened graphs */
-  for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
+  // for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
+  for(let i = 1; i < bipartiteGraphs.length; i = i + 1)
   {
     var coarsenedBipartiteGraph;
-    if(i != 0)
+    coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
+    coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
+    /** Sort nodes according to super-vertexes */
+    if(i == 0)
     {
-      coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
-      coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
-      coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
     }
+    else
+    {
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    }
+    // if(i != 0)
+    // {
+    //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    // }
+    /** Render nodes */
+    coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
     {
@@ -456,7 +644,8 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   /** Assign values to variables */
   var graphName = data.graphName;
   var numOfLevels = data.nLevels;
-  this.numOfLevels = numOfLevels;
+  /** Number of levels is now an array */
+  this.numOfLevels = Math.max(...numOfLevels);
   var firstSet = data.firstSet;
   var secondSet = data.secondSet;
   var data = data.graph;
@@ -485,7 +674,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo);
 
   /** Build and render bipartite graphs from previous levels of coarsening */
-  this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, parseInt(numOfLevels), nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
 
   delete jason;
 

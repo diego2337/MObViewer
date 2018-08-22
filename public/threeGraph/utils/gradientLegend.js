@@ -51,7 +51,6 @@ GradientLegend.prototype.clear = function()
   }
 }
 
-
 /**
  * @desc Creates a gradient legend on HTML page, defining type of legend and start and end values. Creates the rectangle for legend and appends it to HTML page.
  * @public

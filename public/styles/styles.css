@@ -1,3 +1,33 @@
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+	bottom: 10px;
+	right: 10px;
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 150px;
+  bottom: 10px;
+	left: 10px;
+}
+
 .fixed-div-center-2 {
 	position: fixed;
 	top: 25%;
@@ -17,8 +47,9 @@
 
 .fixed-div {
 	position: fixed;
-	top: 170px;
-	right: 10px;
+	top: 150px;
+  bottom: 10px;
+	right: 40px;
 }
 
 .small-margin {

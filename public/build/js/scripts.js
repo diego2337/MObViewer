@@ -119,13 +119,51 @@ function getInteger(value)
   // parseInt(value) == NaN ? return undefined : return parseInt(value);
 }
 
+/**
+ * Check to see if value is '0.0'; if true, convert to integer.
+ * @param {Float} value Value to check.
+ * @returns {(int|Float)} Returns int if value is '0.0'; returns same value otherwise.
+ */
+function treatFloatZero(value)
+{
+  return parseFloat(value) === 0 ? 0 : value;
+  // console.log("value:");
+  // console.log(parseFloat(value));
+  // if(!isInt(parseFloat(value)) && value == 0.0)
+  // {
+  //   console.log("returned casted int value");
+  //   return parseInt(value);
+  // }
+  // else
+  // {
+  //     return value;
+  // }
+}
+
+/**
+ * Create 'categories.csv' file, containing data attributes and their respective types.
+ * @param {String} textarea "<textarea>" tag.
+ */
+function createCategoriesFile(textarea)
+{
+  $.ajax({
+    url: '/categories',
+    type: 'POST',
+    data: {jsonInput: textarea.value},
+    success: function(html){
+      alert(".csv file successfully created!");
+    },
+    xhr: loadGraph
+  });
+}
+
 /** Apply multilevel coarsening with user defined reduction factor and number of levels */
 $("#coarseGraph").on('click', function(){
   /** Iterate through a for loop to create nLevels of coarsened graphs */
   $.ajax({
     url:'/coarse',
     type: 'POST',
-    data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
+    data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: treatFloatZero($('#multilevelCoarsener')[0].value), coarseningSecondSet: treatFloatZero($('#multilevelCoarsener2')[0].value), firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
     // success: graphUpdate,
     success: function(html){
       let nOfExecutions = getInteger($("#nLevels")[0].value);
@@ -135,7 +173,7 @@ $("#coarseGraph").on('click', function(){
         $.ajax({
           url:'/convert',
           type: 'POST',
-          data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+          data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: treatFloatZero($('#multilevelCoarsener')[0].value), coarseningSecondSet: treatFloatZero($('#multilevelCoarsener2')[0].value), firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0, currentLevel: (i+1).toString()},
           success: function(html){
             /** Finished all conversions; set properties properly */
             if(nOfExecutions == 1)
@@ -143,7 +181,7 @@ $("#coarseGraph").on('click', function(){
                 $.ajax({
                   url:'/setProperties',
                   type: 'POST',
-                  data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
+                  data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: treatFloatZero($('#multilevelCoarsener')[0].value), coarseningSecondSet: treatFloatZero($('#multilevelCoarsener2')[0].value), firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
                   success: function(html){
                     graphUpdate(html, layout.lay);
                   }
@@ -167,6 +205,8 @@ $("#coarseGraph").on('click', function(){
 $("#resetInfo").on('click', function(){
   vueTableHeader._data.headers = "";
   vueTableRows._data.rows = "";
+  vueTableHeaderSecondLayer._data.headers = "";
+  vueTableRowsSecondLayer._data.rows = "";
 });
 
 /** Show dialog to allow user to specify which information is to be shown on tooltip */
@@ -202,7 +242,7 @@ $("#showConnections").on('click', function(){
   $.ajax({
     url:'/coarse',
     type: 'POST',
-    data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: $('#multilevelCoarsener')[0].value, coarseningSecondSet: $('#multilevelCoarsener2')[0].value, firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
+    data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: treatFloatZero($('#multilevelCoarsener')[0].value), coarseningSecondSet: treatFloatZero($('#multilevelCoarsener2')[0].value), firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
     success: function(html){
       /** Tell layout to update variable "parentConnections" */
       layout.parentConnections == 0 ? layout.parentConnections = 1 : layout.parentConnections = 0;
@@ -220,17 +260,26 @@ $("#coarseJson").on('click', function(){
     data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
     success: function(html){
       let maxCoarsening = Math.max(JSON.parse($("#jsonTextArea")[0].value).max_levels[0], JSON.parse($("#jsonTextArea")[0].value).max_levels[1]);
-      console.log("maxCoarsening:" + maxCoarsening);
       let nOfExecutions = maxCoarsening;
+      let nl = nr = 0;
       if(maxCoarsening != 0)
       {
         /** Finished coarsening, perform multiple ajax calls to convert from .gml to .json */
         for(let i = 0; i < maxCoarsening; i++)
         {
+          if(nl < JSON.parse($("#jsonTextArea")[0].value).max_levels[0])
+          {
+            nl = nl + 1;
+          }
+          if(nr < JSON.parse($("#jsonTextArea")[0].value).max_levels[1])
+          {
+            nr = nr + 1;
+          }
           $.ajax({
             url:'/convert',
             type: 'POST',
-            data: {nLevels: maxCoarsening, firstSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[0], secondSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[1], coarsening: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0], coarseningSecondSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1], firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+            // data: {firstSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[0], secondSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[1], coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+            data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
             success: function(html){
               /** Finished all conversions; set properties properly */
               if(nOfExecutions == 1)
@@ -238,8 +287,11 @@ $("#coarseJson").on('click', function(){
                   $.ajax({
                     url:'/setProperties',
                     type: 'POST',
-                    data: {nLevels: maxCoarsening, firstSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[0], secondSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[1], coarsening: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0], coarseningSecondSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1], firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0},
+                    data: {nLevels: maxCoarsening, firstSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[0], secondSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[1], coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0},
                     success: function(html){
+                      $("#userInfo").prop("disabled", false);
+                      /** Update vertex data */
+                      vueTableUserRows._data.rows = layout.vertexInfo.getProps();
                       graphUpdate(html, layout.lay);
                     }
                   });
@@ -259,6 +311,9 @@ $("#coarseJson").on('click', function(){
           type: 'POST',
           data: {graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0]},
           success: function(html){
+            $("#userInfo").prop("disabled", false);
+            /** Update vertex data */
+            vueTableUserRows._data.rows = layout.vertexInfo.getProps();
             graphUpdate(html, layout.lay);
           }
         });
@@ -274,6 +329,49 @@ $("#coarseJson").on('click', function(){
 /** Show json input card on click */
 $("#jsonInfo").on('click', function(){
     $("#jsonInput").css('visibility') == 'hidden' ?  $("#jsonInput").css('visibility', 'visible') : $("#jsonInput").css('visibility', 'hidden');
+});
+
+/** Show text area to define categories on click */
+$("#defineCategories").on('click', function(){
+  var meta = 'categories';
+  showDialog({
+        title: 'Define data categories',
+        metaTitle: meta,
+        text: 'Create a csv file associating data attributes with their respective types, e.g: attribute1,{categorical|ordinal},{nOfElem|[range-range]} attribute2,{categorical|ordinal},{nOfElem|[range-range]}...',
+        textArea: true,
+        negative: {
+            title: 'Go back'
+        },
+        positive: {
+            title: 'Create',
+            onClick: function(e) {
+              // console.log(document.getElementsByTagName("textarea"));
+              var text = document.getElementsByTagName("textarea");
+              var createCat = undefined;
+              for(t in text)
+              {
+                if(text[t].id == "")
+                {
+                  createCat = text[t];
+                }
+              }
+              createCategoriesFile(createCat);
+            }
+        }
+    });
+});
+
+/** Clear data table on click */
+$("#clearTable1").on('click', function(){
+  $("#divVertexInfoTable").css('visibility', 'hidden');
+  vueTableHeader._data.headers = "";
+  vueTableRows._data.rows = "";
+});
+
+$("#clearTable2").on('click', function(){
+  $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
+  vueTableHeaderSecondLayer._data.headers = "";
+  vueTableRowsSecondLayer._data.rows = "";
 });
 
 /** */

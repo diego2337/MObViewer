@@ -174,6 +174,36 @@ _:-ms-input-placeholder, :root .demo-graph {
   align-items: center;
 }
 
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+	bottom: 10px;
+	right: 10px;
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 150px;
+  bottom: 10px;
+	left: 10px;
+}
+
 .fixed-div-center-2 {
 	position: fixed;
 	top: 25%;
@@ -193,8 +223,9 @@ _:-ms-input-placeholder, :root .demo-graph {
 
 .fixed-div {
 	position: fixed;
-	top: 170px;
-	right: 10px;
+	top: 150px;
+  bottom: 10px;
+	right: 40px;
 }
 
 .small-margin {
@@ -390,4 +421,48 @@ h2 {
   .container {
     width: 450px;
   }
+}
+
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
 }

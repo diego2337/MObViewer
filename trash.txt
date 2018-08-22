@@ -1,4 +1,4 @@
-1from main.js, function app.post('/upload', function(req, res):
+from main.js, function app.post('/upload', function(req, res):
 
 // once all the files have been uploaded, send a response to the client
 // form.on('end', function() {
@@ -1061,3 +1061,353 @@ app.get('/', function(req, res){
 var server = app.listen(serverPort, function(){
   console.log('Server listening on port ' + serverPort);
 });
+
+from eventHandler.js, method "showParents":
+// var layScope = this;
+// $.ajax({
+//   url: '/getSorted',
+//   type: 'POST',
+//   data: { name: previousMesh.name, pred: predecessors[i] },
+//   success: function(data){
+//     predecessors[i] = parseInt(data);
+//     if(predecessors[i] != -1)
+//     {
+//       var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(predecessors[i]))].layers);
+//       /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+//       if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+//       {
+//         predecessors[i] = predecessors[i] - (parseInt(previousMesh.geometry.faces[(parseInt(predecessors[i]))].firstLayer)*32);
+//       }
+//       if(previousMesh.geometry.faces[(parseInt(predecessors[i]))] !== undefined)
+//       {
+//         /** Color predecessors */
+//         var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))].position;
+//         /** Check if predecessor vertexes were rendered */
+//         if(layScope.wasRendered(sourcePos, targetPos, layout))
+//         {
+//           layScope.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+//           var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+//           for(var j = 0; j < 32; j++)
+//           {
+//             previousMesh.geometry.faces[(parseInt(predecessors[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+//           }
+//           edgeGeometry.vertices.push(v1);
+//           edgeGeometry.vertices.push(v2);
+//         }
+//       }
+//     }
+//   },
+//   xhr: loadGraph
+// });
+
+from eventHandler.js:
+
+/**
+ * Show merged vertexes which formed super vertex clicked.
+ * @param {Object} intersection Intersected object in specified scene.
+ * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
+ */
+EventHandler.prototype.showParents = function(intersection, scene, layout)
+{
+  if(intersection !== undefined)
+  {
+    this.clicked.wasClicked = true;
+    /** Get meshes */
+    var previousMeshNumber = parseInt(intersection.object.name[intersection.object.name.length-1]) + 1;
+    var originalMeshName = intersection.object.name.substring(0, intersection.object.name.length-1);
+    if(isNaN(previousMeshNumber)) previousMeshNumber = "h1";
+    // var currentMesh = scene.getObjectByName(intersection.object.name);
+    var previousMesh = scene.getObjectByName(originalMeshName + previousMeshNumber.toString());
+    if(previousMesh != undefined)
+    {
+      /** Get array of predecessors */
+      var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
+      var properties = JSON.parse(intersection.object.geometry.faces[startFace].properties);
+      // console.log("intersection.object.geometry.faces[startFace].position:");
+      // console.log(intersection.object.geometry.faces[startFace].position);
+      var edgeGeometry = new THREE.Geometry();
+      var sourcePos = intersection.object.geometry.faces[startFace].position;
+      var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+      /** Color vertexes */
+      for(var j = 0; j < 32; j++)
+      {
+        intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
+      }
+      intersection.object.geometry.colorsNeedUpdate = true;
+      this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id)*32, mesh: intersection.object.name});
+      var predecessors;
+      /** Color predecessors */
+      for(pred in properties)
+      {
+        if(pred == "predecessor")
+        {
+          predecessors = properties[pred].split(",");
+          // for(var i = 0; i < predecessors.length; i++)
+          // {
+          //   predecessors[i] = parseInt(predecessors[i]*32);
+          //   var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(predecessors[i]))].layers);
+          //   /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+          //   if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+          //   {
+          //     predecessors[i] = predecessors[i] - (parseInt(previousMesh.geometry.faces[(parseInt(predecessors[i]))].firstLayer)*32);
+          //   }
+          //   if(previousMesh.geometry.faces[(parseInt(predecessors[i]))] !== undefined)
+          //   {
+          //     /** Color predecessors */
+          //     var targetPos = previousMesh.geometry.faces[(parseInt(predecessors[i]))].position;
+          //     /** Check if predecessor vertexes were rendered */
+          //     if(this.wasRendered(sourcePos, targetPos, layout))
+          //     {
+          //       this.neighbors.push({vertexInfo: parseInt(predecessors[i]), mesh: previousMesh.name});
+          //       var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+          //       for(var j = 0; j < 32; j++)
+          //       {
+          //         previousMesh.geometry.faces[(parseInt(predecessors[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+          //       }
+          //       edgeGeometry.vertices.push(v1);
+          //       edgeGeometry.vertices.push(v2);
+          //     }
+          //   }
+          // }
+        }
+      }
+      var layScope = this;
+      $.ajax({
+        url: '/getSorted',
+        type: 'POST',
+        data: { name: previousMesh.name, pred: predecessors },
+        success: function(data){
+          data = JSON.parse(data);
+          for(var i = 0; i < data.array.length; i++)
+          {
+            data.array[i] = parseInt(data.array[i])*32;
+            var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(data.array[i]))].layers);
+            /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+            if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+            {
+              data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[(parseInt(data.array[i]))].firstLayer)*32);
+            }
+            if(previousMesh.geometry.faces[(parseInt(data.array[i]))] !== undefined)
+            {
+              /** Color predecessors */
+              var targetPos = previousMesh.geometry.faces[(parseInt(data.array[i]))].position;
+              /** Check if predecessor vertexes were rendered */
+              if(layScope.wasRendered(sourcePos, targetPos, layout))
+              {
+                layScope.neighbors.push({vertexInfo: parseInt(data.array[i]), mesh: previousMesh.name});
+                var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+                for(var j = 0; j < 32; j++)
+                {
+                  previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+                }
+                edgeGeometry.vertices.push(v1);
+                edgeGeometry.vertices.push(v2);
+              }
+            }
+          }
+          previousMesh.geometry.colorsNeedUpdate = true;
+          for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+          {
+            edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+            edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+          }
+          edgeGeometry.colorsNeedUpdate = true;
+
+          /** Create one LineSegments and add it to scene */
+          var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+          var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+          lineSegments.name = "parentConnections";
+          scene.add(lineSegments);
+
+          edgeGeometry.dispose();
+          edgeGeometry = null;
+          edgeMaterial.dispose();
+          edgeMaterial = null;
+        },
+        xhr: loadGraph
+      });
+    }
+    /** Recursively highlight parents */
+    // if(previousMeshNumber != 'h1')
+    //
+    // else
+    //   this.clicked.wasClicked = true;
+
+  }
+  else
+  {
+    this.clicked.wasClicked = false;
+    scene.remove(scene.getObjectByName("parentConnections"));
+    for(var i = 0; i < this.neighbors.length; i++)
+    {
+      var mesh = scene.getObjectByName(this.neighbors[i].mesh);
+      for(var j = 0; j < 32; j++)
+      {
+        if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
+        {
+            mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        else
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        mesh.geometry.colorsNeedUpdate = true;
+      }
+    }
+    /** Clearing array of neighbors */
+    this.neighbors = [];
+  }
+}
+
+from main.js, method '/writeSorted':
+
+/** If this is the first time writing, check if file already exists */
+//  if(req.body.firstWrite == 'true')
+//  {
+//    fs.stat('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, function(err, stat){
+//      /** File already exists; no need to append anything else */
+//      if(err == null)
+//      {
+//        exists = true;
+//      }
+//      else if(err.code == 'ENOENT')
+//      {
+//        exists = false;
+//      }
+//    });
+//  }
+//  /** If file doesn't exist, create it */
+//  if(exists == false)
+//  {
+//    var stream = fs.createWriteStream('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, { flags: 'a'});
+//    /** Save node in current order */
+//    stream.write(req.body.pred);
+//    stream.end();
+//  }
+//  res.end();
+
+from eventHandler.js, method "showNeighbors":
+
+/**
+ * Show coarsened graph neighbors when double clicked.
+ * @param {Object} scene Scene for raycaster.
+ */
+EventHandler.prototype.showNeighbors = function(scene)
+{
+  var element = scene.getObjectByName("MainMesh", true);
+  if(!this.clicked.wasClicked)
+  {
+    /** Find highlighted vertex and highlight its neighbors */
+    for(var i = 0; i < this.highlightedElements.length; i++)
+    {
+      // this.clicked.wasClicked = true;
+      /** Add itself for highlighting */
+      this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+      for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
+      {
+        this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+      }
+      this.renderNeighborEdges(scene, element, element.geometry.faces[this.highlightedElements[i]]);
+      for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
+      {
+        var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
+        for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
+        {
+            element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
+        }
+      }
+      element.geometry.colorsNeedUpdate = true;
+      /** Remove itself so it won't unhighlight as soon as mouse moves out */
+      this.highlightedElements.splice(i, 1);
+    //   var startEdge = element.geometry.faces[this.highlightedElements[i]].position;
+    //   // var startPosition = element.geometry.faces[this.highlightedElements[i]].positionIndex;
+    //   for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
+    //   {
+    //     var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
+    //     for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
+    //     {
+    //         element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
+    //     }
+    //     this.clicked.wasClicked = true;
+    //     /** Highlight connected edges */
+    //     var neighborIndex = element.geometry.faces[this.highlightedElements[i]].neighbors[j] * 32;
+    //     var endEdge = element.geometry.faces[neighborIndex].position;
+    //     var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
+    //     /** Find index of end position */
+    //     // var endPosition = element.geometry.faces[neighborIndex].positionIndex;
+    //     var originalColor = {r:0, g:0, b:0};
+    //     if(index != -1)
+    //     {
+    //       // originalColor = lineSegments.geometry.colors[index];
+    //       originalColor.r = lineSegments.geometry.colors[index].r;
+    //       originalColor.g = lineSegments.geometry.colors[index].g;
+    //       originalColor.b = lineSegments.geometry.colors[index].b;
+    //       lineSegments.geometry.colors[index].setRGB(1.0, 0.0, 0.0);
+    //     }
+    //     this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], edgeColor: originalColor});
+    //   }
+    //   // lineSegments.geometry.colors[startPosition].setRGB(1.0, 0.0, 0.0);
+    //   // lineSegments.geometry.colors[0].setRGB(1.0, 0.0, 0.0);
+    //   /** Remove itself so it won't unhighlight as soon as mouse moves out */
+    //   this.highlightedElements.splice(i, 1);
+    }
+    // element.geometry.colorsNeedUpdate = true;
+    // lineSegments.geometry.colorsNeedUpdate = true;
+  }
+  else if(this.clicked.wasClicked)
+  {
+    // this.clicked.wasClicked = false;
+    scene.remove(scene.getObjectByName("neighborEdges"));
+    for(var i = 0; i < this.neighbors.length; i++)
+    {
+      var mesh = scene.getObjectByName(this.neighbors[i].mesh);
+      for(var j = 0; j < 32; j++)
+      {
+        if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        else if(mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j] !== undefined)
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        mesh.geometry.colorsNeedUpdate = true;
+      }
+      // var endPoint = (this.neighbors[i].vertexInfo * 32) + 32;
+      // for(var j = this.neighbors[i].vertexInfo*32; j < endPoint; j++)
+      // {
+      //   element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
+      // }
+    }
+    element.geometry.colorsNeedUpdate = true;
+    /** An element was already clicked and its neighbors highlighted; unhighlight all */
+    // var element = scene.getObjectByName("MainMesh", true);
+    // // var lineSegments = scene.getObjectById(8, true);
+    // // var lineSegments = scene.children[1];
+    // var lineSegments = scene.getObjectByProperty("type", "LineSegments");
+    // var startEdge = element.geometry.faces[this.neighbors[0].vertexInfo*32].position;
+    // for(var i = 0; i < this.neighbors.length; i++)
+    // {
+    //   var endPoint = (this.neighbors[i].vertexInfo * 32) + 32;
+    //   for(var j = this.neighbors[i].vertexInfo*32; j < endPoint; j++)
+    //   {
+    //     element.geometry.faces[j].color.setRGB(0.0, 0.0, 0.0);
+    //   }
+    //   element.geometry.colorsNeedUpdate = true;
+    //   if(i != 0)
+    //   {
+    //     var endEdge = element.geometry.faces[this.neighbors[i].vertexInfo*32].position;
+    //     var index = this.findEdgePairIndex(lineSegments.geometry.vertices, startEdge, endEdge);
+    //     if(index != -1)
+    //     {
+    //       // lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor);
+    //       lineSegments.geometry.colors[index].setRGB(this.neighbors[i].edgeColor.r, this.neighbors[i].edgeColor.g, this.neighbors[i].edgeColor.b);
+    //     }
+    //     lineSegments.geometry.colorsNeedUpdate = true;
+    //   }
+    // }
+    /** Clearing array of neighbors */
+    this.neighbors = [];
+  }
+}

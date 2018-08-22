@@ -91,6 +91,11 @@ class Similarity(object):
 
 		return len(self.adjlist[i].intersection(self.adjlist[j]))
 
+	def mysimilarity(self, i, j):
+		""" Calculates pairwise common neighbors similarity on a given unweighted graph. """
+
+		return len(self.adjlist[i].intersection(self.adjlist[j]))
+
 	def get_common_neighbors(self, i, j):
 		""" Calculates pairwise common neighbors similarity on a given unweighted graph. """
 

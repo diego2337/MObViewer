@@ -175,7 +175,7 @@ def main():
 			options.matching[index] = matching
 
 		# Validation of similarity measure
-		valid_similarity = ['common_neighbors', 'weighted_common_neighbors', 'salton', 'preferential_attachment', 'jaccard', 'adamic_adar', 'resource_allocation', 'sorensen', 'hub_promoted', 'hub_depressed', 'leicht_holme_newman', 'nmf_cosine', 'modularity']
+		valid_similarity = ['common_neighbors', 'mysimilarity', 'weighted_common_neighbors', 'salton', 'preferential_attachment', 'jaccard', 'adamic_adar', 'resource_allocation', 'sorensen', 'hub_promoted', 'hub_depressed', 'leicht_holme_newman', 'nmf_cosine', 'modularity']
 		for index, similarity in enumerate(options.similarity):
 			similarity = similarity.lower()
 			if similarity not in valid_similarity:
@@ -252,7 +252,8 @@ def main():
 					v['source'] = ','.join(map(str, v['source']))
 					v['predecessor'] = ','.join(map(str, v['predecessor']))
 				# graph.write(output + str(levels) + '.gml', format='gml')
-				graph.write(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'n' + str(getNonZeroValue(levels)) + '.gml', format='gml')
+				# graph.write(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'n' + str(getNonZeroValue(levels)) + '.gml', format='gml')
+				graph.write(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.gml', format='gml')
 
 			if options.save_ncol:
 				# graph.write(output + str(levels) + '.ncol', format='ncol')
