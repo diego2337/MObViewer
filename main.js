@@ -348,6 +348,9 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
     if(!err)
     {
       req.body.jsonInput.filename = req.body.jsonInput.filename.split(".")[0] + ".ncol";
+      req.body.jsonInput.directory = 'uploads/' + req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1];
+      req.body.jsonInput.output = req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1] + 'Coarsened';
+      if(req.body.jsonInput.filename.split("/").length <= 1) req.body.jsonInput.filename = 'uploads/' + req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1] + '/' + req.body.jsonInput.filename;
       /** Save JSON input information in a file - from https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file */
       fs.writeFile("input.json", JSON.stringify(req.body.jsonInput), function(err){
         if(err)
