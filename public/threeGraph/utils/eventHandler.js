@@ -323,15 +323,21 @@ EventHandler.prototype.wasRendered = function(sourcePos, targetPos, layout)
  * @param {int} startFace Face index from a given node.
  * @param {Object} currentMesh Mesh where current node is.
  * @param {Object} previousMesh Mesh where parent nodes are.
+ * @param {int} previousMeshNumber Mesh number where parent nodes are.
  * @param {int} layout Graph layout.
+ * @param {int} layer Checks whether vertex double-clicked belongs to first layer or last layer.
  */
-EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, currentMesh, previousMesh, layout)
+EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, currentMesh, previousMesh, previousMeshNumber, layout, layer)
 {
+  // console.log("currentMesh:");
+  // console.log(currentMesh);
+  // console.log("previousMesh");
+  // console.log(previousMesh);
+  // console.log("startFace:");
+  // console.log(startFace);
   /** Recursion termination condition */
   if(previousMesh != undefined)
   {
-    // console.log("currentMesh.name: " + currentMesh.name);
-    // console.log("previousMesh.name: " + previousMesh.name);
     var properties = JSON.parse(currentMesh.geometry.faces[startFace].properties);
     var edgeGeometry = new THREE.Geometry();
     var sourcePos = currentMesh.geometry.faces[startFace].position;
@@ -343,49 +349,70 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
     }
     currentMesh.geometry.colorsNeedUpdate = true;
     this.neighbors.push({vertexInfo: parseInt(JSON.parse(currentMesh.geometry.faces[startFace].properties).id)*32, mesh: currentMesh.name});
-    var predecessors;
-    /** Color predecessors */
-    for(pred in properties)
+    // var predecessors;
+    // /** Color predecessors */
+    // for(pred in properties)
+    // {
+    //   if(pred == "predecessor")
+    //   {
+    //     predecessors = properties[pred].split(",");
+    //   }
+    // }
+    var l = 0;
+    if(!isNaN(currentMesh.name[currentMesh.name.length-1]))
     {
-      if(pred == "predecessor")
-      {
-        predecessors = properties[pred].split(",");
-      }
+      l = parseInt(currentMesh.name[currentMesh.name.length-1]);
     }
     var layScope = this;
     $.ajax({
       url: '/getSorted',
       type: 'POST',
-      data: { name: previousMesh.name, pred: predecessors },
+      // data: { name: previousMesh.name, pred: predecessors },
+      data: { currentMesh: currentMesh.name, previousMesh: previousMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
       success: function(data){
         data = JSON.parse(data);
         for(var i = 0; i < data.array.length; i++)
         {
           data.array[i] = parseInt(data.array[i])*32;
-          if(previousMesh.geometry.faces[(parseInt(data.array[i]))] !== undefined)
+          /** Check which layer double-clicked vertex belongs to */
+          // var vertexId = JSON.parse(currentMesh.geometry.faces[startFace].properties).id;
+          // /** If from first, do nothing; else if from last, update index */
+          // if(vertexId >= currentMesh.geometry.faces[startFace].firstLayer)
+          // {
+          //   console.log("entered if");
+          //   data.array[i] = data.array[i] - (parseInt(JSON.parse(currentMesh.geometry.faces[startFace].properties).firstLayer)*32);
+          // }
+          // /** FIXME - Access to index '0' is hardcoded */
+          // var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(data.array[i]))].layers);
+          // /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+          // if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+          // {
+          //   /** FIXME - Access to index '0' is hardcoded */
+          //   data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[0].firstLayer)*32);
+          //   // data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[(parseInt(data.array[i]))].firstLayer)*32);
+          // }
+          if(previousMesh.geometry.faces[(parseInt(data.array[i]))] === undefined)
           {
-            var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(data.array[i]))].layers);
-            /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
-            if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
-            {
-              data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[(parseInt(data.array[i]))].firstLayer)*32);
-            }
-            /** Color predecessors */
-            var targetPos = previousMesh.geometry.faces[(parseInt(data.array[i]))].position;
-            /** Check if predecessor vertexes were rendered */
-            if(layScope.wasRendered(sourcePos, targetPos, layout))
-            {
-              layScope.neighbors.push({vertexInfo: parseInt(data.array[i]), mesh: previousMesh.name});
-              var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
-              for(var j = 0; j < 32; j++)
-              {
-                previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
-              }
-              /** Add edges to 'parentConnections' geometry */
-              edgeGeometry.vertices.push(v1);
-              edgeGeometry.vertices.push(v2);
-            }
+              data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[0].firstLayer)*32);
           }
+          /** Color predecessors */
+          var targetPos = previousMesh.geometry.faces[(parseInt(data.array[i]))].position;
+          /** Check if predecessor vertexes were rendered */
+          // if(layScope.wasRendered(sourcePos, targetPos, layout))
+          // {
+          layScope.neighbors.push({vertexInfo: parseInt(data.array[i]), mesh: previousMesh.name});
+          var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+          for(var j = 0; j < 32; j++)
+          {
+            previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+          }
+          /** Add edges to 'parentConnections' geometry */
+          edgeGeometry.vertices.push(v1);
+          edgeGeometry.vertices.push(v2);
+          // }
+          // if(previousMesh.geometry.faces[(parseInt(data.array[i]))] !== undefined)
+          // {
+          // }
         }
         previousMesh.geometry.colorsNeedUpdate = true;
         for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
@@ -411,7 +438,7 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
 
         /** Check if there are previous meshes */
         var previousMeshNumber = previousMesh.name[previousMesh.name.length-1];
-        if(parseInt(previousMeshNumber) == (layScope.nLevels+1))
+        if(parseInt(previousMeshNumber) == (layScope.nLevels[layer]+1))
         {
           previousMeshNumber = -1;
         }
@@ -424,12 +451,22 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
         /** Recursively highlight parents */
         for(var i = 0; i < data.array.length; i++)
         {
-          layScope.showNodeParents(layScope.nEdges, scene, parseInt(data.array[i]), previousMesh, previousMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + previousMeshNumber), layout);
+          if(previousMesh.geometry.faces[(parseInt(data.array[i]))] !== undefined)
+          {
+              layScope.showNodeParents(layScope.nEdges, scene, parseInt(data.array[i]), previousMesh, previousMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + previousMeshNumber), previousMeshNumber, layout, layer);
+          }
           // layScope.showNodeParents(scene, parseInt(data.array[i]), previousMesh, previousMeshNumber == 0 ? scene.getObjectByName("MainMesh") : previousMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + previousMeshNumber), layout);
         }
       },
       xhr: loadGraph
     });
+  }
+  /** If true, it means there are still meshes to search for parents; they are not exactly one level before or after */
+  else if(previousMesh == undefined && parseInt(previousMeshNumber) > 0 && parseInt(previousMeshNumber) <= (this.nLevels[layer]+1))
+  {
+    previousMeshNumber = parseInt(previousMeshNumber);
+    previousMeshNumber = previousMeshNumber + 1;
+    this.showNodeParents(this.nEdges, scene, startFace, currentMesh, previousMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + previousMeshNumber), previousMeshNumber, layout, layer);
   }
   // else
   // {
@@ -518,10 +555,12 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
  * @param {int} startFace Face index from a given node.
  * @param {Object} currentMesh Mesh where current node is.
  * @param {Object} nextMesh Mesh where successor nodes are.
+ * @param {int} nextMeshNumber Mesh number where successor nodes are.
  * @param {int} layout Graph layout.
+ * @param {int} layer Checks whether vertex double-clicked belongs to first layer or last layer.
  * @return {int} Index of last successor in layout.
  */
-EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, currentMesh, nextMesh, layout)
+EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, currentMesh, nextMesh, nextMeshNumber, layout, layer)
 {
   /** Recursion termination condition */
   if(nextMesh != undefined)
@@ -531,90 +570,172 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
     var sourcePos = currentMesh.geometry.faces[startFace].position;
     var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
     // /** Color vertexes */
-    // for(var j = 0; j < 32; j++)
-    // {
-    //   currentMesh.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
-    // }
-    // currentMesh.geometry.colorsNeedUpdate = true;
-    // this.neighbors.push({vertexInfo: parseInt(JSON.parse(currentMesh.geometry.faces[startFace].properties).id)*32, mesh: currentMesh.name});
-    var successors = undefined;
-    /** Color successors */
-    for(suc in properties)
+    for(var j = 0; j < 32; j++)
     {
-      if(suc == "successor")
-      {
-        successors = properties[suc].split(",");
-      }
+      currentMesh.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
     }
-    for(var i = 0; successors != undefined && i < successors.length; i++)
+    currentMesh.geometry.colorsNeedUpdate = true;
+    this.neighbors.push({vertexInfo: parseInt(JSON.parse(currentMesh.geometry.faces[startFace].properties).id)*32, mesh: currentMesh.name});
+    // var successors = undefined;
+    // /** Color successors */
+    // for(suc in properties)
+    // {
+    //   if(suc == "successor")
+    //   {
+    //     successors = properties[suc].split(",");
+    //   }
+    // }
+    var l = 0;
+    if(!isNaN(currentMesh.name[currentMesh.name.length-1]))
     {
-      successors[i] = parseInt(successors[i])*32;
-      if(nextMesh.geometry.faces[(parseInt(successors[i]))] !== undefined)
-      {
-        var layers = JSON.parse(nextMesh.geometry.faces[(parseInt(successors[i]))].layers);
-        /** First layer isn't rendered; update successor ids so that it searches for proper parents */
-        // if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
-        // {
-        //   successors[i] = successors[i] + (parseInt(nextMesh.geometry.faces[(parseInt(successors[i]))].firstLayer)*32);
-        // }
-        /** Color predecessors */
-        var targetPos = nextMesh.geometry.faces[(parseInt(successors[i]))].position;
-        /** Check if predecessor vertexes were rendered */
-        if(this.wasRendered(sourcePos, targetPos, layout))
+      l = parseInt(currentMesh.name[currentMesh.name.length-1]);
+    }
+    var layScope = this;
+    $.ajax({
+      url: '/getSortedSuccessors',
+      type: 'POST',
+      data: { currentMesh: currentMesh.name, nextMesh: nextMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
+      success: function(data){
+        data = JSON.parse(data);
+        for(var i = 0; nextMesh.geometry.faces[(parseInt(data.array[i]))] != undefined && i < data.array.length; i++)
         {
-          this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
+          data.array[i] = (parseInt(data.array[i]))*32;
+          // if(JSON.parse(nextMesh.geometry.faces[(parseInt(data.array[i]))].layers).renderFirstLayer == false)
+          if(nextMesh.geometry.faces[(parseInt(data.array[i]))] == undefined)
+          {
+            data.array[i] = data.array[i] - (parseInt(nextMesh.geometry.faces[0].firstLayer)*32);
+          }
+          /** Color successors */
+          var targetPos = nextMesh.geometry.faces[(parseInt(data.array[i]))].position;
+          layScope.neighbors.push({vertexInfo: parseInt(data.array[i]), mesh: nextMesh.name});
           var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
           for(var j = 0; j < 32; j++)
           {
-            nextMesh.geometry.faces[(parseInt(successors[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+            nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
           }
           /** Add edges to 'parentConnections' geometry */
           edgeGeometry.vertices.push(v1);
           edgeGeometry.vertices.push(v2);
         }
-      }
-    }
-    nextMesh.geometry.colorsNeedUpdate = true;
-    for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
-    {
-      edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
-      edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
-    }
-    edgeGeometry.colorsNeedUpdate = true;
+        nextMesh.geometry.colorsNeedUpdate = true;
+        for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+        {
+          edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+          edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+        }
+        edgeGeometry.colorsNeedUpdate = true;
 
-    /** Create one LineSegments and add it to scene */
-    var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
-    var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
-    // lineSegments.name = isNaN(currentMesh.name[currentMesh.name.length-1]) ? "parentConnections" : "parentConnections" + currentMesh.name[currentMesh.name.length-1];
-    lineSegments.name = "parentConnections" + this.nEdges;
-    // console.log("lineSegments.name: " + lineSegments.name);
-    this.nEdges = this.nEdges + 1;
-    scene.add(lineSegments);
+        /** Create one LineSegments and add it to scene */
+        var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+        var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+        // lineSegments.name = isNaN(currentMesh.name[currentMesh.name.length-1]) ? "parentConnections" : "parentConnections" + currentMesh.name[currentMesh.name.length-1];
+        lineSegments.name = "parentConnections" + layScope.nEdges;
+        // console.log("lineSegments.name: " + lineSegments.name);
+        layScope.nEdges = layScope.nEdges + 1;
+        scene.add(lineSegments);
 
-    edgeGeometry.dispose();
-    edgeGeometry = null;
-    edgeMaterial.dispose();
-    edgeMaterial = null;
+        edgeGeometry.dispose();
+        edgeGeometry = null;
+        edgeMaterial.dispose();
+        edgeMaterial = null;
 
-    /** Check if there are previous meshes */
-    var nextMeshNumber = nextMesh.name[nextMesh.name.length-1];
-    // if(parseInt(nextMeshNumber) == 1)
-    if(isNaN(nextMeshNumber))
-    {
-      nextMeshNumber = -1;
-    }
-    else
-    {
-      nextMeshNumber = parseInt(nextMeshNumber);
-      nextMeshNumber = nextMeshNumber - 1;
-    }
+        /** Check if there are next meshes */
+        var nextMeshNumber = nextMesh.name[nextMesh.name.length-1];
+        if(isNaN(nextMeshNumber))
+        {
+          nextMeshNumber = -1;
+        }
+        else
+        {
+          nextMeshNumber = parseInt(nextMeshNumber);
+          nextMeshNumber = nextMeshNumber - 1;
+        }
 
-    /** Recursively highlight children */
-    for(var i = 0; successors != undefined && i < successors.length; i++)
-    {
-      return this.showNodeChildren(this.nEdges, scene, parseInt(successors[i]), nextMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), layout);
-      // this.showNodeParents(scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : nextMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + nextMeshNumber), layout);
-    }
+        /** Recursively highlight children */
+        for(var i = 0; data.array.length; i++)
+        {
+          return layScope.showNodeChildren(this.nEdges, scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
+          // this.showNodeParents(scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : nextMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + nextMeshNumber), layout);
+        }
+      },
+      xhr: loadGraph
+    });
+    // for(var i = 0; successors != undefined && i < successors.length; i++)
+    // {
+    //   successors[i] = parseInt(successors[i])*32;
+    //   if(nextMesh.geometry.faces[(parseInt(successors[i]))] !== undefined)
+    //   {
+    //     var layers = JSON.parse(nextMesh.geometry.faces[(parseInt(successors[i]))].layers);
+    //     /** First layer isn't rendered; update successor ids so that it searches for proper parents */
+    //     // if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+    //     // {
+    //     //   successors[i] = successors[i] + (parseInt(nextMesh.geometry.faces[(parseInt(successors[i]))].firstLayer)*32);
+    //     // }
+    //     /** Color predecessors */
+    //     var targetPos = nextMesh.geometry.faces[(parseInt(successors[i]))].position;
+    //     /** Check if predecessor vertexes were rendered */
+    //     // if(this.wasRendered(sourcePos, targetPos, layout))
+    //     // {
+    //       this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
+    //       var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+    //       for(var j = 0; j < 32; j++)
+    //       {
+    //         nextMesh.geometry.faces[(parseInt(successors[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+    //       }
+    //       /** Add edges to 'parentConnections' geometry */
+    //       edgeGeometry.vertices.push(v1);
+    //       edgeGeometry.vertices.push(v2);
+    //     // }
+    //   }
+    // }
+    // nextMesh.geometry.colorsNeedUpdate = true;
+    // for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+    // {
+    //   edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+    //   edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+    // }
+    // edgeGeometry.colorsNeedUpdate = true;
+    //
+    // /** Create one LineSegments and add it to scene */
+    // var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+    // var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+    // // lineSegments.name = isNaN(currentMesh.name[currentMesh.name.length-1]) ? "parentConnections" : "parentConnections" + currentMesh.name[currentMesh.name.length-1];
+    // lineSegments.name = "parentConnections" + this.nEdges;
+    // // console.log("lineSegments.name: " + lineSegments.name);
+    // this.nEdges = this.nEdges + 1;
+    // scene.add(lineSegments);
+    //
+    // edgeGeometry.dispose();
+    // edgeGeometry = null;
+    // edgeMaterial.dispose();
+    // edgeMaterial = null;
+    //
+    // /** Check if there are next meshes */
+    // var nextMeshNumber = nextMesh.name[nextMesh.name.length-1];
+    // // if(parseInt(nextMeshNumber) == 1)
+    // if(isNaN(nextMeshNumber))
+    // {
+    //   nextMeshNumber = -1;
+    // }
+    // else
+    // {
+    //   nextMeshNumber = parseInt(nextMeshNumber);
+    //   nextMeshNumber = nextMeshNumber - 1;
+    // }
+    //
+    // /** Recursively highlight children */
+    // for(var i = 0; successors != undefined && i < successors.length; i++)
+    // {
+    //   return this.showNodeChildren(this.nEdges, scene, parseInt(successors[i]), nextMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
+    //   // this.showNodeParents(scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : nextMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + nextMeshNumber), layout);
+    // }
+  }
+  /** If true, it means there are still meshes to search for children; they are not exactly one level before or after */
+  else if(nextMesh == undefined && parseInt(nextMeshNumber) >= 0)
+  {
+    nextMeshNumber = parseInt(nextMeshNumber);
+    nextMeshNumber = nextMeshNumber - 1;
+    this.showNodeChildren(this.nEdges, scene, startFace, currentMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
   }
   else
   {
@@ -627,49 +748,86 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
  * @param {Object} intersection Intersected object in specified scene.
  * @param {Object} scene Scene for raycaster.
  * @param {int} layout Graph layout.
+ * @param {int} layer Checks whether vertex double-clicked belongs to first layer or last layer.
  */
-EventHandler.prototype.showHierarchy = function(intersection, scene, layout)
+EventHandler.prototype.showHierarchy = function(intersection, scene, layout, layer)
 {
   if(intersection !== undefined)
   {
+    var index = '';
     var previousMeshNumber = parseInt(intersection.object.name[intersection.object.name.length-1]) + 1;
     var nextMeshNumber = parseInt(intersection.object.name[intersection.object.name.length-1]) - 1;
     var originalMeshName = intersection.object.name.substring(0, intersection.object.name.length-1);
-    if(isNaN(previousMeshNumber) || parseInt(previousMeshNumber) == 0) previousMeshNumber = "h1";
+    if(isNaN(previousMeshNumber) || parseInt(previousMeshNumber) == 0)
+    {
+      originalMeshName = originalMeshName + "h";
+      previousMeshNumber = 1;
+    }
     if(isNaN(nextMeshNumber) || parseInt(nextMeshNumber) == 0) nextMeshNumber = "";
     var previousMesh = scene.getObjectByName(originalMeshName + previousMeshNumber.toString());
     var nextMesh = scene.getObjectByName(originalMeshName + nextMeshNumber.toString());
+    /** Check which layer to make sure mesh has vertexes from that layer */
+    var intersectionId = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id;
+    // intersection.faceIndex <= intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32 ? index = 'renderFirstLayer' : index = 'renderLastLayer';
+    parseInt(intersectionId) < parseInt(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer) ? index = 'renderFirstLayer' : index = 'renderLastLayer';
+    // while(previousMesh != undefined && JSON.parse(previousMesh.geometry.faces[0].layers)[index] == false && previousMeshNumber != this.nLevels[0]+1)
+    while(JSON.parse(previousMesh.geometry.faces[0].layers)[index] == false)
+    {
+      previousMeshNumber = previousMeshNumber + 1;
+      if(previousMeshNumber == this.nLevels[0]+1)
+      {
+        previousMesh = scene.getObjectByName(originalMeshName);
+      }
+      else
+      {
+        previousMesh = scene.getObjectByName(originalMeshName + previousMeshNumber.toString());
+      }
+    }
+    // while(nextMesh != undefined && JSON.parse(nextMesh.geometry.faces[0].layers)[index] == false && nextMeshNumber != "")
+    while(JSON.parse(nextMesh.geometry.faces[0].layers)[index] == false)
+    {
+      nextMeshNumber = nextMeshNumber - 1;
+      if(nextMeshNumber == 0)
+      {
+        nextMesh = scene.getObjectByName(originalMeshName);
+      }
+      else
+      {
+        nextMesh = scene.getObjectByName(originalMeshName + nextMeshNumber.toString());
+      }
+    }
     /** Get array of predecessors */
     var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
+    // var startFace = parseInt(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id) * 32;
     var lastSuccessor = -1;
     if(previousMesh != undefined)
     {
       /** Recursively highlight parent nodes */
-      this.showNodeParents(this.nEdges, scene, startFace, intersection.object, previousMesh, layout);
+      this.showNodeParents(this.nEdges, scene, startFace, intersection.object, previousMesh, previousMeshNumber, layout, layer);
     }
     if(nextMesh != undefined)
     {
       /** Recursively highlight child nodes */
-      lastSuccessor = this.showNodeChildren(this.nEdges, scene, startFace, intersection.object, nextMesh, layout);
+      lastSuccessor = this.showNodeChildren(this.nEdges, scene, startFace, intersection.object, nextMesh, nextMeshNumber, layout, layer);
     }
     /** Highlight 'neighbors' */
-    if(lastSuccessor == -1)
+    if(lastSuccessor != -1)
     {
       this.showNeighbors(scene);
     }
-    else if(lastSuccessor != undefined)
-    {
-      this.renderNeighborEdges(scene, nextMesh, nextMesh.geometry.faces[lastSuccessor]);
-      var neighbors = [];
-      // this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
-      neighbors[0] = { vertexInfo: parseInt(lastSuccessor), mesh: nextMesh.name };
-      for(var i = 0, j = 1; i < nextMesh.geometry.faces[lastSuccessor].neighbors.length; i++, j++)
-      {
-        neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i])*32, mesh: nextMesh.name };
-        this.neighbors.push(neighbors[j]);
-      }
-      this.colorNeighbors(nextMesh.geometry.faces, neighbors);
-    }
+    // else if(lastSuccessor != undefined)
+    // {
+    //   this.renderNeighborEdges(scene, nextMesh, nextMesh.geometry.faces[lastSuccessor]);
+    //   var neighbors = [];
+    //   // this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
+    //   neighbors[0] = { vertexInfo: parseInt(lastSuccessor), mesh: nextMesh.name };
+    //   for(var i = 0, j = 1; i < nextMesh.geometry.faces[lastSuccessor].neighbors.length; i++, j++)
+    //   {
+    //     neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i])*32, mesh: nextMesh.name };
+    //     this.neighbors.push(neighbors[j]);
+    //   }
+    //   this.colorNeighbors(nextMesh.geometry.faces, neighbors);
+    // }
   }
 }
 
@@ -690,8 +848,11 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
     /* Execute ray tracing */
     var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
     var intersection = intersects[0];
+    var layer = 0;
     if(intersection != undefined)
     {
+      /** Check which layer vertex is in */
+      JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id >= JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).lastLayer ? layer = 1 : layer = 0;
       /** Delete vertex info from vueTableHeader and vueTableRows - FIXME not EventHandler responsibility */
       if(vueTableHeader._data.headers != "" || vueTableHeaderSecondLayer._data.headers != "")
       {
@@ -706,11 +867,11 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
         vueTableRowsSecondLayer._data.rows = "";
       }
       /** Show both parent and child edges */
-      this.showHierarchy(intersection, scene, layout);
-      if(intersection.object.name == "MainMesh")
-      {
-        this.showNeighbors(scene);
-      }
+      this.showHierarchy(intersection, scene, layout, layer);
+      // if(intersection.object.name == "MainMesh")
+      // {
+      //   this.showNeighbors(scene);
+      // }
       // this.showParents(intersection, scene, layout);
       // else
       // {
