@@ -596,7 +596,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
   });
   /** Render previous uncoarsened graphs */
   // for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
-  for(let i = 1; i < bipartiteGraphs.length; i = i + 1)
+  for(let i = 1, j = bipartiteGraphs.length*2.0; i < bipartiteGraphs.length; i = i + 1)
   {
     var coarsenedBipartiteGraph;
     coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
@@ -615,12 +615,16 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
     // }
     /** Render nodes */
-    coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
+    coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined, j, j-2.0);
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
     {
       /** Only draw if allowed */
       if(this.parentConnections == 1) this.connectVertexes(bipartiteGraphs[i], bipartiteGraphs[i+1], i, i+1);
+    }
+    if(j-2.0 >= 0.0000)
+    {
+      j = j - 2.0;
     }
   }
 }
@@ -671,7 +675,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph = new BipartiteGraph(jason, 8, "");
 
   /* Render bipartiteGraph */
-  bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo);
+  bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo, (parseInt(Math.max(...numOfLevels))+2)*2.0, ((parseInt(Math.max(...numOfLevels))+2)*2.0)-2.0);
 
   /** Build and render bipartite graphs from previous levels of coarsening */
   this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);

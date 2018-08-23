@@ -54,8 +54,10 @@ IndependentSet.prototype.findNeighbors = function(nodes, links, i)
  * @param {int} y y-axis coordinate for nodes.
  * @param {float} theta Theta value which defines spacing between nodes.
  * @param {int} layout Graph layout.
+ * @param {float} maxNormalizingRange Maximum range to be used when normalizing vertexes.
+ * @param {float} minNormalizingRange Minimum range to be used when normalizing vertexes.
  */
-IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer, geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout)
+IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer, geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout, maxNormalizingRange, minNormalizingRange)
 {
   try
   {
@@ -73,7 +75,7 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
     {
       var x = pos * theta;
       if(nodes[i].weight == undefined) nodes[i].weight = parseInt(minNodeWeight);
-      var circleSize = (5.0 - 1.0) * ( (parseInt(nodes[i].weight) - parseInt(minNodeWeight))/((parseInt(maxNodeWeight)-parseInt(minNodeWeight))+1) ) + 1.0;
+      var circleSize = (maxNormalizingRange - minNormalizingRange) * ( (parseInt(nodes[i].weight) - parseInt(minNodeWeight))/((parseInt(maxNodeWeight)-parseInt(minNodeWeight))+1) ) + minNormalizingRange;
       if(circleSize == 0) circleSize = parseInt(minNodeWeight);
       /** Using feature scale for node sizes */
       circleGeometry.scale(circleSize, circleSize, 1);

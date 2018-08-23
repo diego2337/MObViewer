@@ -206,14 +206,16 @@ BipartiteGraph.prototype.setRenderedLayers = function(renderLayers)
  * @param {Object} firstIndependentSet Independent set where first set of nodes will be rendered.
  * @param {Object} secondIndependentSet Independent set where second set of nodes will be rendered.
  * @param {Object} vertexInfo VertexInfo type object to store properties from vertexes.
+ * @param {float} maxNormalizingRange Maximum range to be used when normalizing vertexes.
+ * @param {float} minNormalizingRange Minimum range to be used when normalizing vertexes.
  */
-BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo)
+BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo, maxNormalizingRange, minNormalizingRange)
 {
   /** Create single geometry which will contain all geometries */
   var singleGeometry = new THREE.Geometry();
   /** y represents space between two layers, while theta space between each vertice of each layer */
   var y = -document.getElementById("mainSection").clientHeight/this.distanceBetweenSets;
-  var theta = 5;
+  var theta = 10;
   /** Define x-axis starting position */
   var pos = (-1 * (parseInt(this.firstLayer) / 2.0));
   /** Fill an array with nodes from first set */
@@ -225,7 +227,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in first layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 0);
   /** Create an independent set and render its nodes */
-  if(this.renderLayers.renderFirstLayer == true) firstIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  if(this.renderLayers.renderFirstLayer == true) firstIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout, maxNormalizingRange, minNormalizingRange);
   /** Readjust x and y-axis values */
   y = y * (-1);
   pos = -1 * Math.floor(parseInt(this.lastLayer) / 2);
@@ -238,7 +240,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in second layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 1);
   /** Create an independent set and render its nodes */
-  if(this.renderLayers.renderLastLayer == true) secondIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+  if(this.renderLayers.renderLastLayer == true) secondIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout, maxNormalizingRange, minNormalizingRange);
   /** Creating material for nodes */
   var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
   /** Create one mesh from single geometry and add it to scene */
@@ -317,8 +319,10 @@ BipartiteGraph.prototype.renderEdges = function(graph, scene, layout, firstIndep
  * @param {Object} scene The scene in which the graph will be built.
  * @param {int} layout Graph layout.
  * @param {Object} vertexInfo VertexInfo type object to store properties from vertexes.
+ * @param {float} maxNormalizingRange Maximum range to be used when normalizing vertexes.
+ * @param {float} minNormalizingRange Minimum range to be used when normalizing vertexes.
  */
-BipartiteGraph.prototype.renderGraph = function(graph, scene, layout, vertexInfo)
+BipartiteGraph.prototype.renderGraph = function(graph, scene, layout, vertexInfo, maxNormalizingRange, minNormalizingRange)
 {
   /** Apply default values to layout and scene, in case no scene is given (will be caught by 'catch') */
   layout = ecmaStandard(layout, 2);
@@ -329,7 +333,7 @@ BipartiteGraph.prototype.renderGraph = function(graph, scene, layout, vertexInfo
     var firstIndependentSet = new IndependentSet();
     var secondIndependentSet = new IndependentSet();
     /** Build and render nodes */
-    this.renderNodes(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo);
+    this.renderNodes(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo, maxNormalizingRange, minNormalizingRange);
 
     /** Build edges */
     // this.renderEdges(graph, scene, layout, firstIndependentSet, secondIndependentSet);
