@@ -67,9 +67,9 @@ if __name__ == "__main__":
             # Create a list of concatenated vertexes
             node['vertexes'] = []
             for source in node['source'].split(","):
-                node['vertexes'].append(originalGraph['nodes'][int(source)])
-                # if int(source) < len(originalGraph['nodes']):
-                    # node['vertexes'].append(originalGraph['nodes'][int(source)])
+                if int(source) < len(originalGraph['nodes']):
+                    node['vertexes'].append(originalGraph['nodes'][int(source)])
+                # node['vertexes'].append(originalGraph['nodes'][int(source)])
         # Step 3.3: Open a new .json file for writing
         # newCoarsenedJson = open(options.folder + fileName + "n" + str(level) + "Weighted.json", 'w')
         # newCoarsenedJson = open(options.folder + fileName + "n" + str(level) + ".json", 'w')
