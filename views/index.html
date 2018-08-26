@@ -31,12 +31,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.11.0/d3.min.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/88/three.min.js" type="text/javascript"></script>
     <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/mdlStyles.css">
     <script src="vendor/mdlJqueryModalDialog/mdlJqueryModalDialog.js" type="text/javascript"></script>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="vendor/mdlCollapse/mdlCollapse.js" type="text/javascript"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.deep_purple-red.min.css" />
     <link rel="stylesheet" href="vendor/mdlJqueryModalDialog/mdlJqueryModalDialog.css" />
+    <link rel="stylesheet" href="vendor/mdlCollapse/mdlCollapse.css" />
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"> -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
@@ -223,7 +226,7 @@
                 <span id="output2"></span>
               </li>
               <li class="mdl-list__item">
-                <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener2" value="0"  tabindex="0">
+                <input class="mdl-slider mdl-js-slider" type="range" min="0" max="0.5" step="0.1" id="multilevelCoarsener2" value="0" tabindex="0">
               </li>
               <li class="mdl-list__item">
                 <!-- Simple Select -->
@@ -266,18 +269,23 @@
         <section class="mdl-layout__tab-panel is-active" id="fixed-tab-1">
           <div id="gradientScale" class="relative-div float-right z-index-front">
           </div>
-          <div id="divVertexInfoTable" class="hidden-visibility mdl-grid scrollable-y fixed-div small-margin z-index-front">
+          <div id="divVertexInfoTable" class="hidden-visibility mdl-grid scrollable-y scrollable-x fixed-div-lowerLeft small-margin z-index-front">
             <!-- <span class="mdl-layout__title">Vertex info</span> -->
-            <div class="mdl-cell mdl-cell--1-col">
-              <button id="clearTable1" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
-                <i class="material-icons">clear</i>
-                <div class="lower-case mdl-tooltip" for="clearTable1">
-                    Clear table.
+            <div class="mdl-cell mdl-cell--12-col mdl-card mdl-shadow--4dp small-margin scrollable-x">
+              <div class="mdl-card__title">
+                <h4 class="mdl-card__title-text">Vertex info (lower layer)</h4>
+                <div class="mdl-layout-spacer"></div>
+                <div class="mdl-cell mdl-cell--1-col">
+                  <button id="clearTable1" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                    <i class="material-icons">clear</i>
+                    <div class="lower-case mdl-tooltip" for="clearTable1">
+                        Clear table.
+                    </div>
+                  </button>
                 </div>
-              </button>
-            </div>
-            <div class="mdl-cell mdl-cell--11-col">
-              <table id="vertexInfoTable" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+              </div>
+              <!-- <table id="vertexInfoTable" class="small-margin mdl-data-table mdl-js-data-table mdl-shadow--2dp"> -->
+              <table id="vertexInfoTable" class="small-margin mdl-data-table mdl-js-data-table">
                 <thead id="dynamicTableHeaders">
                   <tr>
                     <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
@@ -358,9 +366,36 @@
                 </div>
               </div>
             </div>
+            <!-- <div id="vertexStatsCard" class="mdl-card mdl-shadow--4dp">
+              <div class="mdl-card__title">
+                <h1 class="mdl-card__title-text">Bar charts for attributes</h1>
+                <div class="mdl-layout-spacer"></div>
+                <button id="clearTableVertexStats" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                  <i class="material-icons">clear</i>
+                  <div class="lower-case mdl-tooltip" for="clearTableVertexStats">
+                      Close card.
+                  </div>
+                </button>
+              </div>
+              <div id="vertexStats">
+              </div>
+            </div> -->
             <div id="divVertexInfoTableSecondLayer" class="hidden-visibility mdl-grid scrollable-y fixed-div-upperLeft small-margin z-index-front">
-              <div>
-                <table id="vertexInfoTableSecondLayer" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+              <div class="mdl-card mdl-shadow--4dp small-margin scrollable-x">
+                <div class="mdl-card__title">
+                  <h4 class="mdl-card__title-text">Vertex info (upper layer)</h4>
+                  <div class="mdl-layout-spacer"></div>
+                  <div class="mdl-cell mdl-cell--1-col">
+                    <button id="clearTable2" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                      <i class="material-icons">clear</i>
+                      <div class="lower-case mdl-tooltip" for="clearTable2">
+                          Clear table.
+                      </div>
+                    </button>
+                  </div>
+                </div>
+                <!-- <table id="vertexInfoTableSecondLayer" class="mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp"> -->
+                <table id="vertexInfoTableSecondLayer" class="small-margin mdl-data-table mdl-js-data-table">
                   <thead id="dynamicTableHeadersSecondLayer">
                     <tr>
                       <th class="mdl-data-table__cell--non-numeric" v-for="header in headers">
@@ -376,14 +411,6 @@
                     </tr>
                   </tbody>
                 </table>
-              </div>
-              <div class="mdl-cell mdl-cell--1-col">
-                <button id="clearTable2" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
-                  <i class="material-icons">clear</i>
-                  <div class="lower-case mdl-tooltip" for="clearTable2">
-                      Clear table.
-                  </div>
-                </button>
               </div>
             </div>
             <div id="userDefinedInfo" class="hidden-visibility fixed-div-center">
@@ -443,8 +470,30 @@
             </div> -->
           </div>
           <!-- <div> to draw vertex stats -->
-          <div id="vertexStats" class="fixed-div-lowerRight z-index-front">
+          <div class="fixed-div-lowerRight z-index-front">
+            <div id="vertexStatsCard" class="mdl-card mdl-shadow--4dp">
+              <div class="mdl-card__title">
+                <h1 class="mdl-card__title-text">Bar charts for attributes</h1>
+                <div class="mdl-layout-spacer"></div>
+                <button id="clearTableVertexStats" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+                  <i class="material-icons">clear</i>
+                  <div class="lower-case mdl-tooltip" for="clearTableVertexStats">
+                      Close card.
+                  </div>
+                </button>
+              </div>
+              <div id="vertexStats">
+              </div>
+              <!-- <div id="vertexStats" class="mdl-card__media">
+              </div> -->
+              <!-- <div class="mdl-card__supporting-text">
+              This is a supporting text.
+              </div> -->
+              <!-- <div class="mdl-card__actions">
+              </div> -->
+            </div>
           </div>
+
         </section>
         <!-- <section class="mdl-layout__tab-panel" id="fixed-tab-3">
           <div class="mdl-grid page-content">

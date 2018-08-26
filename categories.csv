@@ -1,2 +1,6 @@
-title,arbitrary
+country,arbitrary
+sha-id,arbitrary
+signup-date,arbitrary
 id,ordinal
+sex,categorical
+age,ordinal

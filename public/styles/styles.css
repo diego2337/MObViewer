@@ -1,3 +1,8 @@
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .scrollable-y {
   max-height: 100%;
   overflow-y: auto;
@@ -18,13 +23,20 @@
 .fixed-div-lowerRight {
 	position: fixed;
 	bottom: 10px;
-	right: 10px;
+	right: 50px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  top: 550px;
+  bottom: 10px;
+  left: 10px;
 }
 
 .fixed-div-upperLeft {
 	position: fixed;
-	top: 150px;
-  bottom: 320px;
+	top: 130px;
+  bottom: 550px;
 	left: 10px;
 }
 
@@ -47,8 +59,8 @@
 
 .fixed-div {
 	position: fixed;
-	top: 150px;
-  bottom: 320px;
+	top: 130px;
+  bottom: 550px;
 	right: 40px;
 }
 
