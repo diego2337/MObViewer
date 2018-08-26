@@ -4811,9 +4811,10 @@ statsHandler.prototype.visualizeStats = function(id)
     data: { vertexId: id },
     success: function(html){
       html = JSON.parse(html).arr;
-      if(html != undefined || html != "")
+      if(html != undefined || html != "" || (html.length !== undefined && html.length > 0))
       {
           statsHandlerScope.d3BarChart.populateAndShowBarChart(html);
+          $("#vertexStatsCard").css('visibility', 'visible');
       }
     },
     xhr: loadGraph
