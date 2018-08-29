@@ -3,4 +3,4 @@ sha-id,arbitrary
 signup-date,arbitrary
 id,ordinal
 sex,categorical
-age,ordinal
+age,ordinal,10-75
