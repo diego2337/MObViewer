@@ -1960,7 +1960,7 @@ d3BarChart.prototype.created3BarChart = function(HTMLelement)
   /** Define dimensions if none was defined */
   if(this.getMargin() == undefined)
   {
-    this.setMargin({top: 20, right: 20, bottom: 40, left: 80});
+    this.setMargin({top: 20, right: 20, bottom: 60, left: 80});
     /** Define sizes */
     this.defineSizes(+width - this.getMargin().left - this.getMargin().right, +height - this.getMargin().top - this.getMargin().bottom);
     /** Define axes */
@@ -1984,6 +1984,25 @@ d3BarChart.prototype.populateAndShowBarChart = function(data)
 }
 
 /**
+ * FIXME - Not d3BarChart responsibility
+ * @desc Return bar chart data properties, to be used as labels for x axis.
+ * @param {Array} data String-like or Array data to populate bar chart.
+ * @returns {Array} Sorted array of properties.
+ */
+d3BarChart.prototype.getProperties = function(data)
+{
+  var dict = {};
+  for(element in data)
+  {
+    if(!(data[element].property in dict))
+    {
+      dict[data[element].property] = 1;
+    }
+  }
+  return Object.keys(dict).sort();
+}
+
+/**
  * @desc Populates bar chart with information provided by data, setting domains and ticks for axes.
  * @public
  * @param {(String|Array)} data String-like or Array data to populate bar chart.
@@ -1998,14 +2017,24 @@ d3BarChart.prototype.populateBarChart = function(data)
     this.getG().append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + this.getHeight() + ")")
-        .call(d3.axisBottom(this.getX()));
+        .call(d3.axisBottom(this.getX()))
+        .selectAll("text")
+        .attr("transform", "rotate(90)")
+        .attr("x", 22)
+        .attr("y", -6);
+
+    /** Add label for x-axis */
+    this.barChart.append("text")
+    	  .attr("transform", "translate(" + (this.getWidth()) + " ," + (this.getHeight()+75) + ")")
+    	  .style("text-anchor", "middle")
+    	  .text(this.getProperties(data));
 
     this.getG().append("g")
         .attr("class", "axis axis--y")
         .call(d3.axisLeft(this.getY()).ticks(10).tickFormat(function(d){ return d + "%"; }))
       .append("text")
         .attr("transform", "rotate(-90)")
-        .attr("y", 6)
+        .attr("y", -20)
         .attr("dy", "0.71em")
         .attr("text-anchor", "end")
         .text("Frequency");

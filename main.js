@@ -12,6 +12,7 @@ var pyName = "";
 var currentLevel = 0;
 var folderChar = addFolderPath();
 var exists = false;
+var stringify = require('json-stable-stringify');
 
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -383,6 +384,78 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
 }
 
 /**
+ * Perform a binary search on array 'a' to find a given range for value. From https://rosettacode.org/wiki/Binary_search#JavaScript and adapted with answer from https://stackoverflow.com/questions/22123489/olog-n-algorithm-to-find-best-insert-position-in-sorted-array
+ * @param {Array} a Sorted array to search for range.
+ * @param {(float|int)} value Value for searching.
+ * @returns {int} Index for ending range of value.
+ */
+function binary_search_iterative(a, value)
+{
+  var mid, lo = 0,
+      hi = a.length - 1;
+
+  while (lo < hi) {
+    mid = Math.floor((lo + hi) / 2);
+
+    a[mid] > value ? hi = mid : lo = mid + 1
+    // if (a[mid] > value) {
+    //   hi = mid - 1;
+    // } else if (a[mid] < value) {
+    //   lo = mid + 1;
+    // } else {
+    //   return mid;
+    // }
+  }
+  // return null;
+  return lo;
+}
+
+/**
+ * Get range, given min range, max range and interval.
+ * @param {(float|int)} minRange Minimal range.
+ * @param {(float|int)} maxRange Maximal range.
+ * @param {(float|int)} interval Interval between ranges.
+ * @returns {Array} Range elements.
+ */
+function getRange(minRange, maxRange, interval)
+{
+  var rangeInterval = [];
+  for(let i = minRange; i < maxRange; i = i + interval)
+  {
+    rangeInterval.push(i);
+  }
+  var strRange = [];
+  for(let i = 0; i < rangeInterval.length-1; i = i + 1)
+  {
+    strRange.push(rangeInterval[i].toString() + "-" + rangeInterval[i+1].toString());
+  }
+  // strRange.sort(function(a, b){
+  //   return parseFloat(a.split("-")[0]) - parseFloat(b.split("-")[0]);
+  // });
+  return strRange;
+}
+
+/**
+ * Get, for a given value, its range, according to a given interval.
+ * @param {(float|int)} value Value to be assigned to a range.
+ * @param {(float|int)} minRange Minimal range.
+ * @param {(float|int)} maxRange Maximal range.
+ * @param {(float|int)} interval Interval between ranges.
+ * @returns {String} Assigned interval for value, converted to string.
+ */
+function getOrdinalRange(value, minRange, maxRange, interval)
+{
+  /** Create an array with minRange and maxRange, by 'interval' intervals */
+  var rangeInterval = [];
+  for(let i = minRange; i < maxRange; i = i + interval)
+  {
+    rangeInterval.push(i);
+  }
+  /** Get index for range */
+  return binary_search_iterative(rangeInterval, value)-1 >= 0 ? (rangeInterval[binary_search_iterative(rangeInterval, value)-1]).toString() + '-' + (rangeInterval[binary_search_iterative(rangeInterval, value)]).toString() : (rangeInterval[0]).toString() + '-' + (rangeInterval[1]).toString();
+}
+
+/**
  * Create 'vertedIdStats.csv' file, with information from 'categories.csv'.
  * @param {String} categories Categories file converted in string format.
  * @param {Object} vertex Vertex properties.
@@ -392,6 +465,7 @@ function generateVertexStats(categories, vertex)
   var cats = categories.split("\n");
   var catsDict = {};
   var categoricalDict = {};
+  var ordinalDict = {};
   /** Create a dictionary for categories */
   for (line in cats)
   {
@@ -414,30 +488,64 @@ function generateVertexStats(categories, vertex)
     {
       if(prop in catsDict)
       {
-        if(catsDict[prop].rangeNumber != "" || catsDict[prop].rangeNumber != "\n" || catsDict[prop].rangeNumber != undefined)
+        /** Parsing categorical data */
+        if(catsDict[prop].category == "categorical")
         {
-          /** Parsing categorical data */
-          if(catsDict[prop].category == "categorical")
+          if(!(prop in categoricalDict))
           {
-            if(!(prop in categoricalDict))
+            /** Create a dict of categories */
+            categoricalDict[prop] = {};
+            categoricalDict[prop][vertex.vertexes[i][prop]] = 1;
+          }
+          else
+          {
+            if(!(vertex.vertexes[i][prop] in categoricalDict[prop]))
             {
-              /** Create a dict of categories */
-              categoricalDict[prop] = {};
-              categoricalDict[prop][vertex.vertexes[i][prop]] = 0;
+              categoricalDict[prop][vertex.vertexes[i][prop]] = 1;
             }
             else
             {
-              if(!(vertex.vertexes[i][prop] in categoricalDict[prop]))
-              {
-                categoricalDict[prop][vertex.vertexes[i][prop]] = 0;
-              }
-              else
-              {
-                categoricalDict[prop][vertex.vertexes[i][prop]] = categoricalDict[prop][vertex.vertexes[i][prop]] + 1;
-              }
+              categoricalDict[prop][vertex.vertexes[i][prop]] = categoricalDict[prop][vertex.vertexes[i][prop]] + 1;
             }
           }
-          /** TODO parse ordinal data */
+        }
+        else if(catsDict[prop].category == "ordinal")
+        {
+          if(catsDict[prop].rangeNumber != "" && catsDict[prop].rangeNumber != "\n" && catsDict[prop].rangeNumber != undefined)
+          {
+            /** FIXME - Range is fixed for 5; adapt it to better understand different types of ordinal data */
+            if(!(prop in ordinalDict))
+            {
+              /** Create an ordinal dict, and assign total ranges */
+              ordinalDict[prop] = {};
+              var range = getRange(parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0);
+              for(element in range)
+              {
+                ordinalDict[prop][range[element]] = 0;
+              }
+              // ordinalDict[prop][getOrdinalRange(parseFloat(vertex.vertexes[i][prop]), parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0)] = 0;
+
+            }
+            if(!(getOrdinalRange(parseFloat(vertex.vertexes[i][prop]), parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0) in ordinalDict[prop]))
+            {
+              ordinalDict[prop][getOrdinalRange(parseFloat(vertex.vertexes[i][prop]), parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0)] = 1;
+            }
+            else
+            {
+              ordinalDict[prop][getOrdinalRange(parseFloat(vertex.vertexes[i][prop]), parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0)] = ordinalDict[prop][getOrdinalRange(parseFloat(vertex.vertexes[i][prop]), parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0)] + 1;
+            }
+            // else
+            // {
+            //   if(!(getOrdinalRange(parseFloat(vertex.vertexes[i][prop]), parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0) in ordinalDict[prop]))
+            //   {
+            //     ordinalDict[prop][getOrdinalRange(parseFloat(vertex.vertexes[i][prop]), parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0)] = 1;
+            //   }
+            //   else
+            //   {
+            //     ordinalDict[prop][getOrdinalRange(parseFloat(vertex.vertexes[i][prop]), parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0)] = ordinalDict[prop][getOrdinalRange(parseFloat(vertex.vertexes[i][prop]), parseFloat(catsDict[prop].rangeNumber.split("-")[0]), parseFloat(catsDict[prop].rangeNumber.split("-")[1]), 5.0)] + 1;
+            //   }
+            // }
+          }
         }
       }
     }
@@ -448,7 +556,8 @@ function generateVertexStats(categories, vertex)
     var length = 0;
     for(cat in categoricalDict[prop])
     {
-       length = length + parseInt(categoricalDict[prop][cat]);
+      length = length + parseInt(categoricalDict[prop][cat]);
+      // length = length + 1;
     }
     for(cat in categoricalDict[prop])
     {
@@ -457,8 +566,24 @@ function generateVertexStats(categories, vertex)
       categoricalDict[prop][cat] = (parseFloat(categoricalDict[prop][cat]) / parseFloat(length)) * 100.0;
     }
   }
+  /** Calculate %s for ordinal data */
+  for(prop in ordinalDict)
+  {
+    var length = 0;
+    for(cat in ordinalDict[prop])
+    {
+      length = length + parseFloat(ordinalDict[prop][cat]);
+      // length = length + 1;
+    }
+    for(cat in ordinalDict[prop])
+    {
+      /** Get percentage */
+      parseFloat(length) > 0 ? ordinalDict[prop][cat] = (parseFloat(ordinalDict[prop][cat]) / parseFloat(length)) * 100.0 : ordinalDict[prop][cat] = 0;
+    }
+  }
   /** Write vertex info */
-  fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + vertex.id + 'Stats.json', JSON.stringify(categoricalDict), function(err){
+  // fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + vertex.id + 'Stats.json', JSON.stringify(JSON.parse(JSON.stringify(categoricalDict)).concat(JSON.parse(JSON.stringify(ordinalDict)))),
+  fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + vertex.id + 'Stats.json', stringify(Object.assign({}, categoricalDict, ordinalDict)), function(err){
     if(err)
     {
       console.log("Error writing " + vertex.id + 'Stats.json.');
@@ -484,7 +609,7 @@ function processStats(stats)
     /** FIXME - Completely biased towards one use case; must be generic */
     for(cats in idStats[prop])
     {
-        d3Arr.push({ categories: cats, percentage: idStats[prop][cats] });
+        d3Arr.push({ property: prop, categories: cats, percentage: idStats[prop][cats] });
     }
   }
   return JSON.stringify({ arr:d3Arr });
