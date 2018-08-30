@@ -321,33 +321,44 @@
 {
 "vertices":
 [
-  "v1",
-  "v2"
+  v1,
+  v2
 ],
 "reduction_factor":
 [
-  "r1",
-  "r2"
+  r1,
+  r2
 ],
 "max_levels":
 [
-  "ml1",
-  "ml2"
+  ml1,
+  ml2
+],
+"global_min_vertices":
+[
+	gmv1,
+	gmv2
 ],
 "matching":
 [
+  "greedy_seed_twohops",
   "greedy_seed_twohops"
 ],
 "similarity":
 [
+  "weighted_common_neighbors",
   "weighted_common_neighbors"
 ],
-"filename": "fileName.json",
-"save_conf": true,
+"upper_bound":
+[
+	ub1,
+	ub2
+],
+"input": "fileName.json",
 "save_ncol": false,
 "save_gml": true,
 "save_source": false,
-"save_predecessor": true,
+"save_predecessor": false,
 "show_timing": false,
 "save_timing": false,
 "save_hierarchy": true,
