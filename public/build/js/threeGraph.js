@@ -672,7 +672,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
       // !clicked ? clicked = true : clicked = false;
     }, false);
     document.addEventListener('click', function(evt){
-      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene);
+      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene, lay);
     }, false);
   }
   else
@@ -2306,7 +2306,7 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
       {
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
       }
-      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
+      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
       {
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
       }
@@ -2356,6 +2356,7 @@ var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
     this.raycaster.linePrecision = 0.1;
     this.highlightedElements = [];
     this.neighbors = [];
+    this.realNeighbors = [];
     this.doubleClick = new DoubleClick();
     // this.clicked = {wasClicked: false};
     this.updateData = {wasUpdated: false};
@@ -2587,51 +2588,18 @@ EventHandler.prototype.showNeighbors = function(scene)
   {
     /** Add itself for highlighting */
     this.neighbors.push({vertexInfo: this.highlightedElements[i], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+    this.realNeighbors.push({vertexInfo: this.highlightedElements[i], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
     for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
     {
       this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+      this.realNeighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
     }
     this.renderNeighborEdges(scene, element, element.geometry.faces[this.highlightedElements[i]]);
     this.colorNeighbors(element.geometry.faces, this.neighbors);
-    // for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
-    // {
-    //   var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
-    //   for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
-    //   {
-    //       element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
-    //   }
-    // }
     element.geometry.colorsNeedUpdate = true;
     /** Remove itself so it won't unhighlight as soon as mouse moves out */
     this.highlightedElements.splice(i, 1);
   }
-  // if(!this.clicked.wasClicked)
-  // {
-  //
-  // }
-  // else if(this.clicked.wasClicked)
-  // {
-  //   scene.remove(scene.getObjectByName("neighborEdges"));
-  //   for(var i = 0; i < this.neighbors.length; i++)
-  //   {
-  //     var mesh = scene.getObjectByName(this.neighbors[i].mesh);
-  //     for(var j = 0; j < 32; j++)
-  //     {
-  //       if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
-  //       {
-  //         mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
-  //       }
-  //       else if(mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j] !== undefined)
-  //       {
-  //         mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
-  //       }
-  //       mesh.geometry.colorsNeedUpdate = true;
-  //     }
-  //   }
-  //   element.geometry.colorsNeedUpdate = true;
-  //   /** Clearing array of neighbors */
-  //   this.neighbors = [];
-  // }
 }
 
 /**
@@ -2707,6 +2675,8 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
     $.ajax({
       url: '/getSorted',
       type: 'POST',
+      /** FIXME - NEVER EVER EVER use async! */
+      async: false,
       // data: { name: previousMesh.name, pred: predecessors },
       data: { currentMesh: currentMesh.name, previousMesh: previousMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
       success: function(data){
@@ -2934,6 +2904,8 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
     $.ajax({
       url: '/getSortedSuccessors',
       type: 'POST',
+      /** FIXME - NEVER EVER EVER use async! */
+      async: false,
       data: { currentMesh: currentMesh.name, nextMesh: nextMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
       success: function(data){
         data = JSON.parse(data);
@@ -3154,6 +3126,12 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
     if(lastSuccessor != -1)
     {
       this.showNeighbors(scene);
+      // var mesh = scene.getObjectByName("MainMesh");
+      // for(let i = 0; i < this.realNeighbors.length; i++)
+      // {
+      //   /** Show vertex info for every neighbor found */
+      //   mesh.geometry.faces[this.realNeighbors[i].vertexInfo].faceIndex <= mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32 ? this.showVertexInfo(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties, vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
+      // }
     }
     // else if(lastSuccessor != undefined)
     // {
@@ -3182,6 +3160,13 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
 EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, layout)
 {
   /** Check double-click state */
+  if(this.doubleClick.getClicked().wasClicked)
+  {
+    /** Change click variable and update layout */
+    this.doubleClick.setClicked({wasClicked: false});
+    // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
+    this.doubleClick.updateLayout(scene, this);
+  }
   if(!this.doubleClick.getClicked().wasClicked)
   {
     this.doubleClick.setClicked({wasClicked: true});
@@ -3224,13 +3209,13 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
     //   this.showParents(intersection, scene, layout);
     // }
   }
-  else
-  {
-    /** Change click variable and update layout */
-    this.doubleClick.setClicked({wasClicked: false});
-    // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
-    this.doubleClick.updateLayout(scene, this);
-  }
+  // else
+  // {
+  //   /** Change click variable and update layout */
+  //   this.doubleClick.setClicked({wasClicked: false});
+  //   // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
+  //   this.doubleClick.updateLayout(scene, this);
+  // }
 }
 
 /**
@@ -3297,13 +3282,81 @@ EventHandler.prototype.getTooltipInfo = function(vertices)
 }
 
 /**
+ * Show vertex information with Vue.js.
+ * @public
+ * @param {JSON} vertices Properties from vertex face.
+ * @param {Array} rows Rows to insert data.
+ * @param {String} table Table ID where vertex info will be displayed.
+ */
+EventHandler.prototype.showVertexInfo = function(vertices, rows, table)
+{
+  var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
+  /** Load already existing elements clicked in array of rows */
+  for(var j = 0; j < rows._data.rows.length; j++)
+  {
+    vertexVueRows.push(rows._data.rows[j]);
+  }
+  /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
+  if(vertices.vertexes !== undefined)
+  {
+    vertices = vertices.vertexes;
+  }
+  else
+  {
+    var simpleArr = [];
+    simpleArr.push(vertices);
+    vertices = simpleArr;
+  }
+  /** Check if intersected vertex is either from first or second layer */
+  for(var j = 0; j < vertices.length; j++)
+  {
+    var tempArr = [];
+    for(key in vertices[j])
+    {
+      tempArr.push(key);
+    }
+    if(vertexVueHeaders.length < tempArr.length)
+    {
+      vertexVueHeaders = tempArr;
+      /** Sort headers */
+      vertexVueHeaders.sort(function(a, b){
+        return ('' + a).localeCompare(b);
+      });
+      /** Construct a new vue table header */
+      vueTableHeader._data.headers = vertexVueHeaders;
+    }
+  }
+  for(var j = 0; j < vertices.length; j++)
+  {
+    /** Sort vertices[j] */
+    var ordered = {};
+    Object.keys(vertices[j]).sort().forEach(function(key) {
+      ordered[key] = vertices[j][key];
+    });
+    for(key in vertexVueHeaders)
+    {
+      if(!(vertexVueHeaders[key] in ordered))
+      {
+        ordered[key] = "No value";
+      }
+    }
+    vertexVueRows.push(ordered);
+  }
+  /** Construct a new vue table data */
+  rows._data.rows = vertexVueRows;
+  /** Show tables containing vertex info */
+  $(table).css('visibility', 'visible');
+}
+
+/**
  * Handles mouse click. If mouse clicks vertex, show its current id and weight, as well as vertexes associated with it.
  * @public
  * @param {Object} evt Event dispatcher.
  * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
  * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
  */
-EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
+EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene, layout)
 {
   var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
   var intersection = intersects[0];
@@ -3311,153 +3364,19 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
   {
     if(intersection.face) /** Intersection with vertice */
     {
+      /** Execute double-click */
+      this.mouseDoubleClickEvent(evt, renderer, scene, layout);
       /** First layer */
       if(intersection.faceIndex <= intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32)
       {
         var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
-        var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
-        /** Load already existing elements clicked in array of rows */
-        for(var j = 0; j < vueTableRows._data.rows.length; j++)
-        {
-          vertexVueRows.push(vueTableRows._data.rows[j]);
-        }
-        /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
-        if(vertices.vertexes !== undefined)
-        {
-          vertices = vertices.vertexes;
-        }
-        else
-        {
-          var simpleArr = [];
-          simpleArr.push(vertices);
-          vertices = simpleArr;
-        }
-        /** Check if intersected vertex is either from first or second layer */
-        // if(intersection.object.geometry.faces[intersection.faceIndex
-        // for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
-        for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
-        {
-          var tempArr = [];
-          for(key in vertices[j])
-          {
-            tempArr.push(key);
-          }
-          // if(j == 0)
-          if(vertexVueHeaders.length < tempArr.length)
-          {
-            // for(key in vertices.vertexes[j])
-            // for(key in vertices[j])
-            // {
-            //   vertexVueHeaders.push(key);
-            // }
-            vertexVueHeaders = tempArr;
-            // console.log("vertexVueHeaders:");
-            // console.log(vertexVueHeaders);
-            /** Sort headers */
-            vertexVueHeaders.sort(function(a, b){
-              return ('' + a).localeCompare(b);
-            });
-            /** Construct a new vue table header */
-            vueTableHeader._data.headers = vertexVueHeaders;
-          }
-        }
-        for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
-        {
-          // if(j == 0)
-          // {
-          //   // for(key in vertices.vertexes[j])
-          //   for(key in vertices[j])
-          //   {
-          //     vertexVueHeaders.push(key);
-          //   }
-          //   // console.log("vertexVueHeaders:");
-          //   // console.log(vertexVueHeaders);
-          //   /** Sort headers */
-          //   vertexVueHeaders.sort(function(a, b){
-          //     return ('' + a).localeCompare(b);
-          //   });
-          //   /** Construct a new vue table header */
-          //   vueTableHeader._data.headers = vertexVueHeaders;
-          // }
-          /** Sort vertices[j] */
-          var ordered = {};
-          Object.keys(vertices[j]).sort().forEach(function(key) {
-            ordered[key] = vertices[j][key];
-          });
-          // vertexVueRows.push(vertices.vertexes[j]);
-          for(key in vertexVueHeaders)
-          {
-            if(!(vertexVueHeaders[key] in ordered))
-            {
-              ordered[key] = "No value";
-            }
-          }
-          vertexVueRows.push(ordered);
-        }
-        /** Construct a new vue table data */
-        vueTableRows._data.rows = vertexVueRows;
-        /** Show tables containing vertex info */
-        $("#divVertexInfoTable").css('visibility', 'visible');
+        this.showVertexInfo(vertices, vueTableRows, "#divVertexInfoTable");
       }
-      else /** Last layer */
+      /** Last layer */
+      else
       {
         var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
-        var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
-        /** Load already existing elements clicked in array of rows */
-        for(var j = 0; j < vueTableRowsSecondLayer._data.rows.length; j++)
-        {
-          vertexVueRows.push(vueTableRowsSecondLayer._data.rows[j]);
-        }
-        /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
-        if(vertices.vertexes !== undefined)
-        {
-          vertices = vertices.vertexes;
-        }
-        else
-        {
-          var simpleArr = [];
-          simpleArr.push(vertices);
-          vertices = simpleArr;
-        }
-        for(var j = 0; j < vertices.length; j++)
-        {
-          var tempArr = [];
-          for(key in vertices[j])
-          {
-            tempArr.push(key);
-          }
-          if(vertexVueHeaders.length < tempArr.length)
-          {
-            vertexVueHeaders = tempArr
-            /** Sort headers */
-            vertexVueHeaders.sort(function(a, b){
-              return ('' + a).localeCompare(b);
-            });
-            /** Construct a new vue table header */
-            vueTableHeaderSecondLayer._data.headers = vertexVueHeaders;
-          }
-        }
-        for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
-        {
-          /** Sort vertices[j] */
-          var ordered = {};
-          Object.keys(vertices[j]).sort().forEach(function(key) {
-            ordered[key] = vertices[j][key];
-          });
-          // vertexVueRows.push(vertices.vertexes[j]);
-          for(key in vertexVueHeaders)
-          {
-            if(!(vertexVueHeaders[key] in ordered))
-            {
-              ordered[key] = "No value";
-            }
-          }
-          vertexVueRows.push(ordered);
-        }
-        /** Construct a new vue table data */
-        vueTableRowsSecondLayer._data.rows = vertexVueRows;
-        /** Show tables containing vertex info */
-        $("#divVertexInfoTableSecondLayer").css('visibility', 'visible');
+        this.showVertexInfo(vertices, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
       }
       /** Show stats in bar charts (if any is available) */
       this.statsHandler.generateAndVisualizeStats(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
@@ -3465,7 +3384,6 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */
       this.d3Tooltip.populateAndShowTooltip(this.getTooltipInfo(vertices));
-      // this.d3Tooltip.populateAndShowTooltip("<span>Ok!</span>");
     }
     else
     {

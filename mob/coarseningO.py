@@ -48,6 +48,15 @@ __docformat__ = 'markdown en'
 __version__ = '0.1'
 __date__ = '2018-10-05'
 
+# Returns one of the non-zero numbers from a list.
+# @param {tuple} tup Tuple of numbers.
+# @return {number} One of the numbers from tuple which is non-zero.
+def getNonZeroValue(tup):
+	for i in range(0, len(tup)):
+		if(tup[i] != 0):
+			return tup[i]
+	return '-1'
+
 def main():
 	"""
 	Main entry point for the application when run from the command line.
@@ -128,7 +137,7 @@ def main():
 			sys.exit(1)
 
 		# Validation of matching method
-		valid_matching = ['rgmb', 'gmb', 'mlp', 'nmlp', 'medlp', 'hem', 'lem', 'rm']
+		valid_matching = ['rgmb', 'gmb', 'mlp', 'nmlp', 'hem', 'lem', 'rm']
 		for index, matching in enumerate(options.matching):
 			matching = matching.lower()
 			if matching not in valid_matching:
@@ -165,33 +174,31 @@ def main():
 
 	# Load bipartite graph
 	with timing.timeit_context_add('Load'):
-		graph_original = helperigraph.load(options.input, options.vertices)
-		graph_original['level'] = [0] * graph_original['layers']
+		graph = helperigraph.load(options.input, options.vertices)
+		graph['level'] = [0] * graph['layers']
 
 	# Coarsening
 	with timing.timeit_context_add('Coarsening'):
 		hierarchy_graphs = []
 		hierarchy_levels = []
-		graph = graph_original.copy()
+
 		running = True
 		while running:
 			running = False
 
-			membership = numpy.array(range(graph.vcount()))
+			membership = range(graph.vcount())
 			levels = graph['level']
-			contract = False
 
 			for layer in range(len(graph['vertices'])):
 
-				matching_layer = True
+				contract_layer = True
 				if (options.global_min_vertices[layer] is None):
 					if levels[layer] >= options.max_levels[layer]:
-						matching_layer = False
+						contract_layer = False
 				elif (graph['vertices'][layer] <= options.global_min_vertices[layer]):
-					matching_layer = False
+					contract_layer = False
 
-				if matching_layer:
-					contract = True
+				if contract_layer:
 					running = True
 					levels[layer] += 1
 
@@ -201,11 +208,11 @@ def main():
 					vertices = range(start, end)
 
 					param = dict(reduction_factor=options.reduction_factor[layer])
-					if options.matching[layer] in ['mlp', 'nmlp', 'medlp', 'nmb']:
+					if options.matching[layer] in ['mlp', 'nmlp', 'mb']:
 						param['upper_bound'] = options.upper_bound[layer]
 						param['n'] = options.vertices[layer]
 						param['global_min_vertices'] = options.global_min_vertices[layer]
-					if options.matching[layer] in ['mlp', 'medlp']:
+					if options.matching[layer] in ['mlp', 'mb']:
 						param['itr'] = options.itr_mlp[layer]
 
 					if options.matching[layer] in ['hem', 'lem', 'rm']:
@@ -216,8 +223,12 @@ def main():
 						matching_method = getattr(graph, options.matching[layer])
 						matching_method(vertices, membership, **param)
 
-			if contract:
-				coarse = graph.contract_group(membership)
+			if membership != range(graph.vcount()):
+				if set(options.matching).intersection(set(['mlp', 'nmlp'])):
+					coarse = graph.contract_group(membership)
+				else:
+					coarse = graph.contract_pair(membership)
+
 				coarse['level'] = levels
 				graph = coarse
 
@@ -254,7 +265,6 @@ def main():
 					json.dump(d, f, indent=4)
 
 			if options.save_ncol:
-				# graph.write(output + '_' + str(index) + '.ncol', format='ncol')
 				graph.write(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.ncol', format='ncol')
 
 			if options.save_source:
@@ -270,10 +280,10 @@ def main():
 						f.write(' '.join(map(str, v['predecessor'])) + '\n')
 
 			if options.save_successor:
-				numpy.savetxt(output + '_' + str(index) + '.successor', graph.vs['successor'], fmt='%d')
+				numpy.savetxt(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.successor', graph.vs['successor'], fmt='%d')
 
 			if options.save_weight:
-				numpy.savetxt(output + '_' + str(index) + '.weight', graph.vs['weight'], fmt='%d')
+				numpy.savetxt(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.weight', graph.vs['weight'], fmt='%d')
 
 			if options.save_gml:
 				# del graph['adjlist']
@@ -283,6 +293,8 @@ def main():
 					graph['vertices'] = graph['vertices'].split(",")
 				if(type(graph['level']) is str):
 					graph['level'] = graph['level'].split(",")
+				# graph['vertices'] = ','.join(map(str, graph['vertices']))
+				# graph['level'] = ','.join(map(str, graph['level']))
 				graph['vertices'] = ' '.join(map(str, graph['vertices']))
 				graph['level'] = ' '.join(map(str, graph['level']))
 				graph.vs['name'] = map(str, range(0, graph.vcount()))
@@ -294,6 +306,7 @@ def main():
 						v['source'] = v['source'].split(",")
 					if(type(v['predecessor']) is str):
 						v['predecessor'] = v['predecessor'].split(",")
+					# print v['source']
 					v['source'] = ','.join(map(str, v['source']))
 					v['predecessor'] = ','.join(map(str, v['predecessor']))
 				# graph.write(output + '_' + str(index) + '.gml', format='gml')

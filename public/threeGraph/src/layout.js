@@ -186,7 +186,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
       // !clicked ? clicked = true : clicked = false;
     }, false);
     document.addEventListener('click', function(evt){
-      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene);
+      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene, lay);
     }, false);
   }
   else
