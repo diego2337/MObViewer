@@ -351,7 +351,9 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
       req.body.jsonInput.filename = req.body.jsonInput.filename.split(".")[0] + ".ncol";
       req.body.jsonInput.directory = 'uploads/' + req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1];
       req.body.jsonInput.output = req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1] + 'Coarsened';
+      req.body.jsonInput.save_conf = true;
       if(req.body.jsonInput.filename.split("/").length <= 1) req.body.jsonInput.filename = 'uploads/' + req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1] + '/' + req.body.jsonInput.filename;
+      req.body.jsonInput.input = req.body.jsonInput.filename;
       /** Save JSON input information in a file - from https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file */
       fs.writeFile("input.json", JSON.stringify(req.body.jsonInput), function(err){
         if(err)
@@ -361,12 +363,19 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
         else
         {
           /** Execute coarsening with a given reduction factor */
-          console.log('python ' + pyPath + pyProg + " -cf input.json");
-          nodeCmd.get('python ' + pyPath + pyProg + " -cf input.json", function(data, err, stderr) {
+          // console.log('python ' + pyPath + pyProg + " -cf input.json");
+          // nodeCmd.get('python ' + pyPath + pyProg + " -cf input.json", function(data, err, stderr) {
+          console.log('python ' + pyPath + pyProg + " -cnf input.json");
+          nodeCmd.get('python ' + pyPath + pyProg + " -cnf input.json", function(data, err, stderr) {
             if (!err)
             {
+              /** Coarsening was successfully executed; get number of levels from .conf file */
+              let lr = req.body.jsonInput.reduction_factor[0] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[0].toString().split(".")[0] + req.body.jsonInput.reduction_factor[0].toString().split(".")[1];
+              let rr = req.body.jsonInput.reduction_factor[1] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[1].toString().split(".")[0] + req.body.jsonInput.reduction_factor[1].toString().split(".")[1];
+              var dat = fs.readFileSync(req.body.jsonInput.filename.split(".")[0] + "Coarsened" + "l" + lr + "r" + rr + "nl" + req.body.jsonInput.max_levels[0] + "nr" + req.body.jsonInput.max_levels[1] + ".conf", 'utf8');
+              dat = JSON.parse(dat);
               res.type('text');
-              res.end();
+              res.end(JSON.stringify({ nl: dat.max_levels[0], nr: dat.max_levels[1] }));
             }
             else
             {
@@ -1021,8 +1030,6 @@ app.post('/getClusters', function(req, res){
   // var folderChar = addFolderPath();
   req.on('data', function(chunk) {
     let clusterFileName = chunk.toString('utf8');
-    console.log("clusterFileName");
-    console.log(clusterFileName);
     fs.readFile(clusterFileName, 'utf8', function(err, dat){
       if(err)
       {

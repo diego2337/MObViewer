@@ -32,11 +32,11 @@ Required:
 
 import sys
 import os
-import sharedmem
 import argparse
 import igraph
 import logging
 import json
+import numpy
 
 from datetime import datetime
 from timing import Timing
@@ -54,15 +54,14 @@ __docformat__ = 'markdown en'
 __version__ = '0.1'
 __date__ = '2017-12-01'
 
-# Extract first number from list which is not 0.
-# @public
-# @param {list} array Array of values.
-# @returns {int} First number from list which is not 0.
-def extractFirstNonZero(array):
-	for value in array:
-		if value != 0:
-			return value
-	return -1
+# Returns one of the non-zero numbers from a list.
+# @param {tuple} tup Tuple of numbers.
+# @return {number} One of the numbers from tuple which is non-zero.
+def getNonZeroValue(tup):
+	for i in range(0, len(tup)):
+		if(tup[i] != 0):
+			return tup[i]
+	return '-1'
 
 def main():
 	"""
@@ -74,27 +73,29 @@ def main():
 	parser = argparse.ArgumentParser(description=description, formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50, width=150))
 	parser._action_groups.pop()
 
-	required = parser.add_argument_group('required arguments')
-	required.add_argument('-f', '--filename', required=True, dest='filename', action='store', type=str, metavar='FILE', default=None, help='name of the %(metavar)s to be loaded')
-	required.add_argument('-v', '--vertices', required=True, dest='vertices', action='store', nargs='+', type=int, metavar=('int', 'int'), default=None, help='number of vertices for each layer')
-
 	optional = parser.add_argument_group('optional arguments')
+	optional.add_argument('-f', '--filename', dest='filename', action='store', type=str, metavar='FILE', default=None, help='name of the %(metavar)s to be loaded')
+	optional.add_argument('-v', '--vertices', dest='vertices', action='store', nargs='+', type=int, metavar=('int', 'int'), default=None, help='number of vertices for each layer')
 	optional.add_argument('-d', '--directory', dest='directory', action='store', type=str, metavar='DIR', default=None, help='directory of FILE if it is not current directory')
 	optional.add_argument('-o', '--output', dest='output', action='store', type=str, metavar='FILE', default=None, help='name of the %(metavar)s to be save')
-	optional.add_argument('-r', '--rf', dest='reduction_factor', action='store', nargs='+', type=float, metavar=('float', 'float'), default=None, help='reduction factor for each layer')
-	optional.add_argument('-m', '--ml', dest='max_levels', action='store', nargs='+', type=int, metavar=('int', 'int'), default=None, help='max levels (default: %(default)s)')
-	optional.add_argument('-c', '--matching', dest='matching', action='store', type=str, metavar='str', nargs='+', default='greedy_twohops', help='matching method (default: %(default)s)')
-	optional.add_argument('-s', '--similarity', dest='similarity', action="store", type=str, metavar='str', nargs='+', default='weighted_common_neighbors', help='similarity measure (default: Common Neighbors)')
-	optional.add_argument('-l', '--layers_to_contract', dest='layers_to_contract', action='store', nargs='+', type=int, metavar=('int', 'int'), default=None, help='layers that will be processed')
-	optional.add_argument('-e', '--extension', dest='extension', action='store', type=str, metavar='str', default='ncol', help='output extension (default: %(default)s)')
-	optional.add_argument('--save_hierarchy', dest='save_hierarchy', action='store_true', default=False, help='save all levels of hierarchy of coarsening (default: %(default)s)')
-	optional.add_argument('--show_timing', dest='show_timing', action='store_true', default=False, help='show timing (default: %(default)s)')
-	optional.add_argument('--save_timing_csv', dest='save_timing_csv', action='store_true', default=False, help='save timing in csv (default: %(default)s)')
-	optional.add_argument('--save_timing_json', dest='save_timing_json', action='store_true', default=False, help='save timing in csv (default: %(default)s)')
-	optional.add_argument('--unique_key', dest='unique_key', action='store_true', default=False, help='output date and time as unique_key (default: %(default)s)')
+	optional.add_argument('-k', '--k', dest='k', action='store', type=int, metavar='int', default=10, help='k nmf')
+	optional.add_argument('-r', '--rf', dest='reduction_factor', action='store', type=float, metavar=('float', 'float'), nargs='+', default=None, help='reduction factor for each layer')
+	optional.add_argument('-m', '--ml', dest='max_levels', action='store', type=int, metavar=('int', 'int'), nargs='+', default=None, help='max levels')
+	optional.add_argument('-c', '--matching', dest='matching', action='store', type=str, metavar='str', nargs='+', default=None, help='matching method')
+	optional.add_argument('-s', '--similarity', dest='similarity', action="store", type=str, metavar='str', nargs='+', default=None, help='similarity measure')
+	optional.add_argument('-cf', '--conf', dest='conf', action='store', type=str, metavar='FILE', default=None, help='name of the %(metavar)s to be loaded')
+
+	optional.add_argument('--save_conf', dest='save_conf', action='store_true', default=False, help='save config file')
+	optional.add_argument('--save_ncol', dest='save_ncol', action='store_true', default=False, help='save ncol format')
+	optional.add_argument('--save_gml', dest='save_gml', action='store_true', default=False, help='save gml format')
+	optional.add_argument('--save_source', dest='save_source', action='store_true', default=False, help='save source reference')
+	optional.add_argument('--save_predecessor', dest='save_predecessor', action='store_true', default=False, help='save predecessor reference')
+	optional.add_argument('--save_hierarchy', dest='save_hierarchy', action='store_true', default=False, help='save all levels of hierarchy of coarsening')
+	optional.add_argument('--save_timing', dest='save_timing', action='store_true', default=False, help='save timing in json')
+	optional.add_argument('--show_timing', dest='show_timing', action='store_true', default=False, help='show timing')
+	optional.add_argument('--unique_key', dest='unique_key', action='store_true', default=False, help='output date and time as unique_key')
 
 	parser._action_groups.append(optional)
-	parser._action_groups.append(required)
 	options = parser.parse_args()
 
 	# Instanciation of log
@@ -105,56 +106,82 @@ def main():
 	# Instanciation of timing
 	timing = Timing(['Snippet', 'Time [m]', 'Time [s]'])
 
-	# Create default values for optional parameters
-	if options.reduction_factor is None:
-		options.reduction_factor = [0.5] * len(options.vertices)
-	if options.max_levels is None:
-		options.max_levels = [3] * len(options.vertices)
-	if options.layers_to_contract is None:
-		options.layers_to_contract = range(len(options.vertices))
+	with timing.timeit_context_add('Pre-processing'):
+		if options.conf:
+			json_dict = json.load(open(options.conf))
+			argparse_dict = vars(options)
+			argparse_dict.update(json_dict)
 
-	# Verification of the dimension of the parameters
-	if len(options.vertices) != len(options.reduction_factor):
-		log.warning('Sizes of input arguments -v and -r do not match.')
-		sys.exit(1)
-	if len(options.vertices) != len(options.max_levels):
-		log.warning('Sizes of input arguments -v and -m do not match.')
-		sys.exit(1)
+		if options.filename and options.vertices is None:
+			log.warning('Vertices are required when filename is given.')
+			sys.exit(1)
 
-	# Process directory and output file
-	if options.directory is None:
-		options.directory = os.path.dirname(os.path.abspath(options.filename))
-	else:
-		if not os.path.exists(options.directory): os.makedirs(options.directory)
-	if not options.directory.endswith('/'): options.directory += '/'
-	if options.output is None:
-		filename, extension = os.path.splitext(os.path.basename(options.filename))
-		options.output = filename + '_coarsened_'
-	if options.unique_key:
-		now = datetime.now()
-		options.output = options.output + '_' + now.strftime('%Y%m%d%H%M%S%f')
+		# Process directory and output file
+		if options.directory is None:
+			options.directory = os.path.dirname(os.path.abspath(options.filename))
+		else:
+			if not os.path.exists(options.directory):
+				os.makedirs(options.directory)
+		if not options.directory.endswith('/'):
+			options.directory += '/'
+		if options.output is None:
+			filename, extension = os.path.splitext(os.path.basename(options.filename))
+			options.output = filename + '_coarsened_'
+		if options.unique_key:
+			now = datetime.now()
+			options.output = options.output + '_' + now.strftime('%Y%m%d%H%M%S%f')
 
-	# Validation of matching method
-	if type(options.matching) is list: options.matching = '_'.join(options.matching)
-	options.matching = options.matching.lower()
-	if options.matching not in ['greedy_seed_twohops', 'greedy_twohops', 'greedy_seed_modularity', 'greedy_modularity']:
-		log.warning('Matching method is unvalid.')
-		sys.exit(1)
+		# Create default values for optional parameters
+		if options.reduction_factor is None:
+			options.reduction_factor = [0.5] * len(options.vertices)
+		if options.max_levels is None:
+			options.max_levels = [3] * len(options.vertices)
+		if options.matching is None:
+			options.matching = ['greedy_seed_twohops'] * len(options.vertices)
+		if options.similarity is None:
+			options.similarity = ['weighted_common_neighbors'] * len(options.vertices)
 
-	# Validation of output extension
-	if options.extension not in ['ncol', 'gml', 'pajek']:
-		log.warning('Supported formats: ncol, gml and pajek.')
-		sys.exit(1)
+		# Validation of list values
+		if len(options.reduction_factor) == 1:
+			options.reduction_factor = [options.reduction_factor[0]] * len(options.vertices)
+		if len(options.max_levels) == 1:
+			options.max_levels = [options.max_levels[0]] * len(options.vertices)
+		if len(options.matching) == 1:
+			options.matching = [options.matching[0]] * len(options.vertices)
+		if len(options.similarity) == 1:
+			options.similarity = [options.similarity[0]] * len(options.vertices)
 
-	# Validation of similarity measure
-	valid_similarity = ['common_neighbors', 'weighted_common_neighbors',
-	'salton', 'preferential_attachment', 'jaccard', 'adamic_adar', 'resource_allocation',
-	'sorensen', 'hub_promoted', 'hub_depressed', 'leicht_holme_newman']
-	if type(options.similarity) is list: options.similarity = '_'.join(options.similarity)
-	options.similarity = options.similarity.lower()
-	if options.similarity not in valid_similarity:
-		log.warning('Similarity misure is unvalid.')
-		sys.exit(1)
+		# Verification of the dimension of the parameters
+		if len(options.vertices) != len(options.reduction_factor):
+			log.warning('Sizes of input arguments -v and -r do not match.')
+			sys.exit(1)
+		if len(options.vertices) != len(options.max_levels):
+			log.warning('Sizes of input arguments -v and -m do not match.')
+			sys.exit(1)
+		if len(options.matching) != len(options.vertices):
+			log.warning('Sizes of input arguments -v and -c do not match.')
+			sys.exit(1)
+		if len(options.similarity) != len(options.similarity):
+			log.warning('Sizes of input arguments -v and -s do not match.')
+			sys.exit(1)
+
+		# Validation of matching method
+		valid_matching = ['greedy_seed_twohops', 'greedy_twohops']
+		for index, matching in enumerate(options.matching):
+			matching = matching.lower()
+			if matching not in valid_matching:
+				log.warning('Matching method is unvalid.')
+				sys.exit(1)
+			options.matching[index] = matching
+
+		# Validation of similarity measure
+		valid_similarity = ['common_neighbors', 'mysimilarity', 'weighted_common_neighbors', 'salton', 'preferential_attachment', 'jaccard', 'adamic_adar', 'resource_allocation', 'sorensen', 'hub_promoted', 'hub_depressed', 'leicht_holme_newman', 'nmf_cosine', 'modularity']
+		for index, similarity in enumerate(options.similarity):
+			similarity = similarity.lower()
+			if similarity not in valid_similarity:
+				log.warning('Similarity misure is unvalid.')
+				sys.exit(1)
+			options.similarity[index] = similarity
 
 	# Load bipartite graph
 	with timing.timeit_context_add('Load'):
@@ -164,73 +191,95 @@ def main():
 	# Coarsening
 	hierarchy_graphs = []
 	hierarchy_levels = []
+	layers_to_contract = numpy.where(numpy.array(options.max_levels) > 0)[0]
 	with timing.timeit_context_add('Coarsening'):
 		while not graph['level'] == options.max_levels:
 
-			graph['similarity'] = getattr(Similarity(graph, graph['adjlist']), options.similarity)
-			matching_method = getattr(graph, options.matching)
 			matching = range(graph.vcount())
 			levels = graph['level']
 
-			if 'modularity' in options.matching:
-				graph.vs['strength'] = graph.strength(range(graph.vcount()), weights='weight')
-
-			for layer in options.layers_to_contract:
-				if levels[layer] == options.max_levels[layer]: continue
+			for layer in layers_to_contract:
+				if levels[layer] == options.max_levels[layer]:
+					continue
 				levels[layer] += 1
+				graph['similarity'] = getattr(Similarity(graph, graph['adjlist']), options.similarity[layer])
 				start = sum(graph['vertices'][0:layer])
 				end = sum(graph['vertices'][0:layer + 1])
-				matching_method(range(start, end), options.reduction_factor[layer], matching)
+				matching_method = getattr(graph, options.matching[layer])
+				matching_method(range(start, end), matching, reduction_factor=options.reduction_factor[layer])
 
-			coarse = graph.coarsening_pairs(matching)
+			coarse = graph.coarsening(matching)
 			coarse['level'] = levels
 			graph = coarse
 			if options.save_hierarchy or graph['level'] == options.max_levels:
 				hierarchy_graphs.append(graph)
-				# hierarchy_levels.append(levels[:])
-				# Modified
-				hierarchy_levels.append(extractFirstNonZero(levels))
+				hierarchy_levels.append(levels[:])
 
 	# Save
+	output = options.directory + options.output
 	with timing.timeit_context_add('Save'):
-		output = options.directory + options.output
-		# Save graph
+
 		for levels, graph in reversed(zip(hierarchy_levels, hierarchy_graphs)):
-			# Save json conf
-			# with open(output + '.conf', 'w+') as f:
-			# with open(output + str(levels) + '.conf', 'w+') as f:
-			with open(output + 'n' + str(levels) + '.conf', 'w+') as f:
-				d = {}
-				d['edges'] = graph.ecount()
-				d['vertices'] = graph.vcount()
-				# General informations
-				for layer in range(graph['layers']):
-					vcount = str(len(graph.vs.select(type=layer)))
-					attr = 'v' + str(layer)
-					d[attr] = vcount
-					d['levels'] = levels
-				json.dump(d, f, indent=4)
-			# Save graph
-			if options.extension == 'gml':
+
+			if options.save_conf:
+				# with open(output + str(levels) + '.conf', 'w+') as f:
+				with open(output + 'n' + str(getNonZeroValue(levels)) + '.conf', 'w+') as f:
+					d = {}
+					d['source_filename'] = options.filename
+					d['source_v0'] = options.vertices[0]
+					d['source_v1'] = options.vertices[1]
+					d['source_vertices'] = options.vertices[0] + options.vertices[1]
+					d['edges'] = graph.ecount()
+					d['vertices'] = graph.vcount()
+					d['reduction_factor'] = options.reduction_factor
+					d['max_levels'] = options.max_levels
+					d['similarity'] = options.similarity
+					d['matching'] = options.matching
+					for layer in range(graph['layers']):
+						vcount = str(len(graph.vs.select(type=layer)))
+						attr = 'v' + str(layer)
+						d[attr] = vcount
+						d['levels'] = levels
+					json.dump(d, f, indent=4)
+
+			if options.save_gml:
 				del graph['adjlist']
-				graph.vs['name'] = map(str, range(0, graph.vcount()))
 				graph['vertices'] = ' '.join(str(e) for e in graph['vertices'])
 				graph['layers'] = str(graph['layers'])
-				graph['level'] = str(graph['level'])
-			# graph.write(output + '.' + options.extension, format=options.extension)
-			# graph.write(output + str(levels) + '.' + options.extension, format=options.extension)
-			graph.write(output + 'n' + str(levels) + '.' + options.extension, format=options.extension)
-			# Save super-vertices
-			# with open(output + '.cluster', 'w+') as f:
-			# with open(output + str(levels) + '.cluster', 'w+') as f:
-			with open(output + 'n' + str(levels) + '.cluster', 'w+') as f:
+				graph['level'] = ','.join(map(str, graph['level']))
+				graph.vs['name'] = map(int, range(0, graph.vcount()))
 				for v in graph.vs():
-					f.write(' '.join(map(str, v['original'])) + '\n')
-			if not options.save_hierarchy: break
+					v['source'] = ','.join(map(str, v['source']))
+					v['predecessor'] = ','.join(map(str, v['predecessor']))
+				# graph.write(output + str(levels) + '.gml', format='gml')
+				# graph.write(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'n' + str(getNonZeroValue(levels)) + '.gml', format='gml')
+				graph.write(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.gml', format='gml')
 
-	if options.show_timing: timing.print_tabular()
-	if options.save_timing_csv: timing.save_csv(output + '.timing')
-	if options.save_timing_json: timing.save_json(output + '.timing')
+			if options.save_ncol:
+				# graph.write(output + str(levels) + '.ncol', format='ncol')
+				graph.write(output + 'n' + str(getNonZeroValue(levels)) + '.ncol', format='ncol')
+
+			if options.save_source:
+				# with open(output + str(levels) + '.source', 'w+') as f:
+				with open(output + 'n' + str(getNonZeroValue(levels)) + '.source', 'w+') as f:
+					for v in graph.vs():
+						f.write(' '.join(map(str, v['source'])) + '\n')
+
+			if options.save_predecessor:
+				# with open(output + str(levels) + '.predecessor', 'w+') as f:
+				with open(output + 'n' + str(getNonZeroValue(levels)) + '.predecessor', 'w+') as f:
+					for v in graph.vs():
+						f.write(' '.join(map(str, v['predecessor'])) + '\n')
+
+			if not options.save_hierarchy:
+				break
+
+	if options.show_timing:
+		timing.print_tabular()
+	if options.save_timing:
+		# timing.save_json(output + str(levels) + '.timing')
+		timing.save_json(output + '.timing')
+
 
 if __name__ == "__main__":
 	sys.exit(main())

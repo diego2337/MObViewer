@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+!coarsening.json
+!coarsening-vertices.json
