@@ -672,7 +672,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
       // !clicked ? clicked = true : clicked = false;
     }, false);
     document.addEventListener('click', function(evt){
-      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene);
+      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene, lay);
     }, false);
   }
   else
@@ -2306,7 +2306,7 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
       {
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
       }
-      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
+      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
       {
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
       }
@@ -2315,6 +2315,7 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
   }
   /** Clearing array of neighbors */
   eventHandler.neighbors = [];
+  eventHandler.realNeighbors = [];
   /** Remove 'parentConnections' edges */
   // for(var i = 0; i < edges; i++)
   for(var i = 0; i < eventHandler.nEdges; i++)
@@ -2356,6 +2357,7 @@ var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
     this.raycaster.linePrecision = 0.1;
     this.highlightedElements = [];
     this.neighbors = [];
+    this.realNeighbors = [];
     this.doubleClick = new DoubleClick();
     // this.clicked = {wasClicked: false};
     this.updateData = {wasUpdated: false};
@@ -2571,7 +2573,7 @@ EventHandler.prototype.colorNeighbors = function(faces, neighbors)
     var endPoint = ((faces[neighbors[0].vertexInfo].neighbors[i]) * 32) + 32;
     // var endPoint = ((faces[neighbors[0].vertexInfo].neighbors[i])) + 32;
     // var endPoint = ((faces[neighbors[0].vertexInfo*32].neighbors[i])) + 32;
-    this.colorVertex(faces, faces[neighbors[0].vertexInfo].neighbors[i]*32, endPoint, new Array(1.0, 0.0, 0.0));
+    this.colorVertex(faces, faces[neighbors[0].vertexInfo].neighbors[i]*32, endPoint, new Array(0.0, 0.0, 1.0));
   }
 }
 
@@ -2587,51 +2589,18 @@ EventHandler.prototype.showNeighbors = function(scene)
   {
     /** Add itself for highlighting */
     this.neighbors.push({vertexInfo: this.highlightedElements[i], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+    // this.realNeighbors.push({vertexInfo: this.highlightedElements[i], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
     for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
     {
       this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+      this.realNeighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
     }
     this.renderNeighborEdges(scene, element, element.geometry.faces[this.highlightedElements[i]]);
     this.colorNeighbors(element.geometry.faces, this.neighbors);
-    // for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
-    // {
-    //   var endPoint = ((element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32) + 32;
-    //   for(var k = (element.geometry.faces[this.highlightedElements[i]].neighbors[j]) * 32; k < endPoint; k++)
-    //   {
-    //       element.geometry.faces[k].color.setRGB(1.0, 0.0, 0.0);
-    //   }
-    // }
     element.geometry.colorsNeedUpdate = true;
     /** Remove itself so it won't unhighlight as soon as mouse moves out */
     this.highlightedElements.splice(i, 1);
   }
-  // if(!this.clicked.wasClicked)
-  // {
-  //
-  // }
-  // else if(this.clicked.wasClicked)
-  // {
-  //   scene.remove(scene.getObjectByName("neighborEdges"));
-  //   for(var i = 0; i < this.neighbors.length; i++)
-  //   {
-  //     var mesh = scene.getObjectByName(this.neighbors[i].mesh);
-  //     for(var j = 0; j < 32; j++)
-  //     {
-  //       if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
-  //       {
-  //         mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
-  //       }
-  //       else if(mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j] !== undefined)
-  //       {
-  //         mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
-  //       }
-  //       mesh.geometry.colorsNeedUpdate = true;
-  //     }
-  //   }
-  //   element.geometry.colorsNeedUpdate = true;
-  //   /** Clearing array of neighbors */
-  //   this.neighbors = [];
-  // }
 }
 
 /**
@@ -2669,26 +2638,13 @@ EventHandler.prototype.wasRendered = function(sourcePos, targetPos, layout)
  */
 EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, currentMesh, previousMesh, previousMeshNumber, layout, layer)
 {
-  // console.log("currentMesh:");
-  // console.log(currentMesh);
-  // console.log("previousMesh");
-  // console.log(previousMesh);
-  // console.log("startFace:");
-  // console.log(startFace);
   /** Recursion termination condition */
-  if(previousMesh != undefined)
+  if(previousMesh != undefined && previousMesh.name != currentMesh.name)
   {
     var properties = JSON.parse(currentMesh.geometry.faces[startFace].properties);
     var edgeGeometry = new THREE.Geometry();
     var sourcePos = currentMesh.geometry.faces[startFace].position;
     var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
-    /** Color vertexes */
-    for(var j = 0; j < 32; j++)
-    {
-      currentMesh.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
-    }
-    currentMesh.geometry.colorsNeedUpdate = true;
-    this.neighbors.push({vertexInfo: parseInt(JSON.parse(currentMesh.geometry.faces[startFace].properties).id)*32, mesh: currentMesh.name});
     // var predecessors;
     // /** Color predecessors */
     // for(pred in properties)
@@ -2707,6 +2663,8 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
     $.ajax({
       url: '/getSorted',
       type: 'POST',
+      /** FIXME - NEVER EVER EVER use async! */
+      async: false,
       // data: { name: previousMesh.name, pred: predecessors },
       data: { currentMesh: currentMesh.name, previousMesh: previousMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
       success: function(data){
@@ -2744,7 +2702,8 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
           var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
           for(var j = 0; j < 32; j++)
           {
-            previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+            // previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+            previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
           }
           /** Add edges to 'parentConnections' geometry */
           edgeGeometry.vertices.push(v1);
@@ -2757,7 +2716,8 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
         previousMesh.geometry.colorsNeedUpdate = true;
         for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
         {
-          edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+          // edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+          edgeGeometry.colors[i] = new THREE.Color("rgb(0, 255, 0)");
           edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
         }
         edgeGeometry.colorsNeedUpdate = true;
@@ -2902,20 +2862,14 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
  */
 EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, currentMesh, nextMesh, nextMeshNumber, layout, layer)
 {
+  var lastSuc = undefined;
   /** Recursion termination condition */
-  if(nextMesh != undefined)
+  if(nextMesh != undefined && nextMesh.name != currentMesh.name)
   {
-    var properties = JSON.parse(currentMesh.geometry.faces[startFace].properties);
+    // var properties = JSON.parse(currentMesh.geometry.faces[startFace].properties);
     var edgeGeometry = new THREE.Geometry();
     var sourcePos = currentMesh.geometry.faces[startFace].position;
     var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
-    // /** Color vertexes */
-    for(var j = 0; j < 32; j++)
-    {
-      currentMesh.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
-    }
-    currentMesh.geometry.colorsNeedUpdate = true;
-    this.neighbors.push({vertexInfo: parseInt(JSON.parse(currentMesh.geometry.faces[startFace].properties).id)*32, mesh: currentMesh.name});
     // var successors = undefined;
     // /** Color successors */
     // for(suc in properties)
@@ -2934,6 +2888,8 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
     $.ajax({
       url: '/getSortedSuccessors',
       type: 'POST',
+      /** FIXME - NEVER EVER EVER use async! */
+      async: false,
       data: { currentMesh: currentMesh.name, nextMesh: nextMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
       success: function(data){
         data = JSON.parse(data);
@@ -2951,7 +2907,8 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
           var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
           for(var j = 0; j < 32; j++)
           {
-            nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+            // nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+            nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
           }
           /** Add edges to 'parentConnections' geometry */
           edgeGeometry.vertices.push(v1);
@@ -2960,7 +2917,8 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
         nextMesh.geometry.colorsNeedUpdate = true;
         for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
         {
-          edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+          // edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+          edgeGeometry.colors[i] = new THREE.Color("rgb(0, 255, 0)");
           edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
         }
         edgeGeometry.colorsNeedUpdate = true;
@@ -2990,11 +2948,10 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
           nextMeshNumber = parseInt(nextMeshNumber);
           nextMeshNumber = nextMeshNumber - 1;
         }
-
         /** Recursively highlight children */
-        for(var i = 0; data.array.length; i++)
+        for(var i = 0; i < data.array.length; i++)
         {
-          return layScope.showNodeChildren(this.nEdges, scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
+          lastSuc = layScope.showNodeChildren(this.nEdges, scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
           // this.showNodeParents(scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : nextMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + nextMeshNumber), layout);
         }
       },
@@ -3075,11 +3032,34 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
   {
     nextMeshNumber = parseInt(nextMeshNumber);
     nextMeshNumber = nextMeshNumber - 1;
-    this.showNodeChildren(this.nEdges, scene, startFace, currentMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
+    lastSuc = this.showNodeChildren(this.nEdges, scene, startFace, currentMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
+  }
+  if(lastSuc == undefined)
+  {
+    return startFace;
   }
   else
   {
-    return startFace;
+    return lastSuc;
+  }
+}
+
+/**
+ * Show neighbor vertexes from selected element information.
+ * @param {Object} scene Scene for raycaster.
+ */
+EventHandler.prototype.showNeighborInfo = function(scene)
+{
+  var mesh = scene.getObjectByName("MainMesh");
+  for(let i = 0; i < this.realNeighbors.length; i++)
+  {
+    /** Show vertex info for every neighbor found */
+    parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
+    // console.log("mesh.geometry.faces[this.realNeighbors[i].vertexInfo].faceIndex:");
+    // console.log(mesh.geometry.faces[this.realNeighbors[i].vertexInfo]);
+    // console.log("mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32:");
+    // console.log(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32);
+    // mesh.geometry.faces[this.realNeighbors[i].vertexInfo].faceIndex <= mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32 ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
   }
 }
 
@@ -3138,6 +3118,13 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
     }
     /** Get array of predecessors */
     var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
+    /** Color selected vertex */
+    for(var j = 0; j < 32; j++)
+    {
+      intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
+    }
+    intersection.object.geometry.colorsNeedUpdate = true;
+    this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id)*32, mesh: intersection.object.name});
     // var startFace = parseInt(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id) * 32;
     var lastSuccessor = -1;
     if(previousMesh != undefined)
@@ -3151,23 +3138,38 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
       lastSuccessor = this.showNodeChildren(this.nEdges, scene, startFace, intersection.object, nextMesh, nextMeshNumber, layout, layer);
     }
     /** Highlight 'neighbors' */
-    if(lastSuccessor != -1)
+    if(lastSuccessor == -1)
     {
       this.showNeighbors(scene);
+      this.showNeighborInfo(scene);
     }
-    // else if(lastSuccessor != undefined)
-    // {
-    //   this.renderNeighborEdges(scene, nextMesh, nextMesh.geometry.faces[lastSuccessor]);
-    //   var neighbors = [];
-    //   // this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
-    //   neighbors[0] = { vertexInfo: parseInt(lastSuccessor), mesh: nextMesh.name };
-    //   for(var i = 0, j = 1; i < nextMesh.geometry.faces[lastSuccessor].neighbors.length; i++, j++)
-    //   {
-    //     neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i])*32, mesh: nextMesh.name };
-    //     this.neighbors.push(neighbors[j]);
-    //   }
-    //   this.colorNeighbors(nextMesh.geometry.faces, neighbors);
-    // }
+    else if(lastSuccessor != undefined)
+    {
+      while(nextMesh.name != "MainMesh")
+      {
+        nextMeshNumber = nextMeshNumber - 1;
+        if(nextMeshNumber == 0)
+        {
+          nextMesh = scene.getObjectByName(originalMeshName);
+        }
+        else
+        {
+          nextMesh = scene.getObjectByName(originalMeshName + nextMeshNumber.toString());
+        }
+      }
+      this.renderNeighborEdges(scene, nextMesh, nextMesh.geometry.faces[lastSuccessor]);
+      var neighbors = [];
+      // this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
+      neighbors[0] = { vertexInfo: parseInt(lastSuccessor), mesh: nextMesh.name };
+      for(var i = 0, j = 1; i < nextMesh.geometry.faces[lastSuccessor].neighbors.length; i++, j++)
+      {
+        neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i])*32, mesh: nextMesh.name };
+        this.neighbors.push(neighbors[j]);
+        this.realNeighbors.push(neighbors[j]);
+      }
+      this.colorNeighbors(nextMesh.geometry.faces, neighbors);
+      this.showNeighborInfo(scene);
+    }
   }
 }
 
@@ -3182,6 +3184,13 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
 EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, layout)
 {
   /** Check double-click state */
+  if(this.doubleClick.getClicked().wasClicked)
+  {
+    /** Change click variable and update layout */
+    this.doubleClick.setClicked({wasClicked: false});
+    // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
+    this.doubleClick.updateLayout(scene, this);
+  }
   if(!this.doubleClick.getClicked().wasClicked)
   {
     this.doubleClick.setClicked({wasClicked: true});
@@ -3224,13 +3233,13 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
     //   this.showParents(intersection, scene, layout);
     // }
   }
-  else
-  {
-    /** Change click variable and update layout */
-    this.doubleClick.setClicked({wasClicked: false});
-    // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
-    this.doubleClick.updateLayout(scene, this);
-  }
+  // else
+  // {
+  //   /** Change click variable and update layout */
+  //   this.doubleClick.setClicked({wasClicked: false});
+  //   // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
+  //   this.doubleClick.updateLayout(scene, this);
+  // }
 }
 
 /**
@@ -3297,13 +3306,81 @@ EventHandler.prototype.getTooltipInfo = function(vertices)
 }
 
 /**
+ * Show vertex information with Vue.js.
+ * @public
+ * @param {JSON} vertices Properties from vertex face.
+ * @param {Array} rows Rows to insert data.
+ * @param {String} table Table ID where vertex info will be displayed.
+ */
+EventHandler.prototype.showVertexInfo = function(vertices, rows, table)
+{
+  var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
+  /** Load already existing elements clicked in array of rows */
+  for(var j = 0; j < rows._data.rows.length; j++)
+  {
+    vertexVueRows.push(rows._data.rows[j]);
+  }
+  /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
+  if(vertices.vertexes !== undefined)
+  {
+    vertices = vertices.vertexes;
+  }
+  else
+  {
+    var simpleArr = [];
+    simpleArr.push(vertices);
+    vertices = simpleArr;
+  }
+  /** Check if intersected vertex is either from first or second layer */
+  for(var j = 0; j < vertices.length; j++)
+  {
+    var tempArr = [];
+    for(key in vertices[j])
+    {
+      tempArr.push(key);
+    }
+    if(vertexVueHeaders.length < tempArr.length)
+    {
+      vertexVueHeaders = tempArr;
+      /** Sort headers */
+      vertexVueHeaders.sort(function(a, b){
+        return ('' + a).localeCompare(b);
+      });
+      /** Construct a new vue table header */
+      vueTableHeader._data.headers = vertexVueHeaders;
+    }
+  }
+  for(var j = 0; j < vertices.length; j++)
+  {
+    /** Sort vertices[j] */
+    var ordered = {};
+    Object.keys(vertices[j]).sort().forEach(function(key) {
+      ordered[key] = vertices[j][key];
+    });
+    for(key in vertexVueHeaders)
+    {
+      if(!(vertexVueHeaders[key] in ordered))
+      {
+        ordered[key] = "No value";
+      }
+    }
+    vertexVueRows.push(ordered);
+  }
+  /** Construct a new vue table data */
+  rows._data.rows = vertexVueRows;
+  /** Show tables containing vertex info */
+  $(table).css('visibility', 'visible');
+}
+
+/**
  * Handles mouse click. If mouse clicks vertex, show its current id and weight, as well as vertexes associated with it.
  * @public
  * @param {Object} evt Event dispatcher.
  * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
  * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
  */
-EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
+EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene, layout)
 {
   var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
   var intersection = intersects[0];
@@ -3311,161 +3388,25 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
   {
     if(intersection.face) /** Intersection with vertice */
     {
+      /** Execute double-click */
+      this.mouseDoubleClickEvent(evt, renderer, scene, layout);
+      var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
       /** First layer */
-      if(intersection.faceIndex <= intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32)
-      {
-        var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
-        var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
-        /** Load already existing elements clicked in array of rows */
-        for(var j = 0; j < vueTableRows._data.rows.length; j++)
-        {
-          vertexVueRows.push(vueTableRows._data.rows[j]);
-        }
-        /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
-        if(vertices.vertexes !== undefined)
-        {
-          vertices = vertices.vertexes;
-        }
-        else
-        {
-          var simpleArr = [];
-          simpleArr.push(vertices);
-          vertices = simpleArr;
-        }
-        /** Check if intersected vertex is either from first or second layer */
-        // if(intersection.object.geometry.faces[intersection.faceIndex
-        // for(var j = 0; vertices.vertexes !== undefined && j < vertices.vertexes.length; j++)
-        for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
-        {
-          var tempArr = [];
-          for(key in vertices[j])
-          {
-            tempArr.push(key);
-          }
-          // if(j == 0)
-          if(vertexVueHeaders.length < tempArr.length)
-          {
-            // for(key in vertices.vertexes[j])
-            // for(key in vertices[j])
-            // {
-            //   vertexVueHeaders.push(key);
-            // }
-            vertexVueHeaders = tempArr;
-            // console.log("vertexVueHeaders:");
-            // console.log(vertexVueHeaders);
-            /** Sort headers */
-            vertexVueHeaders.sort(function(a, b){
-              return ('' + a).localeCompare(b);
-            });
-            /** Construct a new vue table header */
-            vueTableHeader._data.headers = vertexVueHeaders;
-          }
-        }
-        for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
-        {
-          // if(j == 0)
-          // {
-          //   // for(key in vertices.vertexes[j])
-          //   for(key in vertices[j])
-          //   {
-          //     vertexVueHeaders.push(key);
-          //   }
-          //   // console.log("vertexVueHeaders:");
-          //   // console.log(vertexVueHeaders);
-          //   /** Sort headers */
-          //   vertexVueHeaders.sort(function(a, b){
-          //     return ('' + a).localeCompare(b);
-          //   });
-          //   /** Construct a new vue table header */
-          //   vueTableHeader._data.headers = vertexVueHeaders;
-          // }
-          /** Sort vertices[j] */
-          var ordered = {};
-          Object.keys(vertices[j]).sort().forEach(function(key) {
-            ordered[key] = vertices[j][key];
-          });
-          // vertexVueRows.push(vertices.vertexes[j]);
-          for(key in vertexVueHeaders)
-          {
-            if(!(vertexVueHeaders[key] in ordered))
-            {
-              ordered[key] = "No value";
-            }
-          }
-          vertexVueRows.push(ordered);
-        }
-        /** Construct a new vue table data */
-        vueTableRows._data.rows = vertexVueRows;
-        /** Show tables containing vertex info */
-        $("#divVertexInfoTable").css('visibility', 'visible');
-      }
-      else /** Last layer */
-      {
-        var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
-        var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
-        /** Load already existing elements clicked in array of rows */
-        for(var j = 0; j < vueTableRowsSecondLayer._data.rows.length; j++)
-        {
-          vertexVueRows.push(vueTableRowsSecondLayer._data.rows[j]);
-        }
-        /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
-        if(vertices.vertexes !== undefined)
-        {
-          vertices = vertices.vertexes;
-        }
-        else
-        {
-          var simpleArr = [];
-          simpleArr.push(vertices);
-          vertices = simpleArr;
-        }
-        for(var j = 0; j < vertices.length; j++)
-        {
-          var tempArr = [];
-          for(key in vertices[j])
-          {
-            tempArr.push(key);
-          }
-          if(vertexVueHeaders.length < tempArr.length)
-          {
-            vertexVueHeaders = tempArr
-            /** Sort headers */
-            vertexVueHeaders.sort(function(a, b){
-              return ('' + a).localeCompare(b);
-            });
-            /** Construct a new vue table header */
-            vueTableHeaderSecondLayer._data.headers = vertexVueHeaders;
-          }
-        }
-        for(var j = 0; j < vertices.length/** vertices.vertexes.length */; j++)
-        {
-          /** Sort vertices[j] */
-          var ordered = {};
-          Object.keys(vertices[j]).sort().forEach(function(key) {
-            ordered[key] = vertices[j][key];
-          });
-          // vertexVueRows.push(vertices.vertexes[j]);
-          for(key in vertexVueHeaders)
-          {
-            if(!(vertexVueHeaders[key] in ordered))
-            {
-              ordered[key] = "No value";
-            }
-          }
-          vertexVueRows.push(ordered);
-        }
-        /** Construct a new vue table data */
-        vueTableRowsSecondLayer._data.rows = vertexVueRows;
-        /** Show tables containing vertex info */
-        $("#divVertexInfoTableSecondLayer").css('visibility', 'visible');
-      }
+      // if(intersection.faceIndex <= intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32)
+      // {
+      //   this.showVertexInfo(vertices, vueTableRows, "#divVertexInfoTable");
+      // }
+      /** Last layer */
+      // else
+      // {
+      //   this.showVertexInfo(vertices, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
+      // }
       /** Show stats in bar charts (if any is available) */
       this.statsHandler.generateAndVisualizeStats(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */
       this.d3Tooltip.populateAndShowTooltip(this.getTooltipInfo(vertices));
-      // this.d3Tooltip.populateAndShowTooltip("<span>Ok!</span>");
     }
     else
     {
@@ -3497,7 +3438,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         var element;
         j == 0 ? element = scene.getObjectByName("MainMesh", true) : element = scene.getObjectByName("MainMesh" + j.toString(), true);
         // var element = scene.getObjectByName("MainMesh", true);
-        var el = (this.highlightedElements[i]/32) + 8;
+        // var el = (this.highlightedElements[i]/32) + 8;
+        var el = (this.highlightedElements[i]) + 8;
         var fd = this.neighbors.find(function(elmt){
           return (elmt.vertexInfo == el && elmt.mesh == element.name);
           // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
@@ -3519,12 +3461,15 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
       console.log(intersection);
       if(intersection.face) /** Intersection with vertice */
       {
-        intersection.face.color.setRGB(0.0, 1.0, 0.0);
+        // intersection.face.color.setRGB(0.0, 1.0, 0.0);
         /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
         var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
         for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
         {
-            intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
+            if(intersection.object.geometry.faces[i].color.r == 0 && intersection.object.geometry.faces[i].color.g == 0 && intersection.object.geometry.faces[i].color.b == 0)
+            {
+              intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
+            }
         }
         intersection.object.geometry.colorsNeedUpdate = true;
         /** First check if vertex isn't already highlighted because of double-clicking */

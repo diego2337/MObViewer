@@ -48,7 +48,7 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
       {
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
       }
-      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
+      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
       {
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
       }
@@ -57,6 +57,7 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
   }
   /** Clearing array of neighbors */
   eventHandler.neighbors = [];
+  eventHandler.realNeighbors = [];
   /** Remove 'parentConnections' edges */
   // for(var i = 0; i < edges; i++)
   for(var i = 0; i < eventHandler.nEdges; i++)
