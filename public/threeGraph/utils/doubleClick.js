@@ -57,6 +57,7 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
   }
   /** Clearing array of neighbors */
   eventHandler.neighbors = [];
+  eventHandler.realNeighbors = [];
   /** Remove 'parentConnections' edges */
   // for(var i = 0; i < edges; i++)
   for(var i = 0; i < eventHandler.nEdges; i++)
