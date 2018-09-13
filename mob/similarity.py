@@ -356,3 +356,15 @@ class Similarity(object):
 			else:
 				nIcn += 1.0
 		return nWcn if (nIcn == 0.0) else nWcn / nIcn
+
+	def lastfm_age(self, i, j):
+		"""
+		Calculates similarity between a pair of vertices based on their 'age' attribute. The larger the difference, the closer they are together.
+		"""
+
+		if self.graph.vs[i]['age'] > self.graph.vs[j]['age']:
+			return (1.0 / self.graph.vs[i]['age'] - self.graph.vs[j]['age'])
+		elif self.graph.vs[i]['age'] < self.graph.vs[j]['age']:
+			return (1.0 / self.graph.vs[j]['age'] - self.graph.vs[i]['age'])
+		else:
+			return 1.1

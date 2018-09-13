@@ -247,8 +247,8 @@ EventHandler.prototype.showNeighbors = function(scene)
   for(var i = 0; i < this.highlightedElements.length; i++)
   {
     /** Add itself for highlighting */
-    this.neighbors.push({vertexInfo: this.highlightedElements[i], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
-    // this.realNeighbors.push({vertexInfo: this.highlightedElements[i], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+    this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+    this.realNeighbors.push({vertexInfo: this.highlightedElements[i]/32, mesh: element.name, edgeColor: {r:0, g:0, b:0}});
     for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
     {
       this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
@@ -713,11 +713,7 @@ EventHandler.prototype.showNeighborInfo = function(scene)
   for(let i = 0; i < this.realNeighbors.length; i++)
   {
     /** Show vertex info for every neighbor found */
-    parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
-    // console.log("mesh.geometry.faces[this.realNeighbors[i].vertexInfo].faceIndex:");
-    // console.log(mesh.geometry.faces[this.realNeighbors[i].vertexInfo]);
-    // console.log("mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32:");
-    // console.log(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32);
+    parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeader, vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeaderSecondLayer, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
     // mesh.geometry.faces[this.realNeighbors[i].vertexInfo].faceIndex <= mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32 ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
   }
 }
@@ -789,18 +785,17 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
     if(previousMesh != undefined)
     {
       /** Recursively highlight parent nodes */
-      this.showNodeParents(this.nEdges, scene, startFace, intersection.object, previousMesh, previousMeshNumber, layout, layer);
+      // this.showNodeParents(this.nEdges, scene, startFace, intersection.object, previousMesh, previousMeshNumber, layout, layer);
     }
     if(nextMesh != undefined)
     {
       /** Recursively highlight child nodes */
-      lastSuccessor = this.showNodeChildren(this.nEdges, scene, startFace, intersection.object, nextMesh, nextMeshNumber, layout, layer);
+      // lastSuccessor = this.showNodeChildren(this.nEdges, scene, startFace, intersection.object, nextMesh, nextMeshNumber, layout, layer);
     }
     /** Highlight 'neighbors' */
     if(lastSuccessor == -1)
     {
       this.showNeighbors(scene);
-      this.showNeighborInfo(scene);
     }
     else if(lastSuccessor != undefined)
     {
@@ -822,13 +817,14 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
       neighbors[0] = { vertexInfo: parseInt(lastSuccessor), mesh: nextMesh.name };
       for(var i = 0, j = 1; i < nextMesh.geometry.faces[lastSuccessor].neighbors.length; i++, j++)
       {
-        neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i])*32, mesh: nextMesh.name };
+        // neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i])*32, mesh: nextMesh.name };
+        neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i]), mesh: nextMesh.name };
         this.neighbors.push(neighbors[j]);
         this.realNeighbors.push(neighbors[j]);
       }
       this.colorNeighbors(nextMesh.geometry.faces, neighbors);
-      this.showNeighborInfo(scene);
     }
+    this.showNeighborInfo(scene);
   }
 }
 
@@ -971,7 +967,7 @@ EventHandler.prototype.getTooltipInfo = function(vertices)
  * @param {Array} rows Rows to insert data.
  * @param {String} table Table ID where vertex info will be displayed.
  */
-EventHandler.prototype.showVertexInfo = function(vertices, rows, table)
+EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
 {
   var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
   /** Load already existing elements clicked in array of rows */
@@ -1006,7 +1002,7 @@ EventHandler.prototype.showVertexInfo = function(vertices, rows, table)
         return ('' + a).localeCompare(b);
       });
       /** Construct a new vue table header */
-      vueTableHeader._data.headers = vertexVueHeaders;
+      header._data.headers = vertexVueHeaders;
     }
   }
   for(var j = 0; j < vertices.length; j++)

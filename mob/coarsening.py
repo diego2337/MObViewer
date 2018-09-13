@@ -26,10 +26,10 @@ even if advised of the possibility of such damage.
 """
 
 import sys
-import json
 import numpy
 import os
 import inspect
+import json
 
 import models.args as args
 import models.helper as helper
@@ -37,6 +37,9 @@ import models.helperigraph as helperigraph
 
 from models.timing import Timing
 from models.similarity import Similarity
+
+import sharedmem
+from multiprocessing import Process
 
 __maintainer__ = 'Alan Valejo'
 __author__ = 'Alan Valejo'
@@ -81,12 +84,14 @@ def main():
 			options.matching = ['rgmb'] * len(options.vertices)
 		if options.similarity is None:
 			options.similarity = ['weighted_common_neighbors'] * len(options.vertices)
-		if options.itr_mlp is None:
-			options.itr_mlp = [10] * len(options.vertices)
+		if options.itr is None:
+			options.itr = [10] * len(options.vertices)
 		if options.upper_bound is None:
 			options.upper_bound = [2.0] * len(options.vertices)
 		if options.global_min_vertices is None:
 			options.global_min_vertices = [None] * len(options.vertices)
+		if options.tolerance is None:
+			options.tolerance = [None] * len(options.vertices)
 
 		# Validation of list values
 		if len(options.reduction_factor) == 1:
@@ -97,12 +102,14 @@ def main():
 			options.matching = [options.matching[0]] * len(options.vertices)
 		if len(options.similarity) == 1:
 			options.similarity = [options.similarity[0]] * len(options.vertices)
-		if len(options.itr_mlp) == 1:
-			options.itr_mlp = [options.itr_mlp[0]] * len(options.vertices)
+		if len(options.itr) == 1:
+			options.itr = [options.itr[0]] * len(options.vertices)
 		if len(options.upper_bound) == 1:
 			options.upper_bound = [options.upper_bound[0]] * len(options.vertices)
 		if len(options.global_min_vertices) == 1:
 			options.global_min_vertices = [options.global_min_vertices[0]] * len(options.vertices)
+		if len(options.tolerance) == 1:
+			options.tolerance = [options.tolerance[0]] * len(options.vertices)
 
 		# Verification of the dimension of the parameters
 		if len(options.vertices) != len(options.reduction_factor):
@@ -117,7 +124,7 @@ def main():
 		if len(options.vertices) != len(options.similarity):
 			log.warning('Sizes of input arguments -v and -s do not match.')
 			sys.exit(1)
-		if len(options.vertices) != len(options.itr_mlp):
+		if len(options.vertices) != len(options.itr):
 			log.warning('Size of input arguments -v and -imlp do not match.')
 			sys.exit(1)
 		if len(options.vertices) != len(options.upper_bound):
@@ -126,9 +133,12 @@ def main():
 		if len(options.vertices) != len(options.global_min_vertices):
 			log.warning('Size of input arguments -v and -gmv do not match.')
 			sys.exit(1)
+		if len(options.vertices) != len(options.tolerance):
+			log.warning('Size of input arguments -v and -gmv do not match.')
+			sys.exit(1)
 
 		# Validation of matching method
-		valid_matching = ['rgmb', 'gmb', 'mlp', 'nmlp', 'medlp', 'hem', 'lem', 'rm']
+		valid_matching = ['rgmb', 'gmb', 'nmlp', 'mlp', 'hem', 'lem', 'rm']
 		for index, matching in enumerate(options.matching):
 			matching = matching.lower()
 			if matching not in valid_matching:
@@ -140,11 +150,11 @@ def main():
 		valid_similarity = ['common_neighbors', 'weighted_common_neighbors',
 		'salton', 'preferential_attachment', 'jaccard', 'adamic_adar',
 		'resource_allocation', 'sorensen', 'hub_promoted', 'hub_depressed',
-		'leicht_holme_newman']
+		'leicht_holme_newman', 'lastfm_age']
 		for index, similarity in enumerate(options.similarity):
 			similarity = similarity.lower()
 			if similarity not in valid_similarity:
-				log.warning('Similarity misure is unvalid.')
+				log.warning('Similarity measure is unvalid.')
 				sys.exit(1)
 			options.similarity[index] = similarity
 
@@ -165,22 +175,39 @@ def main():
 
 	# Load bipartite graph
 	with timing.timeit_context_add('Load'):
-		graph_original = helperigraph.load(options.input, options.vertices)
-		graph_original['level'] = [0] * graph_original['layers']
+		graph = helperigraph.load(options.input, options.vertices)
+		graph['level'] = [0] * graph['layers']
+		source_ecount = graph.ecount()
+		# f = open(options.attr)
+		# js = json.load(f)
+		# for element in js['nodes']:
+		# 	keys = element.keys()
+		# 	for k in keys:
+		# 		graph.vs[element['id']][k] = element[k]
+		# 		# if k in graph.vs[element['id']]:
+		# 		# if hasattr(graph.vs, k):
+		# 			# graph.vs.select(name_eq=element['id'])[k].append(element[k])
+		# 			# graph.vs[element['id']].append(element[k])
+		# 		# else:
+		# 			# graph.vs[element['id']][k] = []
+		# 			# graph.vs[element['id']][k].append(element[k])
+		# 			# graph.vs[element['id']] = []
+		# 			# graph.vs[element['id']].append(element[k])
+		# f.close()
 
 	# Coarsening
 	with timing.timeit_context_add('Coarsening'):
 		hierarchy_graphs = []
 		hierarchy_levels = []
-		graph = graph_original.copy()
 		running = True
 		while running:
 			running = False
 
-			membership = numpy.array(range(graph.vcount()))
+			membership = sharedmem.full(graph.vcount(), range(graph.vcount()), dtype='int')
 			levels = graph['level']
 			contract = False
 
+			processes = []
 			for layer in range(len(graph['vertices'])):
 
 				matching_layer = True
@@ -201,36 +228,44 @@ def main():
 					vertices = range(start, end)
 
 					param = dict(reduction_factor=options.reduction_factor[layer])
-					if options.matching[layer] in ['mlp', 'nmlp', 'medlp', 'nmb']:
+
+					if options.matching[layer] in ['mlp', 'nmlp']:
 						param['upper_bound'] = options.upper_bound[layer]
 						param['n'] = options.vertices[layer]
 						param['global_min_vertices'] = options.global_min_vertices[layer]
-					if options.matching[layer] in ['mlp', 'medlp']:
-						param['itr'] = options.itr_mlp[layer]
+					if options.matching[layer] in ['mlp', 'nmlp', 'gmb', 'rgmb']:
+						param['vertices'] = vertices
+					if options.matching[layer] in ['mlp']:
+						param['tolerance'] = options.tolerance[layer]
+						param['itr'] = options.itr[layer]
 
 					if options.matching[layer] in ['hem', 'lem', 'rm']:
 						one_mode_graph = graph.weighted_one_mode_projection(vertices)
 						matching_method = getattr(one_mode_graph, options.matching[layer])
-						matching_method(membership, **param)
 					else:
 						matching_method = getattr(graph, options.matching[layer])
-						matching_method(vertices, membership, **param)
+
+					processes.append(Process(target=matching_method, args=[membership], kwargs=param))
+
+			for p in processes:
+				p.start()
+			for p in processes:
+				p.join()
 
 			if contract:
-				coarse = graph.contract_group(membership)
+				coarse = graph.contract(membership)
 				coarse['level'] = levels
 				graph = coarse
 
-			if options.save_hierarchy or not running:
-				hierarchy_graphs.append(graph)
-				hierarchy_levels.append(levels[:])
+				if options.save_hierarchy or not running:
+					hierarchy_graphs.append(graph)
+					hierarchy_levels.append(levels[:])
 
 	# Save
 	with timing.timeit_context_add('Save'):
 
 		output = options.output
 		for index, obj in enumerate(reversed(zip(hierarchy_levels, hierarchy_graphs))):
-
 			levels, graph = obj
 
 			if options.save_conf:
@@ -240,6 +275,7 @@ def main():
 					d['source_input'] = options.input
 					d['source_vertices'] = [options.vertices[0], options.vertices[1]]
 					d['source_vcount'] = options.vertices[0] + options.vertices[1]
+					d['source_ecount'] = source_ecount
 					d['ecount'] = graph.ecount()
 					d['vcount'] = graph.vcount()
 					d['vertices'] = graph['vertices']
@@ -250,7 +286,7 @@ def main():
 					d['level'] = levels
 					d['upper_bound'] = options.upper_bound
 					d['global_min_vertices'] = options.global_min_vertices
-					d['itr_mlp'] = options.itr_mlp
+					d['itr'] = options.itr
 					json.dump(d, f, indent=4)
 
 			if options.save_ncol:
@@ -259,13 +295,12 @@ def main():
 
 			if options.save_source:
 				# with open(output + '_' + str(index) + '.source', 'w+') as f:
-				with open(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.source', 'w+') as f:
+				with open(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.predecessor', 'w+') as f:
 					for v in graph.vs():
 						f.write(' '.join(map(str, v['source'])) + '\n')
 
 			if options.save_predecessor:
-				# with open(output + '_' + str(index) + '.predecessor', 'w+') as f:
-				with open(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.predecessor', 'w+') as f:
+				with open(output + '_' + str(index) + '.predecessor', 'w+') as f:
 					for v in graph.vs():
 						f.write(' '.join(map(str, v['predecessor'])) + '\n')
 
@@ -276,8 +311,8 @@ def main():
 				numpy.savetxt(output + '_' + str(index) + '.weight', graph.vs['weight'], fmt='%d')
 
 			if options.save_gml:
-				# del graph['adjlist']
-				# del graph['similarity']
+				del graph['adjlist']
+				del graph['similarity']
 				graph['layers'] = str(graph['layers'])
 				if(type(graph['vertices']) is str):
 					graph['vertices'] = graph['vertices'].split(",")
@@ -308,7 +343,6 @@ def main():
 		timing.save_csv(output + '-timing.csv')
 	if options.save_timing_json:
 		timing.save_json(output + '-timing.json')
-
 
 if __name__ == "__main__":
 	sys.exit(main())

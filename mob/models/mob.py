@@ -1,0 +1,544 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+"""
+Mob (Multilevel Optimization Framework to Bipartite Networks)
+==========================
+
+Copyright (C) 2016 Alan Valejo <alanvalejo@gmail.com> All rights reserved.
+
+Multilevel optimization framework to perform in bipartite context.
+
+Multilevel approaches aim to reduce the cost of an optimization process by
+applying it to a reduced or coarsened version of the original network.
+
+This file is part of MOB.
+
+MOB is a free software and non-commercial use only: you can be use it for
+creating unlimited applications, distribute in binary or object form only,
+modify source-code and distribute modifications (derivative works). Please,
+giving credit to the author by citing the papers. License will expire in 2018,
+July, and will be renewed.
+
+Owner or contributors are not liable for any direct, indirect, incidental,
+special, exemplary, or consequential damages, (such as loss of data or profits,
+and others) arising in any way out of the use of this software,
+even if advised of the possibility of such damage.
+"""
+
+import operator
+import numpy
+import random
+import math
+import collections
+import igraph
+
+from itertools import izip
+from random import sample
+from igraph import Graph
+
+__maintainer__ = 'Alan Valejo'
+__author__ = 'Alan Valejo'
+__email__ = 'alanvalejo@gmail.com'
+__credits__ = ['Alan Valejo', 'Vinicius Ferreira', 'Maria Cristina Ferreira de Oliveira', 'Alneu de Andrade Lopes']
+__homepage__ = 'http://www.alanvalejo.com.br/software?name=MOB'
+__version__ = '0.1'
+__date__ = '2016-12-01'
+
+class MGraph(Graph):
+
+	def __init__(self, *args, **kwargs):
+
+		super(Graph, self).__init__(*args, **kwargs)
+
+	def contract(self, matching):
+		"""
+		Create coarse graph from matching of groups
+		"""
+
+		# Contract vertices: Referencing the original graph of the coarse graph
+		types = []
+		weights = []
+		matching = numpy.array(matching)
+		uniqid = 0
+		source = {}
+		predecessor = {}
+		attrs = set(self.vs.attributes()) - set(['predecessor', 'id', 'successor', 'weight', 'name', 'type', 'source'])
+		nan = []
+		for attr in attrs:
+			if attr != 'age':
+				nan.append(attr)
+
+		attrs = attrs - set(nan)
+		attr_size = len(attrs)
+		attrs_dict = dict(zip(attrs, [[]] * len(attrs)))
+
+		for layer in range(self['layers']):
+			start = sum(self['vertices'][0:layer])
+			end = sum(self['vertices'][0:layer + 1])
+			matching_line = matching[start:end]
+			clusters = numpy.unique(matching_line)
+			for cluster_id in clusters:
+				vertices = numpy.where(matching_line == cluster_id)[0]
+				weight = 0
+				attr_aux = [-1] * attr_size
+				if len(vertices) > 0:
+					source[uniqid] = []
+					predecessor[uniqid] = []
+				for vertex in vertices:
+					vertex = vertex + start
+					self.vs[vertex]['successor'] = uniqid
+					weight += self.vs[vertex]['weight']
+					source[uniqid].extend(self.vs[vertex]['source'])
+					predecessor[uniqid].append(vertex)
+					for idx, attr in enumerate(attrs):
+						if self.vs[vertex][attr] is not None:
+							attr_aux[idx] += int(self.vs[vertex][attr])
+				if len(vertices) > 0:
+					for idx, attr in enumerate(attrs):
+						attrs_dict[attr].append(attr_aux[idx])
+					weights.append(weight)
+					types.append(layer)
+					uniqid += 1
+
+		# Create coarsening self
+		coarse = MGraph()
+		coarse.add_vertices(uniqid)
+		coarse.vs['type'] = types
+		coarse.vs['weight'] = weights
+		coarse.vs['name'] = range(coarse.vcount())
+		coarse.vs['successor'] = [None] * coarse.vcount()
+		for idx, attr in enumerate(attrs):
+			coarse.vs[attr] = attrs_dict[attr]
+		coarse['layers'] = self['layers']
+		coarse['vertices'] = []
+		coarse['similarity'] = None
+		for layer in xrange(self['layers']):
+			coarse['vertices'].append(len(coarse.vs.select(type=layer)))
+		for vertex, source in source.iteritems():
+			coarse.vs[vertex]['source'] = source
+		for vertex, predecessor in predecessor.iteritems():
+			coarse.vs[vertex]['predecessor'] = predecessor
+
+		# Contract edges
+		dict_edges = dict()
+		for edge in self.es():
+			v_successor = self.vs[edge.tuple[0]]['successor']
+			u_successor = self.vs[edge.tuple[1]]['successor']
+
+			# Add edge in coarse graph
+			if v_successor < u_successor:
+				dict_edges[(v_successor, u_successor)] = dict_edges.get((v_successor, u_successor), 0) + edge['weight']
+			else:
+				dict_edges[(u_successor, v_successor)] = dict_edges.get((u_successor, v_successor), 0) + edge['weight']
+
+		if len(dict_edges) > 0:
+			edges, weights = izip(*dict_edges.items())
+			coarse.add_edges(edges)
+			coarse.es['weight'] = weights
+			coarse['adjlist'] = map(set, coarse.get_adjlist())
+
+		return coarse
+
+	def contract_slow(self, matching):
+		"""
+		Create coarse graph from matching of groups
+		"""
+
+		# Contract vertices: Referencing the original graph of the coarse graph
+		types = []
+		weights = []
+		source = []
+		types_size = [0] * len(self['vertices'])
+		cl = igraph.Clustering(matching)
+		cl = filter(None, list(cl))
+		for uniqid, vertices in enumerate(cl):
+			self.vs[vertices]['successor'] = uniqid
+			weights.append(sum(self.vs[vertices]['weight']))
+			types.append(self.vs[vertices]['type'][0])
+			source.append(list(numpy.concatenate(self.vs[vertices]['source'])))
+			types_size[self.vs[vertices]['type'][0]] += 1
+
+		# Create coarse graph
+		coarse = MGraph()
+		coarse.add_vertices(uniqid + 1)
+		coarse.vs['type'] = types
+		coarse.vs['weight'] = weights
+		coarse.vs['name'] = range(coarse.vcount())
+		coarse.vs['successor'] = [None] * coarse.vcount()
+		coarse['similarity'] = None
+		coarse['layers'] = self['layers']
+		coarse['vertices'] = types_size
+		coarse.vs['source'] = source
+		coarse.vs['predecessor'] = cl
+
+		# Contract edges
+		dict_edges = dict()
+		for edge in self.es():
+			v_successor = self.vs[edge.tuple[0]]['successor']
+			u_successor = self.vs[edge.tuple[1]]['successor']
+
+			# Add edge in coarse graph
+			if v_successor < u_successor:
+				dict_edges[(v_successor, u_successor)] = dict_edges.get((v_successor, u_successor), 0.0) + edge['weight']
+			else:
+				dict_edges[(u_successor, v_successor)] = dict_edges.get((u_successor, v_successor), 0.0) + edge['weight']
+
+		if len(dict_edges) > 0:
+			edges, weights = izip(*dict_edges.items())
+			coarse.add_edges(edges)
+			coarse.es['weight'] = weights
+			coarse['adjlist'] = map(set, coarse.get_adjlist())
+
+		return coarse
+
+	def gmb(self, matching, vertices=None, reduction_factor=0.5, reverse=True):
+		"""
+		Matches are restricted between vertices that are not adjacent
+		but are only allowed to match with neighbors of its neighbors,
+		i.e. two-hopes neighborhood
+		"""
+
+		# Search two-hopes neighborhood for each vertex in selected layer
+		dict_edges = dict()
+		visited = [0] * self.vcount()
+		for vertex in vertices:
+			neighborhood = self.neighborhood(vertices=vertex, order=2)
+			twohops = neighborhood[(len(self['adjlist'][vertex]) + 1):]
+			for twohop in twohops:
+				if visited[twohop] == 1:
+					continue
+				dict_edges[(vertex, twohop)] = self['similarity'](vertex, twohop)
+			visited[vertex] = 1
+
+		# Select promising matches or pair of vertices
+		visited = [0] * self.vcount()
+		edges = sorted(dict_edges.items(), key=operator.itemgetter(1), reverse=reverse)
+		merge_count = int(reduction_factor * len(vertices))
+		for edge, value in edges:
+			vertex = edge[0]
+			neighbor = edge[1]
+			if (visited[vertex] != 1) and (visited[neighbor] != 1):
+				matching[neighbor] = vertex
+				matching[vertex] = vertex
+				visited[neighbor] = 1
+				visited[vertex] = 1
+				merge_count -= 1
+			if merge_count == 0:
+				break
+
+	def rgmb(self, matching, vertices=None, reduction_factor=0.5, seed_priority='random'):
+		"""
+		Matches are restricted between vertices that are not adjacent
+		but are only allowed to match with neighbors of its neighbors,
+		i.e. two-hopes neighborhood. This version use a random seed.
+		"""
+
+		# Select seed set expansion
+		if seed_priority == 'strength':
+			vertices_score = numpy.array(self.strength(vertices, weights='weight'))
+			vertices_id = numpy.argsort(vertices_score)[::-1]
+		if seed_priority == 'degree':
+			vertices_score = numpy.array(self.degree(vertices))
+			vertices_id = numpy.argsort(vertices_score)[::-1]
+		if seed_priority == 'random':
+			vertices_id = vertices
+			vertices_id = random.sample(vertices_id, len(vertices_id))
+
+		# Find the matching
+		visited = [0] * self.vcount()
+		index = 0
+		merge_count = int(reduction_factor * len(vertices))
+		while merge_count > 0 and index < len(vertices):
+			# Randomly select a vertex v of V
+			vertex = vertices_id[index]
+			if visited[vertex] == 1:
+				index += 1
+				continue
+			# Select the edge (v, u) of E wich maximum score
+			# Tow hopes restriction: It ensures that the match only occurs
+			# between vertices of the same type
+			neighborhood = self.neighborhood(vertices=vertex, order=2)
+			twohops = neighborhood[(len(self['adjlist'][vertex]) + 1):]
+			# twohops = set((twohop for onehop in self['adjlist'][vertex] for twohop in self['adjlist'][onehop])) - set([vertex])
+			_max = 0.0
+			neighbor = vertex
+			for twohop in twohops:
+				if visited[twohop] == 1:
+					continue
+				# Calling a function of a module from a string
+				score = self['similarity'](vertex, twohop)
+				if score > _max:
+					_max = score
+					neighbor = twohop
+			matching[neighbor] = vertex
+			matching[vertex] = vertex
+			visited[neighbor] = 1
+			visited[vertex] = 1
+			merge_count -= 1
+			index += 1
+
+	def rm(self, matching, reduction_factor=0.5):
+		"""
+		Random Matching: Select a maximal matching using a
+		randomized algorithm
+		"""
+
+		merge_count = int(reduction_factor * self.vcount())
+		return self.get_random_edges(merge_count, matching)
+
+	def lem(self, matching, reduction_factor=0.5):
+		"""
+		Heavy Light Matching: Search for a minimal matching using the
+		weights of the edges of the graph.
+		"""
+
+		merge_count = int(reduction_factor * self.vcount())
+		return self.get_sorted_edges(merge_count, matching, reverse=False)
+
+	def hem(self, matching, reduction_factor=0.5):
+		"""
+		Heavy Edge Matching: Search for a maximal matching using the
+		weights of the edges of the graph.
+		"""
+
+		merge_count = int(reduction_factor * self.vcount())
+		return self.get_sorted_edges(merge_count, matching)
+
+	def get_random_edges(self, merge_count, matching):
+		"""
+		Return a random independent edge set in a graph, i.e., is a set
+		of edges without common vertices random selected.
+		"""
+
+		visited = [0] * self.vcount()
+		edges = sample(self.es(), self.ecount())
+		for edge in edges:
+			if (visited[edge.tuple[0]] == 0) and (visited[edge.tuple[1]] == 0):
+				u = self.vs[edge.tuple[0]]['name']
+				v = self.vs[edge.tuple[1]]['name']
+				matching[u] = u
+				matching[v] = u
+				visited[edge.tuple[1]] = 1
+				visited[edge.tuple[0]] = 1
+				merge_count -= 1
+			if merge_count == 0:
+				break
+
+	def get_sorted_edges(self, merge_count, matching, reverse=True):
+		"""
+		Search for a maximal matching using the weights of the edges of
+		the graph. The aim is to find a maximal matching of the graph that
+		minimizes the cut.
+		"""
+
+		visited = [0] * self.vcount()
+		edges = sorted(self.es(), key=lambda edge: edge['weight'], reverse=reverse)
+		for edge in edges:
+			if (visited[edge.tuple[0]] == 0) and (visited[edge.tuple[1]] == 0):
+				u = self.vs[edge.tuple[0]]['name']
+				v = self.vs[edge.tuple[1]]['name']
+				matching[u] = u
+				matching[v] = u
+				visited[edge.tuple[1]] = 1
+				visited[edge.tuple[0]] = 1
+				merge_count -= 1
+			if merge_count == 0:
+				break
+
+	def weighted_one_mode_projection(self, vertices):
+		"""
+		Application of a one-mode projection to a bipartite network generates
+		two unipartite networks, one for each layer, so that vertices with
+		common neighbors are connected by edges in their respective projection.
+		"""
+
+		graph = MGraph()
+		graph.add_vertices(vertices)
+		graph.vs['name'] = self.vs[vertices]['name']
+		name_to_id = dict(zip(vertices, range(graph.vcount())))
+
+		dict_edges = dict()
+		visited = [0] * self.vcount()
+		for vertex in vertices:
+			neighborhood = self.neighborhood(vertices=vertex, order=2)
+			twohops = neighborhood[(len(self['adjlist'][vertex]) + 1):]
+			for twohop in twohops:
+				if visited[twohop] == 1:
+					continue
+				dict_edges[(name_to_id[vertex], name_to_id[twohop])] = self['similarity'](vertex, twohop)
+			visited[vertex] = 1
+
+		if len(dict_edges) > 0:
+			edges, weights = izip(*dict_edges.items())
+			graph.add_edges(edges)
+			graph.es['weight'] = weights
+
+		return graph
+
+	def nmlp(self, matching, vertices=None, reduction_factor=0.5, seed_priority='degree', upper_bound=1.4, n=None, global_min_vertices=None, reverse=True):
+		"""
+		Naive matching via weight-constrained label propagation and neigborhood.
+		"""
+
+		# Select seed set expansion
+		if seed_priority == 'strength':
+			vertices_score = self.strength(vertices, weights='weight')
+			dictionary = dict(zip(vertices, vertices_score))
+			vertices_id = sorted(dictionary, key=dictionary.__getitem__, reverse=reverse)
+		if seed_priority == 'degree':
+			vertices_score = self.degree(vertices)
+			dictionary = dict(zip(vertices, vertices_score))
+			vertices_id = sorted(dictionary, key=dictionary.__getitem__, reverse=reverse)
+		if seed_priority == 'random':
+			vertices_id = random.sample(vertices, len(vertices))
+
+		min_vertices = int((1 - reduction_factor) * len(vertices))
+		if global_min_vertices is not None and global_min_vertices > min_vertices:
+			if global_min_vertices >= len(vertices):
+				return
+			min_vertices = global_min_vertices
+		if min_vertices < 1:
+			min_vertices = 1
+
+		number_of_vertices = len(vertices)
+		visited = [0] * self.vcount()
+		max_size = int(math.ceil((upper_bound * n) / min_vertices))
+		weight_of_sv = self.vs['weight']
+		similarity_dict = collections.defaultdict(float)
+
+		for vertex in vertices_id:
+			if visited[vertex] == 1:
+				continue
+			# Tow hopes restriction: It ensures that the match only occurs
+			# between vertices of the same type
+			neighborhood = self.neighborhood(vertices=vertex, order=2)
+			twohops = neighborhood[(len(self['adjlist'][vertex]) + 1):]
+			# Select the edge (v, u) of E wich maximum score via neigborhood
+			# Find the best twohop neighbor
+			_max = 0.0
+			neighbor = vertex
+			for twohop in twohops:
+				if weight_of_sv[matching[twohop]] + self.vs[vertex]['weight'] <= max_size:
+					if vertex < twohop:
+						u, v = vertex, twohop
+					else:
+						u, v = twohop, vertex
+					if not similarity_dict.get((u, v), False):
+						similarity_dict[(u, v)] = self['similarity'](vertex, twohop)
+					score = similarity_dict[(u, v)]
+					if (score > _max):
+						_max = score
+						neighbor = twohop
+			# If a neighbor was fund, match them togheter
+			if (vertex != neighbor) and (matching[vertex] != matching[neighbor]):
+				if visited[neighbor] == 1:
+					weight_of_sv[matching[neighbor]] += self.vs[vertex]['weight']
+					weight_of_sv[matching[vertex]] -= self.vs[vertex]['weight']
+					matching[vertex] = matching[neighbor]
+				else:
+					weight_of_sv[matching[vertex]] += self.vs[vertex]['weight']
+					weight_of_sv[matching[neighbor]] -= self.vs[vertex]['weight']
+					matching[neighbor] = matching[vertex]
+				number_of_vertices -= 1
+				visited[vertex] = visited[neighbor] = 1
+				if number_of_vertices <= min_vertices:
+					break
+
+	def mlp(self, membership, vertices=None, seed_priority='degree', reduction_factor=0.5, itr=10, tolerance=0.05, upper_bound=2.0, n=None, global_min_vertices=None, reverse=True):
+		"""
+		Naive matching via weight-constrained label propagation and neigborhood.
+		"""
+
+		min_vertices = int((1 - reduction_factor) * len(vertices))
+		if global_min_vertices is not None and global_min_vertices > min_vertices:
+			if global_min_vertices >= len(vertices):
+				return
+			min_vertices = global_min_vertices
+		if min_vertices < 1:
+			min_vertices = 1
+
+		max_size = int(math.ceil((upper_bound * n) / min_vertices))
+		number_of_vertices = len(vertices)
+		weight_of_sv = self.vs['weight']
+
+		strength = self.strength(vertices, weights='weight')
+		strength_dict = dict(zip(vertices, strength))
+		label_dict = dict(zip(vertices, vertices))
+		volume = collections.defaultdict(float)
+		for v in vertices:
+			volume[label_dict[v]] += strength_dict[v]
+
+		twohops_dict = collections.defaultdict(float)
+		similarity_dict = collections.defaultdict(float)
+
+		# Select seed set expansion: case of strength or degree seed
+		if seed_priority == 'strength':
+			vertices_score = numpy.array(self.strength(vertices, weights='weight'))
+			dictionary = dict(zip(vertices, vertices_score))
+			vertices_id = sorted(dictionary, key=dictionary.__getitem__, reverse=reverse)
+		if seed_priority == 'degree':
+			vertices_score = numpy.array(self.degree(vertices))
+			dictionary = dict(zip(vertices, vertices_score))
+			vertices_id = sorted(dictionary, key=dictionary.__getitem__, reverse=reverse)
+
+		tolerance = tolerance * len(vertices)
+		swap = tolerance + 1
+		while (tolerance < swap) and (itr):
+			swap = 0
+			itr -= 1
+
+			# Select seed set expansion: case of random seed
+			if seed_priority == 'random':
+				vertices_id = vertices
+				vertices_id = random.sample(vertices_id, len(vertices_id))
+
+			for vertex in vertices_id:
+
+				if self.degree(vertex) == 0:
+					continue
+
+				# Tow hopes restriction: It ensures that the match only occurs
+				# between vertices of the same type
+				if not twohops_dict.get(vertex, False):
+					neighborhood = self.neighborhood(vertices=vertex, order=2)
+					twohops_dict[vertex] = neighborhood[(len(self['adjlist'][vertex]) + 1):]
+
+				# Update neigborhood edge density
+				# Fist step Q[li]' = sim(v, C_i)
+				Q = collections.defaultdict(float)
+				for neighbor in twohops_dict[vertex]:
+					if weight_of_sv[label_dict[neighbor]] + self.vs[vertex]['weight'] <= max_size:
+						if vertex < neighbor:
+							u, v = vertex, neighbor
+						else:
+							u, v = neighbor, vertex
+						if not similarity_dict.get((u, v), False):
+							similarity_dict[(u, v)] = self['similarity'](u, v)
+						Q[label_dict[neighbor]] += similarity_dict[(u, v)]
+
+				if Q:
+					# Select the dominant label
+					dominant_label = max(Q.iteritems(), key=operator.itemgetter(1))[0]
+					# If a dominant label was fund, match them togheter
+					# and update data structures
+					if dominant_label != label_dict[vertex]:
+						swap += 1
+						prev_label = label_dict[vertex]
+						# Update vertex label
+						label_dict[vertex] = dominant_label
+						# Update neigborhood edge density
+						volume[prev_label] -= self.degree(vertex)
+						volume[dominant_label] += self.degree(vertex)
+						# Update the super-vertex weight
+						weight_of_sv[prev_label] -= self.vs[vertex]['weight']
+						weight_of_sv[dominant_label] += self.vs[vertex]['weight']
+						# Vertify the size-constraint restriction
+						if weight_of_sv[prev_label] == 0:
+							number_of_vertices -= 1
+						if number_of_vertices <= min_vertices:
+							tolerance = swap
+							break
+
+		for key, value in label_dict.iteritems():
+			membership[key] = value

@@ -348,6 +348,7 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
   nodeCmd.get('python ' + pyPath + 'jsonToNcol3.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
     if(!err)
     {
+      req.body.jsonInput.attr = 'uploads/' + req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1] + '/' + req.body.jsonInput.filename.split(".")[0] + ".json";
       req.body.jsonInput.filename = req.body.jsonInput.filename.split(".")[0] + ".ncol";
       req.body.jsonInput.directory = 'uploads/' + req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1];
       req.body.jsonInput.output = req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1] + 'Coarsened';

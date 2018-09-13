@@ -30,6 +30,16 @@
 		"default": null,
 		"help": "output file name"
 	},
+	"attr": {
+		"long": "attr",
+		"required": false,
+		"dest": "attr",
+		"type": "str",
+		"nargs": "?",
+		"action": "store",
+		"default": null,
+		"help": "output file name"
+	},
 	"cnf": {
 		"long": "conf",
 		"required": false,
@@ -80,40 +90,30 @@
 		"default": null,
 		"help": "number of vertices for each layer in the last level"
 	},
-	"tlr": {
+	"k": {
+		"long": "k",
+		"required": false,
+		"dest": "k",
+		"type": "int",
+		"nargs": "?",
+		"action": "store",
+		"default": null,
+		"help": "number of communities"
+	},
+	"t": {
 		"long": "tolerance",
 		"required": false,
 		"dest": "tolerance",
 		"type": "float",
 		"nargs": "?",
 		"action": "store",
-		"default": 0.00001,
+		"default": null,
 		"help": "tolerance"
 	},
-	"lrj": {
-		"long": "larange",
+	"itr": {
+		"long": "itr",
 		"required": false,
-		"dest": "tolerance",
-		"type": "float",
-		"nargs": "?",
-		"action": "store",
-		"default": 3.0,
-		"help": "lagrange multiplier"
-	},
-	"imlp": {
-		"long": "itr_mlp",
-		"required": false,
-		"dest": "itr_mlp",
-		"type": "int",
-		"nargs": "+",
-		"action": "store",
-		"default": null,
-		"help": "number of iterations for each layer in the coarsening algorithm"
-	},
-	"ilpa": {
-		"long": "itr_lpa",
-		"required": false,
-		"dest": "itr_lpa",
+		"dest": "itr",
 		"type": "int",
 		"nargs": "+",
 		"action": "store",
@@ -139,6 +139,16 @@
 		"action": "store",
 		"default": null,
 		"help": "matching method for each layer"
+	},
+	"a": {
+		"long": "algorithm",
+		"required": false,
+		"dest": "algorithm",
+		"type": "str",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "algorithm"
 	},
 	"s": {
 		"long": "similarity",
