@@ -56,8 +56,9 @@ IndependentSet.prototype.findNeighbors = function(nodes, links, i)
  * @param {int} layout Graph layout.
  * @param {float} maxNormalizingRange Maximum range to be used when normalizing vertexes.
  * @param {float} minNormalizingRange Minimum range to be used when normalizing vertexes.
+ * @param {Array} colour Color to be used when rendering a node.
  */
-IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer, geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout, maxNormalizingRange, minNormalizingRange)
+IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer, geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout, maxNormalizingRange, minNormalizingRange, colour)
 {
   try
   {
@@ -69,7 +70,8 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
     /** Color vertexes */
     for(var k = 0; k < circleGeometry.faces.length; k++)
     {
-      circleGeometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
+      // circleGeometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
+      circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
     }
     for(var i = 0; i < nodes.length && nodes[i] !== undefined; i++, pos++)
     {

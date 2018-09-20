@@ -379,10 +379,12 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
           edgeGeometry.colors[i] = new THREE.Color("rgb(0, 255, 0)");
           edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
         }
+        edgeGeometry.computeLineDistances();
         edgeGeometry.colorsNeedUpdate = true;
 
         /** Create one LineSegments and add it to scene */
-        var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+        // var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+        var edgeMaterial = new THREE.LineDashedMaterial({vertexColors:  THREE.VertexColors, dashSize: 10, gapSize: 3});
         var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
         // lineSegments.name = isNaN(currentMesh.name[currentMesh.name.length-1]) ? "parentConnections" : "parentConnections" + currentMesh.name[currentMesh.name.length-1];
         lineSegments.name = "parentConnections" + layScope.nEdges;
@@ -580,10 +582,12 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
           edgeGeometry.colors[i] = new THREE.Color("rgb(0, 255, 0)");
           edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
         }
+        edgeGeometry.computeLineDistances();
         edgeGeometry.colorsNeedUpdate = true;
 
         /** Create one LineSegments and add it to scene */
-        var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+        // var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+        var edgeMaterial = new THREE.LineDashedMaterial({vertexColors:  THREE.VertexColors, dashSize: 10, gapSize: 3});
         var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
         // lineSegments.name = isNaN(currentMesh.name[currentMesh.name.length-1]) ? "parentConnections" : "parentConnections" + currentMesh.name[currentMesh.name.length-1];
         lineSegments.name = "parentConnections" + layScope.nEdges;
@@ -1101,7 +1105,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         });
         for(var k = this.highlightedElements[i]; k < endPoint && fd === undefined; k++)
         {
-          if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
+          // if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
+          if(element.geometry.faces[k] !== undefined) element.name != "MainMesh" ? element.geometry.faces[k].color.setRGB(0.8, 0.8, 0.8) : element.geometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
         }
         element.geometry.colorsNeedUpdate = true;
       }
@@ -1121,7 +1126,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
         for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
         {
-            if(intersection.object.geometry.faces[i].color.r == 0 && intersection.object.geometry.faces[i].color.g == 0 && intersection.object.geometry.faces[i].color.b == 0)
+            if((intersection.object.geometry.faces[i].color.r == 0 && intersection.object.geometry.faces[i].color.g == 0 && intersection.object.geometry.faces[i].color.b == 0) ||
+               (intersection.object.geometry.faces[i].color.r == 0.8 && intersection.object.geometry.faces[i].color.g == 0.8 && intersection.object.geometry.faces[i].color.b == 0.8))
             {
               intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
             }
