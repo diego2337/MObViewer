@@ -3126,12 +3126,12 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
     if(previousMesh != undefined)
     {
       /** Recursively highlight parent nodes */
-      // this.showNodeParents(this.nEdges, scene, startFace, intersection.object, previousMesh, previousMeshNumber, layout, layer);
+      this.showNodeParents(this.nEdges, scene, startFace, intersection.object, previousMesh, previousMeshNumber, layout, layer);
     }
     if(nextMesh != undefined)
     {
       /** Recursively highlight child nodes */
-      // lastSuccessor = this.showNodeChildren(this.nEdges, scene, startFace, intersection.object, nextMesh, nextMeshNumber, layout, layer);
+      lastSuccessor = this.showNodeChildren(this.nEdges, scene, startFace, intersection.object, nextMesh, nextMeshNumber, layout, layer);
     }
     /** Highlight 'neighbors' */
     if(lastSuccessor == -1)
