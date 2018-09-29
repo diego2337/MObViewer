@@ -52,7 +52,18 @@ class Similarity(object):
 	def weight(self, i, j):
 		""" Calculates pairwise weight edge on a geiven graph. """
 
-		return self[i, j]
+		return self.graph[i, j]
+
+	def max_weight(self, i, j):
+		""" Calculates pairwise common neighbors similarity on a given unweighted graph. """
+
+		cn = self.adjlist[i].intersection(self.adjlist[j])
+		_set = [0.0] * len(cn)
+		for idx, z in enumerate(cn):
+			_set[idx] += self.graph[i, z]
+			_set[idx] += self.graph[j, z]
+		return max(_set)
+
 
 	def preferential_attachment(self, i, j):
 		""" Calculates pairwise preferential attachment similarities on a given unweighted graph. """
@@ -331,8 +342,8 @@ class Similarity(object):
 		"""
 
 		if self.graph.vs[i]['age'] > self.graph.vs[j]['age']:
-			return (1.0 / self.graph.vs[i]['age'] - self.graph.vs[j]['age'])
+			return (1.0 / (self.graph.vs[i]['age'] - self.graph.vs[j]['age']))
 		elif self.graph.vs[i]['age'] < self.graph.vs[j]['age']:
-			return (1.0 / self.graph.vs[j]['age'] - self.graph.vs[i]['age'])
+			return (1.0 / (self.graph.vs[j]['age'] - self.graph.vs[i]['age']))
 		else:
 			return 1.1

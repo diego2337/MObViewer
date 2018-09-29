@@ -147,7 +147,7 @@ def main():
 			options.matching[index] = matching
 
 		# Validation of similarity measure
-		valid_similarity = ['common_neighbors', 'weighted_common_neighbors',
+		valid_similarity = ['max_weight', 'weight', 'common_neighbors', 'weighted_common_neighbors',
 		'salton', 'preferential_attachment', 'jaccard', 'adamic_adar',
 		'resource_allocation', 'sorensen', 'hub_promoted', 'hub_depressed',
 		'leicht_holme_newman', 'lastfm_age']

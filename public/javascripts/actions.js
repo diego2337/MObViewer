@@ -380,6 +380,11 @@ $("#clearTable2").on('click', function(){
   vueTableRowsSecondLayer._data.rows = "";
 });
 
+/** Clear histogram card */
+$("#clearTableVertexStats").on('click', function(){
+  $("#vertexStatsCard").css('visibility', 'hidden');
+});
+
 /** */
 $("#coarseJson").on('click', function(){
   $("#jsonInput").css('visibility', 'hidden');

@@ -3096,7 +3096,7 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
     // intersection.faceIndex <= intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32 ? index = 'renderFirstLayer' : index = 'renderLastLayer';
     parseInt(intersectionId) < parseInt(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer) ? index = 'renderFirstLayer' : index = 'renderLastLayer';
     // while(previousMesh != undefined && JSON.parse(previousMesh.geometry.faces[0].layers)[index] == false && previousMeshNumber != this.nLevels[0]+1)
-    while(JSON.parse(previousMesh.geometry.faces[0].layers)[index] == false)
+    while(previousMesh != undefined && JSON.parse(previousMesh.geometry.faces[0].layers)[index] == false)
     {
       previousMeshNumber = previousMeshNumber + 1;
       if(previousMeshNumber == this.nLevels[0]+1)
@@ -3109,7 +3109,7 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
       }
     }
     // while(nextMesh != undefined && JSON.parse(nextMesh.geometry.faces[0].layers)[index] == false && nextMeshNumber != "")
-    while(JSON.parse(nextMesh.geometry.faces[0].layers)[index] == false)
+    while(nextMesh != undefined && JSON.parse(nextMesh.geometry.faces[0].layers)[index] == false)
     {
       nextMeshNumber = nextMeshNumber - 1;
       if(nextMeshNumber == 0)
@@ -3342,7 +3342,7 @@ EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
     var tempArr = [];
     for(key in vertices[j])
     {
-      tempArr.push(key);
+      if(key != "sha-id") tempArr.push(key);
     }
     if(vertexVueHeaders.length < tempArr.length)
     {
@@ -3359,16 +3359,35 @@ EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
   {
     /** Sort vertices[j] */
     var ordered = {};
-    Object.keys(vertices[j]).sort().forEach(function(key) {
-      ordered[key] = vertices[j][key];
-    });
+    var vertKeys = Object.keys(vertices[j]).sort();
+    vertexVueHeaders.sort();
+    var i = 0;
     for(key in vertexVueHeaders)
     {
-      if(!(vertexVueHeaders[key] in ordered))
-      {
-        ordered[key] = "No value";
-      }
+      // if(vertKeys[key] != "sha-id")
+      // {
+        if(vertKeys[i] != vertexVueHeaders[key])
+        {
+          ordered[vertexVueHeaders[key]] = "No value";
+        }
+        else
+        {
+          i = i + 1;
+          ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
+        }
+      // }
     }
+    // Object.keys(vertices[j]).sort().forEach(function(key) {
+    //   console.log("key: " + key);
+    //   if(key != "sha-id") ordered[key] = vertices[j][key];
+    // });
+    // for(key in vertexVueHeaders)
+    // {
+    //   if(!(vertexVueHeaders[key] in ordered))
+    //   {
+    //     ordered[key] = "No value";
+    //   }
+    // }
     vertexVueRows.push(ordered);
   }
   /** Construct a new vue table data */
