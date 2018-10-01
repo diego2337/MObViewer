@@ -37,7 +37,7 @@ $('#multilevelCoarsener2').on('change', function(){
 /** Change from horizontal layout to vertical layout */
 $('#switchLayout').on('click', function(){
   $.ajax({
-    url: '/switch',
+    url: '/graph/switch',
     type: 'POST',
     success: function(html){
       layoutUpdate();
@@ -147,7 +147,7 @@ function treatFloatZero(value)
 function createCategoriesFile(textarea)
 {
   $.ajax({
-    url: '/categories',
+    url: '/system/categories',
     type: 'POST',
     data: {jsonInput: textarea.value},
     success: function(html){
@@ -161,7 +161,7 @@ function createCategoriesFile(textarea)
 $("#coarseGraph").on('click', function(){
   /** Iterate through a for loop to create nLevels of coarsened graphs */
   $.ajax({
-    url:'/coarse',
+    url:'/system/coarse',
     type: 'POST',
     data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: treatFloatZero($('#multilevelCoarsener')[0].value), coarseningSecondSet: treatFloatZero($('#multilevelCoarsener2')[0].value), firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
     // success: graphUpdate,
@@ -171,7 +171,7 @@ $("#coarseGraph").on('click', function(){
       for(let i = 0; i < getInteger($("#nLevels")[0].value); i++)
       {
         $.ajax({
-          url:'/convert',
+          url:'/system/convert',
           type: 'POST',
           data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: treatFloatZero($('#multilevelCoarsener')[0].value), coarseningSecondSet: treatFloatZero($('#multilevelCoarsener2')[0].value), firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0, currentLevel: (i+1).toString()},
           success: function(html){
@@ -179,7 +179,7 @@ $("#coarseGraph").on('click', function(){
             if(nOfExecutions == 1)
             {
                 $.ajax({
-                  url:'/setProperties',
+                  url:'/system/setProperties',
                   type: 'POST',
                   data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: treatFloatZero($('#multilevelCoarsener')[0].value), coarseningSecondSet: treatFloatZero($('#multilevelCoarsener2')[0].value), firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
                   success: function(html){
@@ -240,7 +240,7 @@ $("#apply").on('click', function(){
 /** Show connections between super vertexes and original vertexes */
 $("#showConnections").on('click', function(){
   $.ajax({
-    url:'/coarse',
+    url:'/system/coarse',
     type: 'POST',
     data: {nLevels: getInteger($("#nLevels")[0].value), coarsening: treatFloatZero($('#multilevelCoarsener')[0].value), coarseningSecondSet: treatFloatZero($('#multilevelCoarsener2')[0].value), firstSet: $('#multilevelCoarsener')[0].value != 0 ? 1 : 0},
     success: function(html){
@@ -256,9 +256,11 @@ var maxLevelsNl = 0;
 var maxLevelsNr = 0;
 /** Coarse graph based on json input given by user */
 $("#coarseJson").on('click', function(){
+  console.log(JSON.parse($("#jsonTextArea")[0].value));
   $.ajax({
-    url:'/coarse',
+    url:'/system/coarse',
     type: 'POST',
+    contentType:'application/json',
     data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
     success: function(html){
       html = JSON.parse(html);
@@ -282,7 +284,7 @@ $("#coarseJson").on('click', function(){
             nr = nr + 1;
           }
           $.ajax({
-            url:'/convert',
+            url:'/system/convert',
             type: 'POST',
             // data: {firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
             data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
@@ -291,7 +293,7 @@ $("#coarseJson").on('click', function(){
               if(nOfExecutions == 1)
               {
                   $.ajax({
-                    url:'/setProperties',
+                    url:'/system/setProperties',
                     type: 'POST',
                     data: {nLevels: maxCoarsening, firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0},
                     success: function(html){
@@ -313,7 +315,7 @@ $("#coarseJson").on('click', function(){
       else
       {
         $.ajax({
-          url:'/getGraph',
+          url:'/graph/getGraph',
           type: 'POST',
           data: {graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0]},
           success: function(html){
@@ -404,7 +406,7 @@ $('#saveImgButton').on('click', function (){
 /** Generate .json file from graph */
 $('#saveFileButton').on('click', function(){
   $.ajax({
-    url: '/switch',
+    url: '/graph/switch',
     type: 'POST',
     success: function(html){
       var dataStr = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(html, undefined, "\t"));
@@ -455,7 +457,7 @@ $('#upload-input').on('change', function(){
     }
 
     $.ajax({
-      url: '/upload',
+      url: '/system/upload',
       type: 'POST',
       data: formData,
       processData: false,

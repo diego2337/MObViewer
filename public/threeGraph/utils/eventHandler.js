@@ -165,7 +165,7 @@ EventHandler.prototype.renderNeighborEdges = function(scene, mesh, neighbors)
   var eventHandlerScope = this;
   /** Store edge color according to weight */
   $.ajax({
-    url: '/getEdgesWeights',
+    url: '/graph/getEdgesWeights',
     type: 'POST',
     // data: { source: mesh.geometry.faces[sourceNode*32].id, target: mesh.geometry.faces[neighbors.neighbors[i]*32].id },
     data: { neighbors: neighbors.neighbors },
@@ -320,7 +320,7 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
     }
     var layScope = this;
     $.ajax({
-      url: '/getSorted',
+      url: '/graph/getSorted',
       type: 'POST',
       /** FIXME - NEVER EVER EVER use async! */
       async: false,
@@ -547,7 +547,7 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
     }
     var layScope = this;
     $.ajax({
-      url: '/getSortedSuccessors',
+      url: '/graph/getSortedSuccessors',
       type: 'POST',
       /** FIXME - NEVER EVER EVER use async! */
       async: false,

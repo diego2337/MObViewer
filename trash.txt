@@ -1411,3 +1411,109 @@ EventHandler.prototype.showNeighbors = function(scene)
     this.neighbors = [];
   }
 }
+
+from main.js:
+
+var serverPort = 3030;
+var bodyParser = require('body-parser');
+var exists = false;
+
+/**
+ * @desc Add number of edges to .json string being created.
+ * @public
+ * @param {string} data - .json string.
+ * @returns {string} .json string containing number of edges.
+ */
+function addNumberOfEdgesToJSON(data)
+{
+  var jason = JSON.parse(data);
+  jason.graphInfo[0].edges = jason.links.length.toString();
+  data = JSON.stringify(jason);
+  return data;
+}
+
+/**
+ * @desc Find and add maximum and minimum node weights at node set.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function addMinAndMaxNode(data)
+{
+  var max = 1, min = 1000000000;
+  var jason = JSON.parse(data);
+  for(var i = 0; i < jason.nodes.length; i++)
+  {
+    /** Check if weight exists */
+    if(parseInt(jason.nodes[i].weight) != undefined)
+    {
+      if(parseInt(jason.nodes[i].weight) > max)
+      {
+        max = parseInt(jason.nodes[i].weight);
+      }
+      if(parseInt(jason.nodes[i].weight) < min)
+      {
+        min = parseInt(jason.nodes[i].weight);
+      }
+    }
+  }
+  /** Store in .json nodes weights */
+  jason.graphInfo[0].maxNodeWeight = max;
+  jason.graphInfo[0].minNodeWeight = min;
+  return JSON.stringify(jason);
+}
+
+/**
+ * Create folder with same name as file, containing uploaded and coarsened bipartite graphs.
+ * @public
+ * @param {string} name Uploaded file name.
+ * @param {string} uploadDir Upload directory.
+ * @param {string} folderChar Either '\' or '/' symbol for folder paths.
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+function mkdirAndCp(name, uploadDir, folderChar, req, res)
+{
+  /** Creates directory for uploaded graph */
+  nodeCmd.get('mkdir -p uploads' + folderChar + name.split(".")[0] + folderChar, function(data, err, stderr) {
+    if (!err)
+    {
+      /* Assign global variable with file name for later coarsening */
+      fileName = name;
+      /* Transforms .gml file into .json extension file if file is .gml */
+      if(name.split(".")[1] === "gml")
+      {
+        /** Convert to .json and move it to upload folder with same name */
+        nodeCmd.get('python mob' + folderChar + 'gmlToJson3.py uploads' + folderChar + name + ' uploads' + folderChar + name.split(".")[0] + folderChar + name.split(".")[0] + '.json', function(data, err, stderr) {
+                          if (!err)
+                          {
+                            /** Python script executed successfully; read .json file */
+                            readJsonFile(uploadDir + folderChar + name.split(".")[0] + folderChar + name.split(".")[0] + '.json', fs, req, res);
+                          }
+                          else
+                          {
+                              console.log("python script cmd error: " + err);
+                          }
+                        });
+      }
+      else if(name.split(".")[1] === "json")
+      {
+        /** Copy .json file to upload folder with same name */
+        nodeCmd.get('cp uploads' + folderChar + name + ' uploads' + folderChar + name.split(".")[0] + folderChar + name, function(data, err, stderr){
+          /** Python script executed successfully; read .json file */
+            if(!err)
+            {
+              readJsonFile(uploadDir + folderChar + name.split(".")[0] + folderChar + name.split(".")[0] + '.json', fs, req, res);
+            }
+            else
+            {
+              console.log("python script cmd error: " + err);
+            }
+        });
+      }
+    }
+    else
+    {
+      console.log("python script cmd error: " + err);
+    }
+  });
+}
