@@ -14,6 +14,60 @@ var systemController = require('./SystemController');
 /** General functions */
 
 /**
+ * @desc Add necessary values for .json.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function addValues(data)
+{
+  return addMinAndMaxEdge(addMinAndMaxNode(addNumberOfEdgesToJSON(data)));
+}
+
+/**
+ * @desc Add number of edges to .json string being created.
+ * @public
+ * @param {string} data - .json string.
+ * @returns {string} .json string containing number of edges.
+ */
+function addNumberOfEdgesToJSON(data)
+{
+  var jason = JSON.parse(data);
+  jason.graphInfo[0].edges = jason.links.length.toString();
+  data = JSON.stringify(jason);
+  return data;
+}
+
+/**
+ * @desc Find and add maximum and minimum node weights at node set.
+ * @param {string} data .json string containing graph data.
+ * @returns {string} data .json string containing graph data.
+ */
+function addMinAndMaxNode(data)
+{
+  var max = 1, min = 1000000000;
+  var jason = JSON.parse(data);
+  for(var i = 0; i < jason.nodes.length; i++)
+  {
+    /** Check if weight exists */
+    if(parseInt(jason.nodes[i].weight) != undefined)
+    {
+      if(parseInt(jason.nodes[i].weight) > max)
+      {
+        max = parseInt(jason.nodes[i].weight);
+      }
+      if(parseInt(jason.nodes[i].weight) < min)
+      {
+        min = parseInt(jason.nodes[i].weight);
+      }
+    }
+  }
+  /** Store in .json nodes weights */
+  jason.graphInfo[0].maxNodeWeight = max;
+  jason.graphInfo[0].minNodeWeight = min;
+  return JSON.stringify(jason);
+}
+
+/**
 * Read .json file stored on server-side, sending it to client side.
 * @public
 * @param {string} path Path string for fs variable to read.
@@ -35,7 +89,7 @@ exports.readJsonFile = function(path, fs, req, res)
     else
     {
       /* Store graph size */
-      if(graphSize.length == 0) JSON.parse(data).graphInfo[0].vlayer != undefined ? graphSize = JSON.parse(data).graphInfo[0].vlayer : graphSize = JSON.parse(data).graphInfo[0].vertices;
+      if(indexController.graphSize.length == 0) JSON.parse(data).graphInfo[0].vlayer != undefined ? indexController.graphSize = JSON.parse(data).graphInfo[0].vlayer : indexController.graphSize = JSON.parse(data).graphInfo[0].vertices;
       /* Send data to client */
       res.type('text');
       res.end(JSON.stringify({graph: addValues(data), nLevels: [nl, nr], firstSetLevel: nl, secondSetLevel: nr, graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
@@ -60,7 +114,7 @@ function getRealPredecessors(currentGraph, previousGraph, coarsenedFileName, ind
   /** Break condition for recursive function */
   if(currentGraph != previousGraph)
   {
-    var dat = fs.readFileSync('uploads' + folderChar + fileName.split(".")[0] + folderChar + coarsenedFileName, 'utf8');
+    var dat = indexController.fs.readFileSync('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + coarsenedFileName, 'utf8');
     let jsonInput = JSON.parse(dat);
     /** For each index, recursively find its predecessors */
     for(let i = 0; i < indexes.length; i++)
@@ -93,7 +147,7 @@ function getRealPredecessors(currentGraph, previousGraph, coarsenedFileName, ind
       {
         /** If nl > nr, decrease only nl; if nl == nr, both must be decreased; otherwise, nr > nl, so decrease only nr */
         if(nl > nr)
-        {
+        {indexController.graphSize
           nl = nl - 1;
         }
         else if(nl == nr)
@@ -142,7 +196,7 @@ function getRealSuccessors(currentGraph, nextGraph, coarsenedFileName, originalF
   /** Break condition for recursive function */
   if(currentGraph != nextGraph)
   {
-    var dat = fs.readFileSync('uploads' + folderChar + fileName.split(".")[0] + folderChar + coarsenedFileName, 'utf8');
+    var dat = indexController.fs.readFileSync('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + coarsenedFileName, 'utf8');
     let jsonInput = JSON.parse(dat);
     /** For each index, recursively find its successors */
     for(let i = 0; i < indexes.length; i++)
@@ -417,7 +471,7 @@ function generateVertexStats(categories, vertex)
     }
   }
   /** Write vertex info */
-  fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + vertex.id + 'Stats.json', stringify(Object.assign({}, categoricalDict, ordinalDict)), function(err){
+  indexController.fs.writeFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + vertex.id + 'Stats.json', stringify(Object.assign({}, categoricalDict, ordinalDict)), function(err){
     if(err)
     {
       console.log("Error writing " + vertex.id + 'Stats.json.');
@@ -464,7 +518,7 @@ function addMinAndMaxEdge(data)
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 exports.switch = function(req, res){
-  readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + "n" + currentLevel + '.json', fs, req, res);
+  exports.readJsonFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + pyName + "n" + currentLevel + '.json', indexController.fs, req, res);
 };
 
 /**
@@ -477,7 +531,7 @@ exports.getLevels =  function(req, res){
   /** From https://stackoverflow.com/questions/43669913/node-js-how-to-inspect-request-data */
   req.on('data', function(chunk) {
         var bodydata = chunk.toString('utf8');
-        readJsonFile(bodydata, fs, req, res);
+        exports.readJsonFile(bodydata, indexController.fs, req, res);
     });
 };
 
@@ -490,7 +544,7 @@ exports.getLevels =  function(req, res){
 exports.getClusters = function(req, res){
   req.on('data', function(chunk) {
     let clusterFileName = chunk.toString('utf8');
-    fs.readFile(clusterFileName, 'utf8', function(err, dat){
+    indexController.fs.readFile(clusterFileName, 'utf8', function(err, dat){
       if(err)
       {
         return console.log(err);
@@ -512,7 +566,7 @@ exports.getClusters = function(req, res){
  */
 exports.getGraph = function(req, res){
   /** Read file from its folder */
-  readJsonFile(req.body.graphName + '.json', fs, req, res);
+  exports.readJsonFile(req.body.graphName + '.json', fs, req, res);
 };
 
 /**
@@ -523,13 +577,13 @@ exports.getGraph = function(req, res){
  */
 exports.getSortedSuccessors = function(req, res){
  /** Get coarsened graph level */
- nodeCmd.get('python mob/getCoarsened.py -i' + fileName.split(".")[0] + ' -d ' + 'uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -l ' + req.body.levels, function(data, err, stderr){
+ indexController.nodeCmd.get('python mob/getCoarsened.py -i' + fileName.split(".")[0] + ' -d ' + 'uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + ' -l ' + req.body.levels, function(data, err, stderr){
    /** Get fileName from python print */
    if(err)
    {
      /** Remove '\n' */
      err = err.slice(0, -1);
-     nodeCmd.get('python mob/getMostCoarsened.py -i' + fileName.split(".")[0] + ' -d ' + 'uploads' + folderChar + fileName.split(".")[0] + folderChar, function(dat, name, stderror){
+     indexController.nodeCmd.get('python mob/getMostCoarsened.py -i' + fileName.split(".")[0] + ' -d ' + 'uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar, function(dat, name, stderror){
        if(name)
        {
          /** Find 'real' successors of a given vertex */
@@ -544,7 +598,7 @@ exports.getSortedSuccessors = function(req, res){
          {
              level = req.body.nextMesh[req.body.nextMesh.length-1];
              /** Read file and find index */
-             fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
+             indexController.fs.readFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
                if(err)
                {
                  return console.log(err);
@@ -585,7 +639,7 @@ exports.getSortedSuccessors = function(req, res){
  */
 exports.getSorted = function(req, res){
   /** Get coarsened graph level */
-  nodeCmd.get('python mob/getCoarsened.py -i ' + fileName.split(".")[0] + ' -d ' + 'uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -l ' + req.body.levels, function(data, err, stderr){
+  indexController.nodeCmd.get('python mob/getCoarsened.py -i ' + fileName.split(".")[0] + ' -d ' + 'uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + ' -l ' + req.body.levels, function(data, err, stderr){
     /** Get fileName from python print */
     if(err)
     {
@@ -601,7 +655,7 @@ exports.getSorted = function(req, res){
       var level = 0;
       if(req.body.previousMesh != "MainMesh") level = req.body.previousMesh[req.body.previousMesh.length-1];
       /** Read file and find index */
-      fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
+      indexController.fs.readFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
         if(err)
         {
           return console.log(err);
@@ -632,7 +686,7 @@ exports.getSorted = function(req, res){
  */
 exports.generateStats = function(req, res){
   /** Check and open 'categories.csv' file, if exists */
-  fs.readFile('categories.csv', "utf8", function(err, dat){
+  indexController.fs.readFile('categories.csv', "utf8", function(err, dat){
     if(err)
     {
       /** No categories file found; finish without processing anything */
@@ -657,7 +711,7 @@ exports.generateStats = function(req, res){
  */
 exports.getStats = function(req, res){
   /** Open 'vertexIdStats.json' file */
-  fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + req.body.vertexId + 'Stats.json', 'utf8', function(err, dat){
+  indexController.fs.readFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + req.body.vertexId + 'Stats.json', 'utf8', function(err, dat){
     if(err)
     {
       console.log(err);
@@ -682,7 +736,7 @@ exports.getStats = function(req, res){
  */
 exports.getEdgesWeights = function(req, res){
   /** Open input.json file to store  */
-  fs.readFile('input.json', 'utf8', function(err, dat){
+  indexController.fs.readFile('input.json', 'utf8', function(err, dat){
     if(err)
     {
       console.log(err);
@@ -695,7 +749,7 @@ exports.getEdgesWeights = function(req, res){
       let nLevels1 = inputJson['max_levels'][0];
       let nLevels2 = inputJson['max_levels'][1];
       /** Open file */
-      fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + 'Coarsened' + 'l' + catFloat(reductionFactor1) + 'r' + catFloat(reductionFactor2) + 'nl' + nLevels1.toString() + 'nr' + nLevels2.toString() + '.json', 'utf8', function(err, dat){
+      indexController.fs.readFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + fileName.split(".")[0] + 'Coarsened' + 'l' + catFloat(reductionFactor1) + 'r' + catFloat(reductionFactor2) + 'nl' + nLevels1.toString() + 'nr' + nLevels2.toString() + '.json', 'utf8', function(err, dat){
         if(err)
         {
           console.log(err);

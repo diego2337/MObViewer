@@ -724,7 +724,7 @@ function addMinAndMaxNode(data)
     /** Check if weight exists */
     if(parseInt(jason.nodes[i].weight) != undefined)
     {
-      if(parseInt(jason.nodes[i].weight) > max)
+      if(parseInt(jason.nodes[i].weight) > max)addValues
       {
         max = parseInt(jason.nodes[i].weight);
       }

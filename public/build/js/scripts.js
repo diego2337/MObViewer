@@ -256,11 +256,9 @@ var maxLevelsNl = 0;
 var maxLevelsNr = 0;
 /** Coarse graph based on json input given by user */
 $("#coarseJson").on('click', function(){
-  console.log(JSON.parse($("#jsonTextArea")[0].value));
   $.ajax({
     url:'/system/coarse',
     type: 'POST',
-    contentType:'application/json',
     data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
     success: function(html){
       html = JSON.parse(html);

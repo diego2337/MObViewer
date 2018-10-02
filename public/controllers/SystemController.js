@@ -1,4 +1,4 @@
-/**
+indexController/**
  * Controller for system related AJAX calls - based on https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/routes#Create_the_route-handler_callback_functions.
  * @author Diego Cintra
  * Date: 1 October 2018
@@ -25,8 +25,8 @@ var graphController = require('./GraphController');
 function ncolAndCoarse(pyPath, pyProg, fs, req, res)
 {
   /** Convert to .ncol format */
-  console.log('python ' + pyPath + 'jsonToNcol3.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol');
-  nodeCmd.get('python ' + pyPath + 'jsonToNcol3.py --input uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json --output uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
+  console.log('python ' + pyPath + 'jsonToNcol3.py --input uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + fileName.split(".")[0] + '.json --output uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + fileName.split(".")[0] + '.ncol');
+  indexController.nodeCmd.get('python ' + pyPath + 'jsonToNcol3.py --input uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + fileName.split(".")[0] + '.json --output uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + fileName.split(".")[0] + '.ncol', function(data, err, stderr) {
     if(!err)
     {
       req.body.jsonInput.attr = 'uploads/' + req.body.jsonInput.filename.split(".")[0].split("/")[req.body.jsonInput.filename.split(".")[0].split("/").length-1] + '/' + req.body.jsonInput.filename.split(".")[0] + ".json";
@@ -46,7 +46,7 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
         {
           /** Execute coarsening with a given reduction factor */
           console.log('python ' + pyPath + pyProg + " -cnf input.json");
-          nodeCmd.get('python ' + pyPath + pyProg + " -cnf input.json", function(data, err, stderr) {
+          indexController.nodeCmd.get('python ' + pyPath + pyProg + " -cnf input.json", function(data, err, stderr) {
             if (!err)
             {
               /** Coarsening was successfully executed; get number of levels from .conf file */
@@ -93,7 +93,7 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
       /* Build python parameters string */
       var pyPath = "mob" + folderChar;
       var pyProg = "coarsening.py";
-      var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(graphSize.split(" ")[0]) + " " + parseInt(graphSize.split(" ")[1]) + " " + pyCoarsening + " --save_gml";
+      var pyParams = "-f uploads" + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + ".ncol -d uploads" + folderChar + fileName.split(".")[0] + folderChar + " -o " + pyName + " -v " + parseInt(indexController.graphSize.split(" ")[0]) + " " + parseInt(indexController.graphSize.split(" ")[1]) + " " + pyCoarsening + " --save_gml";
       if(req.body.coarsening == 0 || req.body.coarseningSecondSet == 0)
       {
         req.body.firstSet == 1 ? pyParams = pyParams + " -m " + req.body.nLevels + " 0 " : pyParams = pyParams + " -m 0 " + req.body.nLevels;
@@ -122,16 +122,6 @@ function createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req
       console.log("python script cmd error: " + err);
     }
   });
-}
-
-/**
- * @desc Add necessary values for .json.
- * @param {string} data .json string containing graph data.
- * @returns {string} data .json string containing graph data.
- */
-function addValues(data)
-{
-  return addMinAndMaxEdge(addMinAndMaxNode(addNumberOfEdgesToJSON(data)));
 }
 
 /**
@@ -171,7 +161,7 @@ function fixJSONInts(obj)
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 exports.upload = function(req, res) {
-  graphSize = [];
+  indexController.graphSize = [];
   currentLevel = 0;
   /* Create an incoming form object */
   var form = new formidable.IncomingForm();
@@ -183,7 +173,7 @@ exports.upload = function(req, res) {
   form.on('file', function(field, file) {
     fs.rename(file.path, path.join(form.uploadDir, file.name), function(){return;});
     /** Creates directory for uploaded graph */
-    nodeCmd.get('mkdir -p uploads' + folderChar + file.name.split(".")[0] + folderChar, function(data, err, stderr) {
+    indexController.nodeCmd.get('mkdir -p uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar, function(data, err, stderr) {
       if (!err)
       {
         /* Assign global variable with file name for later coarsening */
@@ -192,11 +182,11 @@ exports.upload = function(req, res) {
         if(file.name.split(".")[1] === "gml")
         {
           /** Convert to .json and move it to upload folder with same name */
-          nodeCmd.get('python mob' + folderChar + 'gmlToJson3.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
+          indexController.nodeCmd.get('python mob' + indexController.folderChar + 'gmlToJson3.py uploads' + indexController.folderChar + file.name + ' uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
                             if (!err)
                             {
                               /** Python script executed successfully; read .json file */
-                              graphController.readJsonFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', fs, req, res);
+                              graphController.readJsonFile(form.uploadDir + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name.split(".")[0] + '.json', fs, req, res);
                             }
                             else
                             {
@@ -207,11 +197,11 @@ exports.upload = function(req, res) {
           else if(file.name.split(".")[1] === "json")
           {
             /** Copy .json file to upload folder with same name */
-            nodeCmd.get('cp uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name, function(data, err, stderr){
+            indexController.nodeCmd.get('cp uploads' + indexController.folderChar + file.name + ' uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name, function(data, err, stderr){
               /** Python script executed successfully; read .json file */
                 if(!err)
                 {
-                  graphController.readJsonFile(form.uploadDir + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', fs, req, res);
+                  graphController.readJsonFile(form.uploadDir + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name.split(".")[0] + '.json', fs, req, res);
                 }
                 else
                 {
@@ -244,18 +234,16 @@ exports.upload = function(req, res) {
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 exports.coarse = function(req, res) {
-  console.log("entrei aqui");
-  console.log(req);
   req.body.jsonInput = fixJSONInts(req.body.jsonInput);
   /** Check if input came from .json input */
   if(req.body.jsonInput !== undefined)
   {
-    var pyPath = "mob" + folderChar;
+    var pyPath = "mob" + indexController.folderChar;
     var pyProg = "coarsening.py";
     /** Execute python scripts */
     var file = { name: req.body.jsonInput.filename.split("/")[req.body.jsonInput.filename.split("/").length-1] } ;
     /** Creates directory for uploaded graph */
-    nodeCmd.get('mkdir -p uploads' + folderChar + file.name.split(".")[0] + folderChar, function(data, err, stderr) {
+    indexController.nodeCmd.get('mkdir -p uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar, function(data, err, stderr) {
       if (!err)
       {
         /* Assign global variable with file name for later coarsening */
@@ -264,10 +252,10 @@ exports.coarse = function(req, res) {
         if(file.name.split(".")[1] === "gml")
         {
           /** Convert to .json and move it to upload folder with same name */
-          nodeCmd.get('python mob' + folderChar + 'gmlToJson3.py uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
+          indexController.nodeCmd.get('python mob' + indexController.folderChar + 'gmlToJson3.py uploads' + indexController.folderChar + file.name + ' uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name.split(".")[0] + '.json', function(data, err, stderr) {
                             if (!err)
                             {
-                                ncolAndCoarse(pyPath, pyProg, fs, req, res);
+                                ncolAndCoarse(pyPath, pyProg, indexController.fs, req, res);
                             }
                             else
                             {
@@ -278,10 +266,10 @@ exports.coarse = function(req, res) {
           else if(file.name.split(".")[1] === "json")
           {
             /** Copy .json file to upload folder with same name */
-            nodeCmd.get('cp uploads' + folderChar + file.name + ' uploads' + folderChar + file.name.split(".")[0] + folderChar + file.name, function(data, err, stderr){
+            indexController.nodeCmd.get('cp uploads' + indexController.folderChar + file.name + ' uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name, function(data, err, stderr){
                 if(!err)
                 {
-                  ncolAndCoarse(pyPath, pyProg, fs, req, res);
+                  ncolAndCoarse(pyPath, pyProg, indexController.fs, req, res);
                 }
                 else
                 {
@@ -301,7 +289,7 @@ exports.coarse = function(req, res) {
     /** Test if no coarsening has been applied to both sets; if such case is true, return original graph */
     if(req.body.coarsening == "0" && req.body.coarseningSecondSet == "0")
     {
-      graphController.readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fileName.split(".")[0] + '.json', fs, req, res);
+      graphController.readJsonFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + fileName.split(".")[0] + '.json', indexController.fs, req, res);
     }
     else
     {
@@ -310,15 +298,15 @@ exports.coarse = function(req, res) {
       var pyCoarsening = "-r " + req.body.coarsening + " " + req.body.coarseningSecondSet;
       if(req.body.nLevels !== undefined && req.body.nLevels != 0) pyCoarsening = pyCoarsening + " --save_hierarchy ";
       /** Check if coarsened file already exists; if not, generate a new coarsened file */
-      fs.readFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + pyName + '.json', 'utf8', function(err, data) {
+      indexController.fs.readFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + pyName + '.json', 'utf8', function(err, data) {
         if(err) /* File doesn't exist */
         {
-          createCoarsenedGraph(nodeCmd, folderChar, pyName, pyCoarsening, fs, req, res);
+          createCoarsenedGraph(indexController.nodeCmd, indexController.folderChar, pyName, pyCoarsening, indexController.fs, req, res);
         }
         else /* File exists*/
         {
           /* Send data to client */
-          res.end(addValues(data));
+          res.end(graphController.addValues(data));
         }
       });
     }
@@ -332,15 +320,15 @@ exports.coarse = function(req, res) {
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 exports.convert = function(req, res){
-  var pyPath = "mob" + folderChar;
+  var pyPath = "mob" + indexController.folderChar;
   /* Changing file name according to graph name */
   pyName = fileName.split(".")[0] + "Coarsened" + "l" + req.body.coarsening.split(".").join("") + "r" + req.body.coarseningSecondSet.split(".").join("");
   let hierarchicalPyName = pyName + "nl" + req.body.firstSetLevel + "nr" + req.body.secondSetLevel;
   /** Execute .gml to .json conversion */
-  nodeCmd.get('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json", function(data, err, stderr) {
+  indexController.nodeCmd.get('python ' + pyPath + 'gmlToJson3.py uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + hierarchicalPyName + '.gml uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + hierarchicalPyName + ".json", function(data, err, stderr) {
     if(!err)
     {
-      console.log('python ' + pyPath + 'gmlToJson3.py uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.gml uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + ".json");
+      console.log('python ' + pyPath + 'gmlToJson3.py uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + hierarchicalPyName + '.gml uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + hierarchicalPyName + ".json");
       /** Finished conversion, return to client-side */
       res.type('text');
       res.end();
@@ -359,14 +347,14 @@ exports.convert = function(req, res){
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 exports.setProperties = function(req, res){
-  var pyPath = "mob" + folderChar;
+  var pyPath = "mob" + indexController.folderChar;
   let hierarchicalPyName = pyName + "nl" + req.body.firstSetLevel + "nr" + req.body.secondSetLevel;
   /** Set properties properly using information from "source" attribue in .json file generated from multilevel paradigm */
-  nodeCmd.get('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.firstSetLevel + ' ' + req.body.secondSetLevel + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet, function(data, err, stderr) {
+  indexController.nodeCmd.get('python ' + pyPath + 'setProperties.py -f uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.firstSetLevel + ' ' + req.body.secondSetLevel + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet, function(data, err, stderr) {
     if(!err)
     {
-      console.log('python ' + pyPath + 'setProperties.py -f uploads' + folderChar + fileName.split(".")[0] + folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.firstSetLevel + ' ' + req.body.secondSetLevel + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet);
-      graphController.readJsonFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + hierarchicalPyName + '.json', fs, req, res);
+      console.log('python ' + pyPath + 'setProperties.py -f uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + ' -n ' + fileName.split(".")[0] + '.json -l ' + req.body.firstSetLevel + ' ' + req.body.secondSetLevel + ' -r ' + req.body.coarsening + ' ' + req.body.coarseningSecondSet);
+      graphController.readJsonFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + hierarchicalPyName + '.json', indexController.fs, req, res);
     }
     else
     {
@@ -383,7 +371,7 @@ exports.setProperties = function(req, res){
  */
 exports.writeSorted = function(req, res){
   var fName = "n" + req.body.idx + ".s";
-  fs.writeFile('uploads' + folderChar + fileName.split(".")[0] + folderChar + fName, req.body.nodes, function(err){
+  indexController.fs.writeFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + fName, req.body.nodes, function(err){
     if(err)
     {
       console.log(err);
@@ -404,7 +392,7 @@ exports.writeSorted = function(req, res){
  */
 exports.categories = function(req, res){
   /** Write 'categories.csv' file */
-  fs.writeFile("categories.csv", req.body.jsonInput, function(err){
+  indexController.fs.writeFile("categories.csv", req.body.jsonInput, function(err){
     if(err)
     {
       console.log(err);
