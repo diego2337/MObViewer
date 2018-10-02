@@ -114,7 +114,7 @@ function getRealPredecessors(currentGraph, previousGraph, coarsenedFileName, ind
   /** Break condition for recursive function */
   if(currentGraph != previousGraph)
   {
-    var dat = indexController.fs.readFileSync('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + coarsenedFileName, 'utf8');
+    var dat = indexController.fs.readFileSync('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + coarsenedFileName, 'utf8');
     let jsonInput = JSON.parse(dat);
     /** For each index, recursively find its predecessors */
     for(let i = 0; i < indexes.length; i++)
@@ -196,7 +196,7 @@ function getRealSuccessors(currentGraph, nextGraph, coarsenedFileName, originalF
   /** Break condition for recursive function */
   if(currentGraph != nextGraph)
   {
-    var dat = indexController.fs.readFileSync('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + coarsenedFileName, 'utf8');
+    var dat = indexController.fs.readFileSync('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + coarsenedFileName, 'utf8');
     let jsonInput = JSON.parse(dat);
     /** For each index, recursively find its successors */
     for(let i = 0; i < indexes.length; i++)
@@ -454,6 +454,10 @@ function generateVertexStats(categories, vertex)
     {
       /** Get percentage */
       categoricalDict[prop][cat] = (parseFloat(categoricalDict[prop][cat]) / parseFloat(length)) * 100.0;
+      if(categoricalDict[prop][cat] == 0.000)
+      {
+        delete categoricalDict[prop][cat];
+      }
     }
   }
   /** Calculate %s for ordinal data */
@@ -468,10 +472,14 @@ function generateVertexStats(categories, vertex)
     {
       /** Get percentage */
       parseFloat(length) > 0 ? ordinalDict[prop][cat] = (parseFloat(ordinalDict[prop][cat]) / parseFloat(length)) * 100.0 : ordinalDict[prop][cat] = 0;
+      if(ordinalDict[prop][cat] == 0)
+      {
+        delete ordinalDict[prop][cat];
+      }
     }
   }
   /** Write vertex info */
-  indexController.fs.writeFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + vertex.id + 'Stats.json', stringify(Object.assign({}, categoricalDict, ordinalDict)), function(err){
+  indexController.fs.writeFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + vertex.id + 'Stats.json', stringify(Object.assign({}, categoricalDict, ordinalDict)), function(err){
     if(err)
     {
       console.log("Error writing " + vertex.id + 'Stats.json.');
@@ -518,7 +526,7 @@ function addMinAndMaxEdge(data)
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
 exports.switch = function(req, res){
-  exports.readJsonFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + pyName + "n" + currentLevel + '.json', indexController.fs, req, res);
+  exports.readJsonFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + pyName + "n" + currentLevel + '.json', indexController.fs, req, res);
 };
 
 /**
@@ -577,13 +585,13 @@ exports.getGraph = function(req, res){
  */
 exports.getSortedSuccessors = function(req, res){
  /** Get coarsened graph level */
- indexController.nodeCmd.get('python mob/getCoarsened.py -i' + fileName.split(".")[0] + ' -d ' + 'uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + ' -l ' + req.body.levels, function(data, err, stderr){
+ indexController.nodeCmd.get('python mob/getCoarsened.py -i' + indexController.fileName.split(".")[0] + ' -d ' + 'uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + ' -l ' + req.body.levels, function(data, err, stderr){
    /** Get fileName from python print */
    if(err)
    {
      /** Remove '\n' */
      err = err.slice(0, -1);
-     indexController.nodeCmd.get('python mob/getMostCoarsened.py -i' + fileName.split(".")[0] + ' -d ' + 'uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar, function(dat, name, stderror){
+     indexController.nodeCmd.get('python mob/getMostCoarsened.py -i' + indexController.fileName.split(".")[0] + ' -d ' + 'uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar, function(dat, name, stderror){
        if(name)
        {
          /** Find 'real' successors of a given vertex */
@@ -598,7 +606,7 @@ exports.getSortedSuccessors = function(req, res){
          {
              level = req.body.nextMesh[req.body.nextMesh.length-1];
              /** Read file and find index */
-             indexController.fs.readFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
+             indexController.fs.readFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
                if(err)
                {
                  return console.log(err);
@@ -639,7 +647,7 @@ exports.getSortedSuccessors = function(req, res){
  */
 exports.getSorted = function(req, res){
   /** Get coarsened graph level */
-  indexController.nodeCmd.get('python mob/getCoarsened.py -i ' + fileName.split(".")[0] + ' -d ' + 'uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + ' -l ' + req.body.levels, function(data, err, stderr){
+  indexController.nodeCmd.get('python mob/getCoarsened.py -i ' + indexController.fileName.split(".")[0] + ' -d ' + 'uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + ' -l ' + req.body.levels, function(data, err, stderr){
     /** Get fileName from python print */
     if(err)
     {
@@ -655,7 +663,7 @@ exports.getSorted = function(req, res){
       var level = 0;
       if(req.body.previousMesh != "MainMesh") level = req.body.previousMesh[req.body.previousMesh.length-1];
       /** Read file and find index */
-      indexController.fs.readFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
+      indexController.fs.readFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
         if(err)
         {
           return console.log(err);
@@ -711,7 +719,7 @@ exports.generateStats = function(req, res){
  */
 exports.getStats = function(req, res){
   /** Open 'vertexIdStats.json' file */
-  indexController.fs.readFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + req.body.vertexId + 'Stats.json', 'utf8', function(err, dat){
+  indexController.fs.readFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + req.body.vertexId + 'Stats.json', 'utf8', function(err, dat){
     if(err)
     {
       console.log(err);
@@ -749,7 +757,7 @@ exports.getEdgesWeights = function(req, res){
       let nLevels1 = inputJson['max_levels'][0];
       let nLevels2 = inputJson['max_levels'][1];
       /** Open file */
-      indexController.fs.readFile('uploads' + indexController.folderChar + fileName.split(".")[0] + indexController.folderChar + fileName.split(".")[0] + 'Coarsened' + 'l' + catFloat(reductionFactor1) + 'r' + catFloat(reductionFactor2) + 'nl' + nLevels1.toString() + 'nr' + nLevels2.toString() + '.json', 'utf8', function(err, dat){
+      indexController.fs.readFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + indexController.fileName.split(".")[0] + 'Coarsened' + 'l' + catFloat(reductionFactor1) + 'r' + catFloat(reductionFactor2) + 'nl' + nLevels1.toString() + 'nr' + nLevels2.toString() + '.json', 'utf8', function(err, dat){
         if(err)
         {
           console.log(err);
