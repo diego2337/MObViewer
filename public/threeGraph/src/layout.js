@@ -495,7 +495,7 @@ Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, se
     }
   }
   $.ajax({
-    url: '/writeSorted',
+    url: '/system/writeSorted',
     type: 'POST',
     data: {idx: index, nodes: newNodesIndexes},
     xhr: loadGraph
@@ -534,7 +534,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     {
       $.ajax({
         async: false,
-        url: '/getLevels',
+        url: '/graph/getLevels',
         type: 'POST',
         data: gName,
         processData: false,

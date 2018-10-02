@@ -20,7 +20,7 @@ var statsHandler = function(SVGId)
 statsHandler.prototype.generateStats = function(vertexProps)
 {
   $.ajax({
-    url: '/generateStats',
+    url: '/graph/generateStats',
     type: 'POST',
     /** FIXME - <bold>NEVER use async!</bold> */
     async: false,
@@ -38,7 +38,7 @@ statsHandler.prototype.visualizeStats = function(id)
   this.d3BarChart.created3BarChart();
   var statsHandlerScope = this;
   $.ajax({
-    url: '/getStats',
+    url: '/graph/getStats',
     type: 'POST',
     data: { vertexId: id },
     success: function(html){

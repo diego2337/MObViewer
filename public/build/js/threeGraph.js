@@ -985,7 +985,7 @@ Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, se
     }
   }
   $.ajax({
-    url: '/writeSorted',
+    url: '/system/writeSorted',
     type: 'POST',
     data: {idx: index, nodes: newNodesIndexes},
     xhr: loadGraph
@@ -1024,7 +1024,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     {
       $.ajax({
         async: false,
-        url: '/getLevels',
+        url: '/graph/getLevels',
         type: 'POST',
         data: gName,
         processData: false,
@@ -2511,7 +2511,7 @@ EventHandler.prototype.renderNeighborEdges = function(scene, mesh, neighbors)
   var eventHandlerScope = this;
   /** Store edge color according to weight */
   $.ajax({
-    url: '/getEdgesWeights',
+    url: '/graph/getEdgesWeights',
     type: 'POST',
     // data: { source: mesh.geometry.faces[sourceNode*32].id, target: mesh.geometry.faces[neighbors.neighbors[i]*32].id },
     data: { neighbors: neighbors.neighbors },
@@ -2666,7 +2666,7 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
     }
     var layScope = this;
     $.ajax({
-      url: '/getSorted',
+      url: '/graph/getSorted',
       type: 'POST',
       /** FIXME - NEVER EVER EVER use async! */
       async: false,
@@ -2893,7 +2893,7 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
     }
     var layScope = this;
     $.ajax({
-      url: '/getSortedSuccessors',
+      url: '/graph/getSortedSuccessors',
       type: 'POST',
       /** FIXME - NEVER EVER EVER use async! */
       async: false,
@@ -4788,7 +4788,7 @@ var statsHandler = function(SVGId)
 statsHandler.prototype.generateStats = function(vertexProps)
 {
   $.ajax({
-    url: '/generateStats',
+    url: '/graph/generateStats',
     type: 'POST',
     /** FIXME - <bold>NEVER use async!</bold> */
     async: false,
@@ -4806,7 +4806,7 @@ statsHandler.prototype.visualizeStats = function(id)
   this.d3BarChart.created3BarChart();
   var statsHandlerScope = this;
   $.ajax({
-    url: '/getStats',
+    url: '/graph/getStats',
     type: 'POST',
     data: { vertexId: id },
     success: function(html){
