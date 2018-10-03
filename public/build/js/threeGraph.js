@@ -1953,7 +1953,8 @@ d3BarChart.prototype.definePosition = function(position)
 d3BarChart.prototype.created3BarChart = function(HTMLelement)
 {
   /** FIXME - receive width and height from parameters */
-  var width = height = 300;
+  var height = 300;
+  var width = 600;
   this.parentElement = ecmaStandard(HTMLelement, this.parentElement);
   /** Create bar chart */
   this.barChart = d3.select("#" + this.parentElement)
@@ -1965,7 +1966,7 @@ d3BarChart.prototype.created3BarChart = function(HTMLelement)
   /** Define dimensions if none was defined */
   if(this.getMargin() == undefined)
   {
-    this.setMargin({top: 20, right: 20, bottom: 60, left: 80});
+    this.setMargin({top: 20, right: 20, bottom: 150, left: 50});
     /** Define sizes */
     this.defineSizes(+width - this.getMargin().left - this.getMargin().right, +height - this.getMargin().top - this.getMargin().bottom);
     /** Define axes */
@@ -2025,12 +2026,13 @@ d3BarChart.prototype.populateBarChart = function(data)
         .call(d3.axisBottom(this.getX()))
         .selectAll("text")
         .attr("transform", "rotate(90)")
-        .attr("x", 22)
+        // .attr("x", 22)
+        .attr("x", 60)
         .attr("y", -6);
 
     /** Add label for x-axis */
     this.barChart.append("text")
-    	  .attr("transform", "translate(" + (this.getWidth()) + " ," + (this.getHeight()+75) + ")")
+    	  .attr("transform", "translate(" + (this.getWidth()/2) + " ," + (this.getHeight()+150) + ")")
     	  .style("text-anchor", "middle")
     	  .text(this.getProperties(data));
 
