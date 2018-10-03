@@ -1,4 +1,4 @@
-country,arbitrary
+country,categorical
 sha-id,arbitrary
 signup-date,arbitrary
 id,ordinal

@@ -1,3 +1,8 @@
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
 .mdl-card {
   overflow: auto;
 }
@@ -32,6 +37,7 @@
 
 .fixed-div-lowerRight {
 	position: fixed;
+  width: 600px;
 	bottom: 10px;
 	right: 40px;
 }
