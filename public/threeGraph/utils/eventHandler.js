@@ -1104,7 +1104,6 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene, layout)
 EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
 {
     /* Execute ray tracing */
-    // var intersects = this.raycaster.intersectObjects(scene.children, true);
     var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
     var intersection = intersects[0];
     /* Unhighlight any already highlighted element - FIXME this is problematic; highlightedElements might have index of an element that is being highlighted because of a double click. Must find a way to check from which specific mesh that index is */
@@ -1116,24 +1115,20 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         var element;
         j == 0 ? element = scene.getObjectByName("MainMesh", true) : element = scene.getObjectByName("MainMesh" + j.toString(), true);
         // var element = scene.getObjectByName("MainMesh", true);
-        // var el = (this.highlightedElements[i]/32) + 8;
-        var el = (this.highlightedElements[i]) + 8;
+        var el = (this.highlightedElements[i]/32) + 8;
         var fd = this.neighbors.find(function(elmt){
           return (elmt.vertexInfo == el && elmt.mesh == element.name);
           // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
         });
         for(var k = this.highlightedElements[i]; k < endPoint && fd === undefined; k++)
         {
-          // if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
-          if(element.geometry.faces[k] !== undefined) element.name != "MainMesh" ? element.geometry.faces[k].color.setRGB(0.8, 0.8, 0.8) : element.geometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
+          if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(element.geometry.faces[k].color.r-0.3, element.geometry.faces[k].color.g-0.3, element.geometry.faces[k].color.b-0.3);
         }
         element.geometry.colorsNeedUpdate = true;
       }
       if(fd === undefined) this.highlightedElements.splice(i, 1);
     }
     /** Hiding vertex information */
-    // document.getElementById("vertexInfo").innerHTML = "";
-    // $("#vertexInfoId").css("display", "none");
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
@@ -1145,49 +1140,17 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
         for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
         {
-            if((intersection.object.geometry.faces[i].color.r == 0 && intersection.object.geometry.faces[i].color.g == 0 && intersection.object.geometry.faces[i].color.b == 0) ||
-               (intersection.object.geometry.faces[i].color.r == 0.8 && intersection.object.geometry.faces[i].color.g == 0.8 && intersection.object.geometry.faces[i].color.b == 0.8))
-            {
-              intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
-            }
+            intersection.object.geometry.faces[i].color.setRGB(intersection.object.geometry.faces[i].color.r+0.3, intersection.object.geometry.faces[i].color.g+0.3, intersection.object.geometry.faces[i].color.b+0.3);
         }
         intersection.object.geometry.colorsNeedUpdate = true;
         /** First check if vertex isn't already highlighted because of double-clicking */
         var found = this.neighbors.find(function(elmt){
-          // console.log("elmt.vertexInfo:");
-          // console.log(elmt.vertexInfo);
-          // console.log("((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)):");
-          // console.log(((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)));
           return ((elmt.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)) || elmt.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)/32)) && elmt.mesh == intersection.object.name);
         });
         if(found == undefined)
         {
           this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
         }
-        /** Display vertex information */
-        // properties = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";");
-        // for(var i = 0; i < intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";").length; i++)
-        // {
-        //     if(properties[i].length > 1)
-        //     {
-        //       /** if case made specifically for movieLens files */
-        //       if(properties[i].indexOf("|") != -1)
-        //       {
-        //         genres = properties[i].split("|");
-        //         for(var j = 0; j < genres.length; j++)
-        //         {
-        //           document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + genres[j] + ",<br>";
-        //         }
-        //       }
-        //       else
-        //       {
-        //         document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + properties[i] + "<br>";
-        //         // intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";")[i] + "<br>";
-        //       }
-        //     }
-        // }
-        // // document.getElementById("vertexInfo").innerHTML = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties;
-        // $("#vertexInfoId").css("display", "inline");
       }
       else /** Intersection with edge */
       {

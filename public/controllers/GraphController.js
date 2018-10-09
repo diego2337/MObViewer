@@ -517,6 +517,94 @@ function addMinAndMaxEdge(data)
  return JSON.stringify(jason);
 }
 
+/**
+ * @desc Get a node specific color based on a user-defined "label".
+ * @param {Object} node Node object containing all properties.
+ * @returns {Array|undefined} Array of vertice's color.
+ */
+function getColor(node)
+{
+  try
+  {
+    var label = indexController.fs.readFileSync('label.txt', 'utf8');
+    var labelValues = indexController.fs.readFileSync('colors.json', 'utf8');
+    if('vertexes' in node)
+    {
+      labelValues = JSON.parse(labelValues);
+      var arrOfColors = [];
+      for(vertex in node['vertexes'])
+      {
+        arrOfColors.push(labelValues[node['vertexes'][vertex][label]]);
+      }
+      return arrOfColors;
+    }
+    else if(label in node)
+    {
+      labelValues = JSON.parse(labelValues);
+      return labelValues[node[label]];
+    }
+    else
+    {
+      return undefined;
+    }
+  }
+  catch(err)
+  {
+    return undefined;
+  }
+  // var label = indexController.fs.readFile('./label.txt', 'utf8', function(err){
+  // indexController.fs.readFile('label.txt', 'utf8', function(err, label){
+  //   if(err)
+  //   {
+  //     return undefined;
+  //   }
+  //   else
+  //   {
+  //     // var labelValues = indexController.fs.readFile('./colors.json', 'utf8', function(err, dat){
+  //     indexController.fs.readFile('colors.json', 'utf8', function(err, dat){
+  //       if("vertexes" in node)
+  //       {
+  //         dat = JSON.parse(dat);
+  //         var arrOfColors = [];
+  //         for(vertex in node["vertexes"])
+  //         {
+  //           arrOfColors.push(dat[node['vertexes'][vertex][label]]);
+  //         }
+  //         return arrOfColors;
+  //       }
+  //       else if(label in node)
+  //       {
+  //         dat = JSON.parse(dat);
+  //         return dat[node[label]];
+  //       }
+  //       else
+  //       {
+  //         return undefined;
+  //       }
+  //     });
+  //   }
+  // });
+}
+
+/**
+ * @desc Get node user-defined label.
+ * @param {Object} node Node object containing all properties.
+ * @returns {(String|Number)} Value for user-defined label.
+ */
+function getLabelValue(node)
+{
+  var label = indexController.fs.readFile('label.txt', 'utf8', function(err){
+    if(err)
+    {
+      return undefined;
+    }
+    else
+    {
+      return node[label];
+    }
+  });
+}
+
 /** Graph AJAX callback functions */
 
 /**
@@ -574,7 +662,26 @@ exports.getClusters = function(req, res){
  */
 exports.getGraph = function(req, res){
   /** Read file from its folder */
-  exports.readJsonFile(req.body.graphName + '.json', fs, req, res);
+  exports.readJsonFile('uploads' + indexController.folderChar + req.body.graphName + indexController.folderChar + req.body.graphName + '.json', indexController.fs, req, res);
+};
+
+/**
+ * Server-side callback function from 'express' framework for get graph route. Get coarsenest graph according to file name.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+exports.getMostCoarsenedGraph = function(req, res){
+  /** Execute python script to get most coarsened graph */
+  indexController.nodeCmd.get('python mob/getMostCoarsened.py -i ' + req.body.graphName + ' -d ' + 'uploads' + indexController.folderChar + req.body.graphName + indexController.folderChar, function(dat, name, stderror){
+    if(name)
+    {
+      /** Remove '\n' */
+      name = name.slice(0, -1);
+      /** Read file from its folder */
+      exports.readJsonFile('uploads' + indexController.folderChar + req.body.graphName + indexController.folderChar + name, indexController.fs, req, res);
+    }
+  });
 };
 
 /**
@@ -782,3 +889,82 @@ exports.getEdgesWeights = function(req, res){
     }
   });
 };
+
+/**
+ * Server-side callback function from 'express' framework to define label. Define 'label.txt' file according to user-defined parameter.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+exports.defineLabel = function(req, res){
+  /** Write 'label.txt' file */
+  indexController.fs.writeFile("label.txt", req.body.l, function(err){
+    if(err)
+    {
+      console.log(err);
+    }
+    else
+    {
+      /** Finished; return to client-side */
+      res.type('text');
+      res.end();
+    }
+  });
+};
+
+/**
+ * Server-side callback function from 'express' framework to create graph colors. Get user-defined 'label' attribute and create a 'colors.csv' file, containing all colors for all possible values of 'label'.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+exports.createGraphColors = function(req, res){
+  var label = indexController.fs.readFileSync('label.txt', 'utf8');
+  var graphFile = indexController.fs.readFileSync('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + indexController.fileName.split(".")[0] + ".json", 'utf8');
+  graphFile = JSON.parse(graphFile);
+  /** Iterate through all nodes and store existing values on a dictionary */
+  var labelValues = {};
+  for(var i = 0; i < graphFile.nodes.length; i++)
+  {
+    if(label in graphFile.nodes[i])
+    {
+      labelValues[graphFile.nodes[i][label]] = Array(Math.random(), Math.random(), Math.random());
+    }
+  }
+  indexController.fs.writeFileSync('colors.json', JSON.stringify(labelValues), 'utf8');
+  /** Return from server-side */
+  res.type('text');
+  res.end();
+};
+
+/**
+ * Server-side callback function from 'express' framework for get vertice colors. Get vertices colors based on both a pre-defined color scheme and the number of vertices composing a super-vertice.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+exports.getColors = function(req, res){
+  var colors = [];
+  for(var i = 0; i < parseInt(req.body.nodes.length); i++)
+  {
+    // if(getColor(req.body.nodes[i], getLabelValue(req.body.nodes[i])) !== undefined) colors.push(getColor(req.body.nodes[i], getLabelValue(req.body.nodes[i])));
+    colors.push(getColor(req.body.nodes[i], getLabelValue(req.body.nodes[i])));
+  }
+  /** Return from server-side */
+  res.type('text');
+  // colors.length == 0 ? res.end(JSON.stringify({ undefined })) : res.end(JSON.stringify({ colors }));
+  res.end(JSON.stringify({ colors }));
+}
+
+/**
+ * Server-side callback function from 'express' framework for get vertice colors. Get vertice colors based on both a pre-defined color scheme and the number of vertices composing a super-vertice.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+ exports.getColor = function(req, res){
+   var color = getColor(req.body.node, getLabelValue(req.body.node));
+   /** Return from server-side */
+   res.type('text');
+   res.end(JSON.stringify({ color }));
+ }

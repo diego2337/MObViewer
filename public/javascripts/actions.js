@@ -157,6 +157,33 @@ function createCategoriesFile(textarea)
   });
 }
 
+/**
+ * Create 'label.txt' file.
+ * @param {String} textarea "<textarea>" tag.
+ */
+function createLabelFile(textarea)
+{
+  $.ajax({
+    url: 'graph/defineLabel',
+    type: 'POST',
+    data: { l: textarea.value },
+    success: function(html){
+      alert(".txt file successfully created!");
+      $.ajax({
+        url: 'graph/createGraphColors',
+        type: 'POST',
+        /** FIXME - NEVER NEVER EVER use async! */
+        async: false,
+        success: function(){
+          alert('Color scheme for label successfully created! Saved as \'colors.json\' file.');
+        },
+        xhr: loadGraph
+      });
+    },
+    xhr: loadGraph
+  });
+}
+
 /** Apply multilevel coarsening with user defined reduction factor and number of levels */
 $("#coarseGraph").on('click', function(){
   /** Iterate through a for loop to create nLevels of coarsened graphs */
@@ -384,6 +411,91 @@ $("#clearTable2").on('click', function(){
 $("#clearTableVertexStats").on('click', function(){
   $("#vertexStatsCard").css('visibility', 'hidden');
 });
+
+/** Show text area to define label on click */
+$("#defineUserLabel").on('click', function(){
+  var meta = 'label';
+  showDialog({
+        title: 'Define user label',
+        metaTitle: meta,
+        text: 'Create a txt file with a label, from vertex attributes, to be used as color coding for vertexes.',
+        textArea: true,
+        negative: {
+            title: 'Go back'
+        },
+        positive: {
+            title: 'Create',
+            onClick: function(e) {
+              var text = document.getElementsByTagName("textarea");
+              var createLabel = undefined;
+              for(t in text)
+              {
+                if(text[t].id == "")
+                {
+                  createLabel = text[t];
+                }
+              }
+              createLabelFile(createLabel);
+            }
+        }
+    });
+});
+
+/** Use user defined label to create 'colors.json' file and associate it with vertice colors */
+$("#useLabel").on('click', function(){
+  $.ajax({
+    url: 'graph/createGraphColors',
+    type: 'POST',
+    success: function(html){
+      $.ajax({
+        url: 'graph/getMostCoarsenedGraph',
+        type: 'POST',
+        data: { graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0] },
+        success: function(html){
+          graphUpdate(html, layout.lay);
+        },
+        xhr: loadGraph
+      });
+    },
+    xhr: loadGraph
+  });
+});
+
+/** Define label */
+// $("#defineLabel").on('click', function(){
+//   var defineLabel = $.ajax({
+//     url: 'graph/defineLabel',
+//     type: 'POST',
+//     /** FIXME - NEVER NEVER EVER use async! */
+//     async: false,
+//     success: function(){
+//       console.log("entrou nesse success");
+//       $.ajax({
+//         url: 'graph/createGraphColors',
+//         type: 'POST',
+//         /** FIXME - NEVER NEVER EVER use async! */
+//         async: false,
+//         success: function(){
+//           alert('Color scheme for label successfully created! Saved as \'colors.json\' file.');
+//         },
+//         xhr: loadGraph
+//       });
+//     },
+//     xhr: loadGraph
+//   });
+  // defineLabel.done(function(){
+  //   $.ajax({
+  //     url: 'graph/createGraphColors',
+  //     type: 'POST',
+  //     /** FIXME - NEVER NEVER EVER use async! */
+  //     async: false,
+  //     success: function(){
+  //       alert('Color scheme for label successfully created! Saved as \'colors.json\' file.');
+  //     },
+  //     xhr: loadGraph
+  //   });
+  // });
+// });
 
 /** */
 $("#coarseJson").on('click', function(){
