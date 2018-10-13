@@ -528,9 +528,9 @@ function getColor(node)
   {
     var label = indexController.fs.readFileSync('label.txt', 'utf8');
     var labelValues = indexController.fs.readFileSync('colors.json', 'utf8');
+    labelValues = JSON.parse(labelValues);
     if('vertexes' in node)
     {
-      labelValues = JSON.parse(labelValues);
       var arrOfColors = [];
       for(vertex in node['vertexes'])
       {
@@ -540,8 +540,10 @@ function getColor(node)
     }
     else if(label in node)
     {
-      labelValues = JSON.parse(labelValues);
-      return labelValues[node[label]];
+      var arrOfColors = [];
+      arrOfColors.push(labelValues[node[label]]);
+      return arrOfColors;
+      // return labelValues[node[label]];
     }
     else
     {
@@ -945,15 +947,56 @@ exports.createGraphColors = function(req, res){
  */
 exports.getColors = function(req, res){
   var colors = [];
+  var repeats = [];
+  var colores = [];
   for(var i = 0; i < parseInt(req.body.nodes.length); i++)
   {
     // if(getColor(req.body.nodes[i], getLabelValue(req.body.nodes[i])) !== undefined) colors.push(getColor(req.body.nodes[i], getLabelValue(req.body.nodes[i])));
     colors.push(getColor(req.body.nodes[i], getLabelValue(req.body.nodes[i])));
+    if(colors[colors.length-1] != undefined && colors[colors.length-1][0] != undefined)
+    {
+      if(colors[colors.length-1].length == 1)
+      {
+        repeats.push([1]);
+        colores.push(colors[colors.length-1]);
+      }
+      else
+      {
+        var repeat = [];
+        var cores = [];
+        /** Sort colors */
+        colors[colors.length-1].sort();
+        cores.push(colors[colors.length-1][0]);
+        for(var k = 0, j = 1; k < colors[colors.length-1].length && j < colors[colors.length-1].length; )
+        {
+          /** Compare indexes; if they are the same, increase j. Otherwise assign number of repeats and i = j */
+          if(colors[colors.length-1][k][0] == colors[colors.length-1][j][0] && colors[colors.length-1][k][1] == colors[colors.length-1][j][1] && colors[colors.length-1][k][2] == colors[colors.length-1][j][2])
+          {
+            j = j + 1;
+          }
+          else
+          {
+            cores.push(colors[colors.length-1][j]);
+            repeat.push(j-k);
+            k = j;
+            // j = j + 1;
+          }
+        }
+        repeat.push(j-k);
+        // if(j-1 == k)
+        // {
+        //   cores.push(colors[colors.length-1][k]);
+        //   repeat.push(1);
+        // }
+        repeats.push(repeat);
+        colores.push(cores);
+      }
+    }
   }
   /** Return from server-side */
   res.type('text');
   // colors.length == 0 ? res.end(JSON.stringify({ undefined })) : res.end(JSON.stringify({ colors }));
-  res.end(JSON.stringify({ colors }));
+  res.end(JSON.stringify({ repeats: repeats, colors: colores }));
 }
 
 /**

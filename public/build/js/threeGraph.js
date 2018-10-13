@@ -363,6 +363,8 @@ var IndependentSet = function()
 {
   /** Array to store (x,y,z) coordinates of nodes */
   this.positions = [];
+  /** Array to store sizes of nodes */
+  this.circleSizes = [];
 }
 
 /**
@@ -419,15 +421,13 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
     var getColors = $.ajax({
       url: 'graph/getColors',
       type: 'POST',
+      async: false,
       data: { nodes: nodes },
       xhr: loadGraph
     });
-    getColors.fail(function(data){
-      console.log("I did not keep my promise.");
-    });
     getColors.done(function(data){
       data = JSON.parse(data);
-      data = data.colors;
+      // data = data.colors;
       /** Store number of faces before adding nodes */
       var numberOfFaces = geometry.faces.length;
       /** Build nodes */
@@ -436,7 +436,7 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
       for(var i = 0; i < nodes.length && nodes[i] !== undefined; i++, pos++)
       {
         /** Color vertexes */
-        if(data[i] == undefined)
+        if(data.colors[i] == undefined)
         {
           for(var k = 0; k < circleGeometry.faces.length; k++)
           {
@@ -445,17 +445,38 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
         }
         else
         {
-          var length = data[i].length;
-          var colorLength = parseInt(circleGeometry.faces.length/length);
+          /** Calculate proportion for each color space */
+          var sum = 0;
+          for(var sumI = 0; sumI < data.repeats[i].length; sumI = sumI + 1)
+          {
+            sum = sum + parseInt(data.repeats[i][sumI]);
+          }
+          var proportion = parseFloat(32.0 / parseFloat(sum));
+          var proportionLengths = [];
+          for(var sumI = 0; sumI < data.repeats[i].length; sumI = sumI + 1)
+          {
+            proportionLengths.push(parseInt(parseFloat(data.repeats[i][sumI])*proportion));
+          }
           for(var k = 0, l = 0; k < circleGeometry.faces.length; k++)
           {
-            if(k > colorLength)
+            if(k > proportionLengths[l])
             {
               l = l + 1;
-              colorLength = colorLength + colorLength;
+              proportionLengths[l] = proportionLengths[l] + proportionLengths[l-1];
             }
-            data[i][l] != null ? circleGeometry.faces[k].color.setRGB(data[i][l][0], data[i][l][1], data[i][l][2]) : circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
+            data.colors[i][l] != null ? circleGeometry.faces[k].color.setRGB(data.colors[i][l][0], data.colors[i][l][1], data.colors[i][l][2]) : circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
           }
+          // var length = data[i].length;
+          // var colorLength = parseInt(circleGeometry.faces.length/length);
+          // for(var k = 0, l = 0; k < circleGeometry.faces.length; k++)
+          // {
+          //   if(k > colorLength)
+          //   {
+          //     l = l + 1;
+          //     colorLength = colorLength + colorLength;
+          //   }
+          //   data[i][l] != null ? circleGeometry.faces[k].color.setRGB(data[i][l][0], data[i][l][1], data[i][l][2]) : circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
+          // }
         }
         var x = pos * theta;
         if(nodes[i].weight == undefined) nodes[i].weight = parseInt(minNodeWeight);
@@ -471,6 +492,8 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
           circleGeometry.translate(y, x, 0);
           /** Push coordinates to array */
           independentSetScope.positions.push({x: y, y: x, z: 0});
+          /** Push size to array */
+          independentSetScope.circleSizes.push(circleSize);
           /** Merge into geometry */
           geometry.merge(circleGeometry);
           /** Return geometry for reusing */
@@ -482,6 +505,8 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
           circleGeometry.translate(x, y, 0);
           /** Push coordinates to array */
           independentSetScope.positions.push({x: x, y: y, z: 0});
+          /** Push size to array */
+          independentSetScope.circleSizes.push(circleSize);
           /** Merge into geometry */
           geometry.merge(circleGeometry);
           /** Return geometry for reusing */
@@ -499,6 +524,8 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
         geometry.faces[i].neighbors = independentSetScope.findNeighbors(nodes, links, j);
         /** Store vertex position */
         geometry.faces[i].position = independentSetScope.positions[j];
+        /** Store circle size */
+        geometry.faces[i].size = independentSetScope.circleSizes[j];
         /** Store vertex position */
         // geometry.faces[i].position = independentSetScope.positions[j];
         /** Store which layers are being rendered */
@@ -2342,11 +2369,13 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
     {
       if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j] !== undefined)
       {
-        mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.8, 0.8, 0.8);
+        // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.8, 0.8, 0.8);
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.b-0.3);
       }
       if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
       {
-        mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.8, 0.8, 0.8);
+        // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.8, 0.8, 0.8);
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.b-0.3);
       }
       mesh.geometry.colorsNeedUpdate = true;
     }
@@ -2362,6 +2391,16 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
   }
   /** Remove 'neighborEdges' edges */
   scene.remove(scene.getObjectByName("neighborEdges"));
+  /** Remove 'selected' vertices */
+  scene.remove(scene.getObjectByName("selected"));
+  /** Remove 'neighboriindex' vertices */
+  for(var i = 0; i < scene.children.length; i++)
+  {
+    if(scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'neighbor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'predecessor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'successor')
+    {
+      scene.remove(scene.children[i]);
+    }
+  }
   /**
    * @param {Array} neighbors Array of neighbor vertexes.
    * @param {Array} edges Array of edges displayed in layout.
@@ -2584,6 +2623,36 @@ EventHandler.prototype.renderNeighborEdges = function(scene, mesh, neighbors)
 }
 
 /**
+ * Set translation, rotation and scaling factors for a given geometry.
+ * @param {Object} geometry Three.js Geometry structure to apply operations.
+ * @param {Array} tFactor Translation factor, given by (x,y,z) coordinates.
+ * @param {Array} rFactor Rotation factor, given by (rx, ry, rz) values.
+ * @param {Array} sFactor Scale factor, given by (sx, sy, sz) values.
+ * @param {Array} order Set order of operations to be executed; (1) for translate, (2) for rotate and (3) for scale.
+ */
+EventHandler.prototype.setTRS = function(geometry, tFactor, rFactor, sFactor, order)
+{
+  if(order == undefined) order = [1, 2, 3];
+  for(o in order)
+  {
+    switch(order[o])
+    {
+      case 1:
+        if(tFactor != undefined) geometry.translate(tFactor[0], tFactor[1], tFactor[2]);
+      break;
+      case 2:
+        if(rFactor != undefined) geometry.rotate(rFactor[0], rFactor[1], rFactor[2]);
+      break;
+      case 3:
+        if(sFactor != undefined) geometry.scale(sFactor[0], sFactor[1], sFactor[2]);
+      break;
+      default:
+      break;
+    }
+  }
+}
+
+/**
  * Color vertex.
  * @param {Array} faces Array of faces objects.
  * @param {int} startFace Index for starting face.
@@ -2594,24 +2663,36 @@ EventHandler.prototype.colorVertex = function(faces, startFace, endFace, color)
 {
   for(var i = startFace; i < endFace; i++)
   {
-    faces[i].color.setRGB(color[0], color[1], color[2]);
+    // faces[i].color.setRGB(color[0], color[1], color[2]);
+    color === undefined ? faces[i].color.setRGB(faces[i].color.r+0.3, faces[i].color.g+0.3, faces[i].color.b+0.3) : faces[i].color.setRGB(color[0], color[1], color[2]);
   }
 }
 
 /**
  * Change neighbor vertexes colors.
+ * @param {Object} scene Scene for raycaster.
  * @param {Array} faces Array of faces objects.
  * @param {Array} neighbors Neighbors to be colored.
  */
-EventHandler.prototype.colorNeighbors = function(faces, neighbors)
+EventHandler.prototype.colorNeighbors = function(scene, faces, neighbors)
 {
   /** First element of 'neighbors' array is double-clicked vertex */
-  for(var i = 1; i < neighbors.length; i++)
+  for(var i = 2; i < neighbors.length; i++)
   {
     var endPoint = ((faces[neighbors[0].vertexInfo].neighbors[i]) * 32) + 32;
-    // var endPoint = ((faces[neighbors[0].vertexInfo].neighbors[i])) + 32;
-    // var endPoint = ((faces[neighbors[0].vertexInfo*32].neighbors[i])) + 32;
-    this.colorVertex(faces, faces[neighbors[0].vertexInfo].neighbors[i]*32, endPoint, new Array(0.0, 0.0, 1.0));
+    this.colorVertex(faces, faces[neighbors[0].vertexInfo].neighbors[i]*32, endPoint, undefined);
+    /** Create blue circle for highlighting */
+    var circleGeometry = new THREE.CircleGeometry(1, 32);
+    this.colorVertex(circleGeometry.faces, 0, 32, Array(0.0, 0.0, 1.0));
+    this.setTRS(circleGeometry, [parseFloat(faces[neighbors[i].vertexInfo*32].position.x), parseFloat(faces[neighbors[i].vertexInfo*32].position.y), parseFloat(faces[neighbors[i].vertexInfo*32].position.z)], undefined, [parseFloat(faces[neighbors[i].vertexInfo*32].size)+1, parseFloat(faces[neighbors[i].vertexInfo*32].size)+1, 1], [3, 1, 2]);
+    /** Creating material for nodes */
+    var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+    /** Create one mesh from single geometry and add it to scene */
+    var mesh = new THREE.Mesh(circleGeometry, material);
+    mesh.name = "neighbor" + i.toString();
+    /** Alter render order so that node mesh will always be drawn on top of edges */
+    mesh.renderOrder = 0;
+    scene.add(mesh);
   }
 }
 
@@ -2634,8 +2715,9 @@ EventHandler.prototype.showNeighbors = function(scene)
       this.realNeighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
     }
     this.renderNeighborEdges(scene, element, element.geometry.faces[this.highlightedElements[i]]);
-    this.colorNeighbors(element.geometry.faces, this.neighbors);
+    this.colorNeighbors(scene, element.geometry.faces, this.neighbors);
     element.geometry.colorsNeedUpdate = true;
+    element.geometry.verticesNeedUpdate = true;
     /** Remove itself so it won't unhighlight as soon as mouse moves out */
     this.highlightedElements.splice(i, 1);
   }
@@ -2740,9 +2822,22 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
           var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
           for(var j = 0; j < 32; j++)
           {
-            // previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
-            previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
+            // previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
+            previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.r+0.3, previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.g+0.3, previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.b+0.3);
           }
+          console.log("entered showNodeParents function");
+          /** Draw green circle behind predecessors as borders to predecessor vertices */
+          var circleGeometry = new THREE.CircleGeometry(1, 32);
+          layScope.colorVertex(circleGeometry.faces, 0, 32, Array(0.0, 1.0, 0.0));
+          layScope.setTRS(circleGeometry, [parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].position.x), parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].position.y), parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].position.z)], undefined, [parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].size)+1, parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].size)+1, 1], [3, 1, 2]);
+          /** Creating material for nodes */
+          var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+          /** Create one mesh from single geometry and add it to scene */
+          var mesh = new THREE.Mesh(circleGeometry, material);
+          mesh.name = "predecessor" + (i+1).toString();
+          /** Alter render order so that node mesh will always be drawn on top of edges */
+          mesh.renderOrder = 0;
+          scene.add(mesh);
           /** Add edges to 'parentConnections' geometry */
           edgeGeometry.vertices.push(v1);
           edgeGeometry.vertices.push(v2);
@@ -2947,12 +3042,24 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
           var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
           for(var j = 0; j < 32; j++)
           {
-            // nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(1.0, 0.0, 0.0);
-            nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
+            // nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
+            nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.r+0.3, nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.g+0.3, nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.b+0.3);
           }
           /** Add edges to 'parentConnections' geometry */
           edgeGeometry.vertices.push(v1);
           edgeGeometry.vertices.push(v2);
+          /** Draw green circle behind successor as borders to successor */
+          var circleGeometry = new THREE.CircleGeometry(1, 32);
+          layScope.colorVertex(circleGeometry.faces, 0, 32, Array(0.0, 1.0, 0.0));
+          layScope.setTRS(circleGeometry, [parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].position.x), parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].position.y), parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].position.z)], undefined, [parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].size)+1, parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].size)+1, 1], [3, 1, 2]);
+          /** Creating material for nodes */
+          var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+          /** Create one mesh from single geometry and add it to scene */
+          var mesh = new THREE.Mesh(circleGeometry, material);
+          mesh.name = "successor" + (i+1).toString();
+          /** Alter render order so that node mesh will always be drawn on top of edges */
+          mesh.renderOrder = 0;
+          scene.add(mesh);
         }
         nextMesh.geometry.colorsNeedUpdate = true;
         for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
@@ -3159,9 +3266,21 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
     /** Color selected vertex */
     for(var j = 0; j < 32; j++)
     {
-      intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
+      // intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
+      intersection.object.geometry.faces[startFace+j].color.setRGB(intersection.object.geometry.faces[startFace+j].color.r+0.3, intersection.object.geometry.faces[startFace+j].color.g+0.3, intersection.object.geometry.faces[startFace+j].color.b+0.3);
     }
-    intersection.object.geometry.colorsNeedUpdate = true;
+    /** Draw a red circle behind selected vertice to use as border */
+    var circleGeometry = new THREE.CircleGeometry(1, 32);
+    this.colorVertex(circleGeometry.faces, 0, 32, Array(1.0, 0.0, 0.0));
+    this.setTRS(circleGeometry, [intersection.object.geometry.faces[startFace].position.x, intersection.object.geometry.faces[startFace].position.y, intersection.object.geometry.faces[startFace].position.z], undefined, [intersection.object.geometry.faces[startFace].size+1, intersection.object.geometry.faces[startFace].size+1, 1], [3, 1, 2]);
+    /** Creating material for nodes */
+    var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+    /** Create one mesh from single geometry and add it to scene */
+    var mesh = new THREE.Mesh(circleGeometry, material);
+    mesh.name = "selected";
+    /** Alter render order so that node mesh will always be drawn on top of edges */
+    mesh.renderOrder = 0;
+    intersection.object.parent.add(mesh);
     this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id)*32, mesh: intersection.object.name});
     // var startFace = parseInt(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id) * 32;
     var lastSuccessor = -1;
@@ -3205,7 +3324,7 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
         this.neighbors.push(neighbors[j]);
         this.realNeighbors.push(neighbors[j]);
       }
-      this.colorNeighbors(nextMesh.geometry.faces, neighbors);
+      this.colorNeighbors(scene, nextMesh.geometry.faces, neighbors);
     }
     this.showNeighborInfo(scene);
   }
@@ -3490,7 +3609,6 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
     {
       for(var j = 0; j < parseInt(this.nLevels)+1; j++)
       {
-        var endPoint = this.highlightedElements[i] + 32;
         var element;
         j == 0 ? element = scene.getObjectByName("MainMesh", true) : element = scene.getObjectByName("MainMesh" + j.toString(), true);
         // var element = scene.getObjectByName("MainMesh", true);
@@ -3499,11 +3617,19 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
           return (elmt.vertexInfo == el && elmt.mesh == element.name);
           // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
         });
-        for(var k = this.highlightedElements[i]; k < endPoint && fd === undefined; k++)
+        if(fd === undefined)
         {
-          if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(element.geometry.faces[k].color.r-0.3, element.geometry.faces[k].color.g-0.3, element.geometry.faces[k].color.b-0.3);
+          if((element.name == this.highlightedElements[i].meshName))
+          {
+            this.highlightedElements[i] = this.highlightedElements[i].idx;
+            var endPoint = this.highlightedElements[i] + 32;
+            for(var k = this.highlightedElements[i]; k < endPoint; k++)
+            {
+              if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(element.geometry.faces[k].color.r-0.3, element.geometry.faces[k].color.g-0.3, element.geometry.faces[k].color.b-0.3);
+            }
+            element.geometry.colorsNeedUpdate = true;
+          }
         }
-        element.geometry.colorsNeedUpdate = true;
       }
       if(fd === undefined) this.highlightedElements.splice(i, 1);
     }
@@ -3528,7 +3654,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         });
         if(found == undefined)
         {
-          this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
+          this.highlightedElements.push({meshName: intersection.object.name, idx: intersection.faceIndex-(intersection.face.a-intersection.face.c)+1});
         }
       }
       else /** Intersection with edge */

@@ -11,6 +11,8 @@ var IndependentSet = function()
 {
   /** Array to store (x,y,z) coordinates of nodes */
   this.positions = [];
+  /** Array to store sizes of nodes */
+  this.circleSizes = [];
 }
 
 /**
@@ -67,12 +69,13 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
     var getColors = $.ajax({
       url: 'graph/getColors',
       type: 'POST',
+      async: false,
       data: { nodes: nodes },
       xhr: loadGraph
     });
     getColors.done(function(data){
       data = JSON.parse(data);
-      data = data.colors;
+      // data = data.colors;
       /** Store number of faces before adding nodes */
       var numberOfFaces = geometry.faces.length;
       /** Build nodes */
@@ -81,7 +84,7 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
       for(var i = 0; i < nodes.length && nodes[i] !== undefined; i++, pos++)
       {
         /** Color vertexes */
-        if(data[i] == undefined)
+        if(data.colors[i] == undefined)
         {
           for(var k = 0; k < circleGeometry.faces.length; k++)
           {
@@ -90,17 +93,38 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
         }
         else
         {
-          var length = data[i].length;
-          var colorLength = parseInt(circleGeometry.faces.length/length);
+          /** Calculate proportion for each color space */
+          var sum = 0;
+          for(var sumI = 0; sumI < data.repeats[i].length; sumI = sumI + 1)
+          {
+            sum = sum + parseInt(data.repeats[i][sumI]);
+          }
+          var proportion = parseFloat(32.0 / parseFloat(sum));
+          var proportionLengths = [];
+          for(var sumI = 0; sumI < data.repeats[i].length; sumI = sumI + 1)
+          {
+            proportionLengths.push(parseInt(parseFloat(data.repeats[i][sumI])*proportion));
+          }
           for(var k = 0, l = 0; k < circleGeometry.faces.length; k++)
           {
-            if(k > colorLength)
+            if(k > proportionLengths[l])
             {
               l = l + 1;
-              colorLength = colorLength + colorLength;
+              proportionLengths[l] = proportionLengths[l] + proportionLengths[l-1];
             }
-            data[i][l] != null ? circleGeometry.faces[k].color.setRGB(data[i][l][0], data[i][l][1], data[i][l][2]) : circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
+            data.colors[i][l] != null ? circleGeometry.faces[k].color.setRGB(data.colors[i][l][0], data.colors[i][l][1], data.colors[i][l][2]) : circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
           }
+          // var length = data[i].length;
+          // var colorLength = parseInt(circleGeometry.faces.length/length);
+          // for(var k = 0, l = 0; k < circleGeometry.faces.length; k++)
+          // {
+          //   if(k > colorLength)
+          //   {
+          //     l = l + 1;
+          //     colorLength = colorLength + colorLength;
+          //   }
+          //   data[i][l] != null ? circleGeometry.faces[k].color.setRGB(data[i][l][0], data[i][l][1], data[i][l][2]) : circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
+          // }
         }
         var x = pos * theta;
         if(nodes[i].weight == undefined) nodes[i].weight = parseInt(minNodeWeight);
@@ -116,6 +140,8 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
           circleGeometry.translate(y, x, 0);
           /** Push coordinates to array */
           independentSetScope.positions.push({x: y, y: x, z: 0});
+          /** Push size to array */
+          independentSetScope.circleSizes.push(circleSize);
           /** Merge into geometry */
           geometry.merge(circleGeometry);
           /** Return geometry for reusing */
@@ -127,6 +153,8 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
           circleGeometry.translate(x, y, 0);
           /** Push coordinates to array */
           independentSetScope.positions.push({x: x, y: y, z: 0});
+          /** Push size to array */
+          independentSetScope.circleSizes.push(circleSize);
           /** Merge into geometry */
           geometry.merge(circleGeometry);
           /** Return geometry for reusing */
@@ -144,6 +172,8 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
         geometry.faces[i].neighbors = independentSetScope.findNeighbors(nodes, links, j);
         /** Store vertex position */
         geometry.faces[i].position = independentSetScope.positions[j];
+        /** Store circle size */
+        geometry.faces[i].size = independentSetScope.circleSizes[j];
         /** Store vertex position */
         // geometry.faces[i].position = independentSetScope.positions[j];
         /** Store which layers are being rendered */

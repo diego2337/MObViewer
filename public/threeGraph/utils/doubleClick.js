@@ -46,11 +46,13 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
     {
       if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j] !== undefined)
       {
-        mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.8, 0.8, 0.8);
+        // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.8, 0.8, 0.8);
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.b-0.3);
       }
       if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
       {
-        mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.8, 0.8, 0.8);
+        // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.8, 0.8, 0.8);
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.b-0.3);
       }
       mesh.geometry.colorsNeedUpdate = true;
     }
@@ -66,6 +68,16 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
   }
   /** Remove 'neighborEdges' edges */
   scene.remove(scene.getObjectByName("neighborEdges"));
+  /** Remove 'selected' vertices */
+  scene.remove(scene.getObjectByName("selected"));
+  /** Remove 'neighboriindex' vertices */
+  for(var i = 0; i < scene.children.length; i++)
+  {
+    if(scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'neighbor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'predecessor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'successor')
+    {
+      scene.remove(scene.children[i]);
+    }
+  }
   /**
    * @param {Array} neighbors Array of neighbor vertexes.
    * @param {Array} edges Array of edges displayed in layout.
