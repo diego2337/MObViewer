@@ -28,4 +28,14 @@ router.post('/graph/getStats', graphController.getStats);
 
 router.post('/graph/getEdgesWeights', graphController.getEdgesWeights);
 
+router.post('/graph/getColors', graphController.getColors);
+
+router.post('/graph/createGraphColors', graphController.createGraphColors);
+
+router.post('/graph/defineLabel', graphController.defineLabel);
+
+router.post('/graph/getMostCoarsenedGraph', graphController.getMostCoarsenedGraph);
+
+router.post('/graph/getColor', graphController.getColor);
+
 module.exports = router;
