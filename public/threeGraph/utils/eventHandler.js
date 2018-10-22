@@ -271,7 +271,7 @@ EventHandler.prototype.colorNeighbors = function(scene, faces, neighbors)
     var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
     /** Create one mesh from single geometry and add it to scene */
     var mesh = new THREE.Mesh(circleGeometry, material);
-    mesh.name = "neighbor" + i.toString();
+    mesh.name = "neighbor" + scene.children.length.toString();
     /** Alter render order so that node mesh will always be drawn on top of edges */
     mesh.renderOrder = 0;
     scene.add(mesh);
@@ -407,7 +407,6 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
             // previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
             previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.r+0.3, previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.g+0.3, previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.b+0.3);
           }
-          console.log("entered showNodeParents function");
           /** Draw green circle behind predecessors as borders to predecessor vertices */
           var circleGeometry = new THREE.CircleGeometry(1, 32);
           layScope.colorVertex(circleGeometry.faces, 0, 32, Array(0.0, 1.0, 0.0));
@@ -416,10 +415,14 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
           var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
           /** Create one mesh from single geometry and add it to scene */
           var mesh = new THREE.Mesh(circleGeometry, material);
-          mesh.name = "predecessor" + (i+1).toString();
+          mesh.name = "predecessor" + scene.children.length.toString();
           /** Alter render order so that node mesh will always be drawn on top of edges */
           mesh.renderOrder = 0;
           scene.add(mesh);
+          circleGeometry.dispose();
+          circleGeometry = null;
+          material.dispose();
+          material = null;
           /** Add edges to 'parentConnections' geometry */
           edgeGeometry.vertices.push(v1);
           edgeGeometry.vertices.push(v2);
@@ -638,10 +641,14 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
           var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
           /** Create one mesh from single geometry and add it to scene */
           var mesh = new THREE.Mesh(circleGeometry, material);
-          mesh.name = "successor" + (i+1).toString();
+          mesh.name = "successor" + scene.children.length.toString();
           /** Alter render order so that node mesh will always be drawn on top of edges */
           mesh.renderOrder = 0;
           scene.add(mesh);
+          circleGeometry.dispose();
+          circleGeometry = null;
+          material.dispose();
+          material = null;
         }
         nextMesh.geometry.colorsNeedUpdate = true;
         for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
@@ -930,7 +937,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
     // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
     this.doubleClick.updateLayout(scene, this);
   }
-  if(!this.doubleClick.getClicked().wasClicked)
+  else if(!this.doubleClick.getClicked().wasClicked)
   {
     this.doubleClick.setClicked({wasClicked: true});
     /* Execute ray tracing */

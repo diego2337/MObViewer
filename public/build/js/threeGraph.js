@@ -2355,12 +2355,43 @@ DoubleClick.prototype.setClicked = function(clicked)
 }
 
 /**
+ * @desc Check duplicates in array of neighbors.
+ * @param {Array} neighbors Array of neighbors.
+ * @returns {Array} Array with no duplicates.
+ */
+DoubleClick.prototype.checkDuplicates = function(neighbors)
+{
+  var arr = [];
+  for(var i = 0; i < neighbors.length; i++)
+  {
+    for(var j = i+1; j < neighbors.length; j++)
+    {
+      if( (neighbors[i].vertexInfo == neighbors[j].vertexInfo/32) || (neighbors[i].vertexInfo == neighbors[j].vertexInfo*32) )
+      {
+        neighbors[j] = -1;
+      }
+    }
+  }
+  for(var i = 0; i < neighbors.length; i++)
+  {
+    if(neighbors[i] != -1)
+    {
+      arr.push(neighbors[i]);
+    }
+  }
+  return arr;
+}
+
+/**
  * @desc Update layout, removing edges and coloring vertexes to default color.
  * @param {Object} scene Scene for raycaster.
  * @param {Object} eventHandler EventHandler type object containing neighbors and edges arrays.
  */
 DoubleClick.prototype.updateLayout = function(scene, eventHandler)
 {
+  eventHandler.neighbors = this.checkDuplicates(eventHandler.neighbors);
+  console.log("eventHandler.neighbors:");
+  console.log(eventHandler.neighbors);
   /** Change vertexes colors to original color */
   for(var i = 0; i < eventHandler.neighbors.length; i++)
   {
@@ -2372,7 +2403,7 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
         // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.8, 0.8, 0.8);
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.b-0.3);
       }
-      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
+      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
       {
         // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.8, 0.8, 0.8);
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.b-0.3);
@@ -2393,13 +2424,23 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
   scene.remove(scene.getObjectByName("neighborEdges"));
   /** Remove 'selected' vertices */
   scene.remove(scene.getObjectByName("selected"));
-  /** Remove 'neighboriindex' vertices */
+  var indexes = [];
+  /** Remove 'neighboriindex', 'predecessori' or 'successori' vertices */
   for(var i = 0; i < scene.children.length; i++)
   {
-    if(scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'neighbor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'predecessor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'successor')
+    // if(scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'neighbor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'predecessor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'successor')
+    if(scene.children[i].name.includes('neighbor') || scene.children[i].name.includes('predecessor') || scene.children[i].name.includes('successor'))
     {
-      scene.remove(scene.children[i]);
+      indexes.push(i);
+      // scene.remove(scene.children[i]);
     }
+  }
+  indexes.sort(function(a, b){
+    return parseInt(b)-parseInt(a);
+  });
+  for(var i = 0; i < indexes.length; i++)
+  {
+    scene.remove(scene.children[indexes[i]]);
   }
   /**
    * @param {Array} neighbors Array of neighbor vertexes.
@@ -2689,7 +2730,7 @@ EventHandler.prototype.colorNeighbors = function(scene, faces, neighbors)
     var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
     /** Create one mesh from single geometry and add it to scene */
     var mesh = new THREE.Mesh(circleGeometry, material);
-    mesh.name = "neighbor" + i.toString();
+    mesh.name = "neighbor" + scene.children.length.toString();
     /** Alter render order so that node mesh will always be drawn on top of edges */
     mesh.renderOrder = 0;
     scene.add(mesh);
@@ -2825,7 +2866,6 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
             // previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
             previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.r+0.3, previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.g+0.3, previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.b+0.3);
           }
-          console.log("entered showNodeParents function");
           /** Draw green circle behind predecessors as borders to predecessor vertices */
           var circleGeometry = new THREE.CircleGeometry(1, 32);
           layScope.colorVertex(circleGeometry.faces, 0, 32, Array(0.0, 1.0, 0.0));
@@ -2834,10 +2874,14 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
           var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
           /** Create one mesh from single geometry and add it to scene */
           var mesh = new THREE.Mesh(circleGeometry, material);
-          mesh.name = "predecessor" + (i+1).toString();
+          mesh.name = "predecessor" + scene.children.length.toString();
           /** Alter render order so that node mesh will always be drawn on top of edges */
           mesh.renderOrder = 0;
           scene.add(mesh);
+          circleGeometry.dispose();
+          circleGeometry = null;
+          material.dispose();
+          material = null;
           /** Add edges to 'parentConnections' geometry */
           edgeGeometry.vertices.push(v1);
           edgeGeometry.vertices.push(v2);
@@ -3056,10 +3100,14 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
           var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
           /** Create one mesh from single geometry and add it to scene */
           var mesh = new THREE.Mesh(circleGeometry, material);
-          mesh.name = "successor" + (i+1).toString();
+          mesh.name = "successor" + scene.children.length.toString();
           /** Alter render order so that node mesh will always be drawn on top of edges */
           mesh.renderOrder = 0;
           scene.add(mesh);
+          circleGeometry.dispose();
+          circleGeometry = null;
+          material.dispose();
+          material = null;
         }
         nextMesh.geometry.colorsNeedUpdate = true;
         for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
@@ -3348,7 +3396,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
     // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
     this.doubleClick.updateLayout(scene, this);
   }
-  if(!this.doubleClick.getClicked().wasClicked)
+  else if(!this.doubleClick.getClicked().wasClicked)
   {
     this.doubleClick.setClicked({wasClicked: true});
     /* Execute ray tracing */
