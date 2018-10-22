@@ -2390,8 +2390,6 @@ DoubleClick.prototype.checkDuplicates = function(neighbors)
 DoubleClick.prototype.updateLayout = function(scene, eventHandler)
 {
   eventHandler.neighbors = this.checkDuplicates(eventHandler.neighbors);
-  console.log("eventHandler.neighbors:");
-  console.log(eventHandler.neighbors);
   /** Change vertexes colors to original color */
   for(var i = 0; i < eventHandler.neighbors.length; i++)
   {
