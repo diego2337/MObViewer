@@ -293,6 +293,9 @@ d3BarChart.prototype.populateBarChart = function(data)
         .attr("text-anchor", "end")
         .text("Frequency");
 
+    var line = this.getG().append("g")
+        .attr('transform', 'translate()');
+
   	// // text label for the x axis
   	// this.barChart().append("text")
   	//   .attr("transform",

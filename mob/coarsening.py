@@ -255,8 +255,11 @@ def main():
 			if contract:
 				coarse = graph.contract(membership)
 				coarse['level'] = levels
-				graph = coarse
 
+				if coarse.vcount() == graph.vcount():
+					break
+
+				graph = coarse
 				if options.save_hierarchy or not running:
 					hierarchy_graphs.append(graph)
 					hierarchy_levels.append(levels[:])

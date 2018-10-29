@@ -243,7 +243,7 @@ exports.coarse = function(req, res) {
     /** Execute python scripts */
     var file = { name: req.body.jsonInput.filename.split("/")[req.body.jsonInput.filename.split("/").length-1] } ;
     /** Creates directory for uploaded graph */
-    indexController.nodeCmd.get('mkdir -p uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar, function(data, err, stderr) {
+    indexController.nodeCmd.get('rm -r -f uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + '; mkdir -p uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar, function(data, err, stderr) {
       if (!err)
       {
         /* Assign global variable with file name for later coarsening */

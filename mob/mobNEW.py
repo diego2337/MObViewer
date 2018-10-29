@@ -63,16 +63,6 @@ class MGraph(Graph):
 		uniqid = 0
 		source = {}
 		predecessor = {}
-		attrs = set(self.vs.attributes()) - set(['predecessor', 'id', 'successor', 'weight', 'name', 'type', 'source'])
-		nan = []
-		for attr in attrs:
-			if attr != 'age':
-				nan.append(attr)
-
-		attrs = attrs - set(nan)
-		attr_size = len(attrs)
-		attrs_dict = dict(zip(attrs, [[]] * len(attrs)))
-
 		for layer in range(self['layers']):
 			start = sum(self['vertices'][0:layer])
 			end = sum(self['vertices'][0:layer + 1])
@@ -81,7 +71,6 @@ class MGraph(Graph):
 			for cluster_id in clusters:
 				vertices = numpy.where(matching_line == cluster_id)[0]
 				weight = 0
-				attr_aux = [-1] * attr_size
 				if len(vertices) > 0:
 					source[uniqid] = []
 					predecessor[uniqid] = []
@@ -91,12 +80,7 @@ class MGraph(Graph):
 					weight += self.vs[vertex]['weight']
 					source[uniqid].extend(self.vs[vertex]['source'])
 					predecessor[uniqid].append(vertex)
-					for idx, attr in enumerate(attrs):
-						if self.vs[vertex][attr] is not None:
-							attr_aux[idx] += int(self.vs[vertex][attr])
 				if len(vertices) > 0:
-					for idx, attr in enumerate(attrs):
-						attrs_dict[attr].append(attr_aux[idx])
 					weights.append(weight)
 					types.append(layer)
 					uniqid += 1
@@ -108,8 +92,6 @@ class MGraph(Graph):
 		coarse.vs['weight'] = weights
 		coarse.vs['name'] = range(coarse.vcount())
 		coarse.vs['successor'] = [None] * coarse.vcount()
-		for idx, attr in enumerate(attrs):
-			coarse.vs[attr] = attrs_dict[attr]
 		coarse['layers'] = self['layers']
 		coarse['vertices'] = []
 		coarse['similarity'] = None
@@ -376,7 +358,7 @@ class MGraph(Graph):
 
 		return graph
 
-	def nmlp(self, matching, vertices=None, reduction_factor=0.5, seed_priority='degree', upper_bound=1.4, n=None, global_min_vertices=None, reverse=True):
+	def nmlpb(self, matching, vertices=None, reduction_factor=0.5, seed_priority='degree', upper_bound=0.2, n=None, global_min_vertices=None, reverse=True):
 		"""
 		Naive matching via weight-constrained label propagation and neigborhood.
 		"""
@@ -403,7 +385,7 @@ class MGraph(Graph):
 
 		number_of_vertices = len(vertices)
 		visited = [0] * self.vcount()
-		max_size = int(math.ceil((upper_bound * n) / min_vertices))
+		max_size = int(math.ceil(((1.0 + upper_bound) * n) / min_vertices))
 		weight_of_sv = self.vs['weight']
 		similarity_dict = collections.defaultdict(float)
 
@@ -445,7 +427,7 @@ class MGraph(Graph):
 				if number_of_vertices <= min_vertices:
 					break
 
-	def mlp(self, membership, vertices=None, seed_priority='random', reduction_factor=0.5, itr=10, tolerance=0.05, upper_bound=0.2, n=None, global_min_vertices=None, reverse=True):
+	def mlpb(self, membership, vertices=None, seed_priority='random', reduction_factor=0.5, itr=10, tolerance=0.05, upper_bound=0.2, n=None, global_min_vertices=None, reverse=True):
 		"""
 		Naive matching via weight-constrained label propagation and neigborhood.
 		"""
