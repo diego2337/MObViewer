@@ -2404,7 +2404,7 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
         // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.8, 0.8, 0.8);
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.b-0.3);
       }
-      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
+      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
       {
         // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.8, 0.8, 0.8);
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.b-0.3);
@@ -3661,7 +3661,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         var element;
         j == 0 ? element = scene.getObjectByName("MainMesh", true) : element = scene.getObjectByName("MainMesh" + j.toString(), true);
         // var element = scene.getObjectByName("MainMesh", true);
-        var el = (this.highlightedElements[i]/32) + 8;
+        // var el = (this.highlightedElements[i]/32) + 8;
+        var el = this.highlightedElements[i];
         var fd = this.neighbors.find(function(elmt){
           return (elmt.vertexInfo == el && elmt.mesh == element.name);
           // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
@@ -3690,21 +3691,24 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
       if(intersection.face) /** Intersection with vertice */
       {
         // intersection.face.color.setRGB(0.0, 1.0, 0.0);
-        /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
-        var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
-        for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
-        {
-            intersection.object.geometry.faces[i].color.setRGB(intersection.object.geometry.faces[i].color.r+0.3, intersection.object.geometry.faces[i].color.g+0.3, intersection.object.geometry.faces[i].color.b+0.3);
-        }
-        intersection.object.geometry.colorsNeedUpdate = true;
         /** First check if vertex isn't already highlighted because of double-clicking */
         var found = this.neighbors.find(function(elmt){
           return ((elmt.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)) || elmt.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)/32)) && elmt.mesh == intersection.object.name);
         });
         if(found == undefined)
         {
+          /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
+          var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
+          for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
+          {
+            intersection.object.geometry.faces[i].color.setRGB(intersection.object.geometry.faces[i].color.r+0.3, intersection.object.geometry.faces[i].color.g+0.3, intersection.object.geometry.faces[i].color.b+0.3);
+          }
+          intersection.object.geometry.colorsNeedUpdate = true;
           this.highlightedElements.push({meshName: intersection.object.name, idx: intersection.faceIndex-(intersection.face.a-intersection.face.c)+1});
         }
+        // if(found == undefined)
+        // {
+        // }
       }
       else /** Intersection with edge */
       {
