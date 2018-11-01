@@ -141,13 +141,14 @@ function getRealPredecessors(currentGraph, previousGraph, coarsenedFileName, ind
         currentGraph = currentGraph + n.toString();
       }
       /** Decrease coarsenedFileName levels */
-      let nl = parseInt(coarsenedFileName.split(".")[0].split("nl")[1][0]);
-      let nr = parseInt(coarsenedFileName.split(".")[0].split("nr")[1][0]);
+      let nl = coarsenedFileName.includes("Coarsened") ? parseInt(coarsenedFileName.split(".")[0].split("nl")[1][0]) : 1;
+      let nr = coarsenedFileName.includes("Coarsened") ? parseInt(coarsenedFileName.split(".")[0].split("nr")[1][0]) : 1;
       if(nl != 1 && nr != 1)
       {
         /** If nl > nr, decrease only nl; if nl == nr, both must be decreased; otherwise, nr > nl, so decrease only nr */
         if(nl > nr)
-        {indexController.graphSize
+        {
+          // indexController.graphSize
           nl = nl - 1;
         }
         else if(nl == nr)
@@ -764,33 +765,36 @@ exports.getSorted = function(req, res){
       err = err.slice(0, -1);
       /** Find 'real' predecessors of a given vertex */
       var pred = getRealPredecessors(req.body.currentMesh, req.body.previousMesh, err, [req.body.idx]);
-      for(let i = 0; i < pred.length; i++)
-      {
-        pred[i] = pred[i].toString();
-      }
-      /** Check name */
-      var level = 0;
-      if(req.body.previousMesh != "MainMesh") level = req.body.previousMesh[req.body.previousMesh.length-1];
-      /** Read file and find index */
-      indexController.fs.readFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
-        if(err)
+      // if(pred != undefined)
+      // {
+        for(let i = 0; pred != undefined && i < pred.length; i++)
         {
-          return console.log(err);
+          pred[i] = pred[i].toString();
         }
-        else
-        {
-          /** Find and return index of nodes from 'dat' string */
-          var arr = dat.split(",");
-          var vect = [];
-          for(var i = 0; i < pred.length; i++)
+        /** Check name */
+        var level = 0;
+        if(req.body.previousMesh != "MainMesh") level = req.body.previousMesh[req.body.previousMesh.length-1];
+        /** Read file and find index */
+        indexController.fs.readFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + "n" + level.toString() + ".s", 'utf8', function(err, dat){
+          if(err)
           {
-            vect.push(arr.indexOf(pred[i]).toString());
+            return console.log(err);
           }
-          var jsonObj = { array: vect };
-          res.type('text');
-          res.end(JSON.stringify(jsonObj));
-        }
-      });
+          else
+          {
+            /** Find and return index of nodes from 'dat' string */
+            var arr = dat.split(",");
+            var vect = [];
+            for(var i = 0; pred != undefined && i < pred.length; i++)
+            {
+              vect.push(arr.indexOf(pred[i]).toString());
+            }
+            var jsonObj = { array: vect };
+            res.type('text');
+            res.end(JSON.stringify(jsonObj));
+          }
+        });
+      // }
     }
   });
 };
