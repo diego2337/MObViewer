@@ -2067,6 +2067,44 @@ d3BarChart.prototype.getProperties = function(data)
 }
 
 /**
+ * @desc Create dashed lines according to number of categories and amount of values for each category.
+ * @public
+ * @param {(String|Array)} data String-like or Array data to populate bar chart.
+ */
+d3BarChart.prototype.createDashedLines = function(data)
+{
+  // /** Count number of categories and values for each category */
+  // var cats = {};
+  // for(var i = 0; i < data.length; i++)
+  // {
+  //   if(!(data[i].property in cats))
+  //   {
+  //     if(i != 0)
+  //     {
+  //       cats[data[i-1].property].endIndex = i;
+  //     }
+  //     cats[data[i].property] = { startIndex: i, endIndex: -1 };
+  //   }
+  // }
+  // /** Draw lines according to number of properties */
+  // var properties = Object.keys(cats);
+  // for(var i = 0; i < properties.length-1; i++)
+  // {
+  //   /** Draw line according to start and end indexes */
+  //   this.getG().append('line')
+  //       // .attr('x1', (cats[properties[i]].endIndex*this.getX().bandwidth())+(cats[properties[i]].startIndex*this.getX().bandwidth())+32)
+  //       .attr('x1', (cats[properties[i]].endIndex*this.getX().bandwidth()))
+  //       .attr('y1', 0)
+  //       // .attr('x2', (cats[properties[i]].endIndex*this.getX().bandwidth())+(cats[properties[i]].startIndex*this.getX().bandwidth())+32)
+  //       .attr('x2', (cats[properties[i]].endIndex*this.getX().bandwidth()))
+  //       .attr('y2', this.getHeight())
+  //       .style("stroke-dasharray", ("3, 3"))
+  //       .style("stroke-width", "2")
+  //       .style("stroke", "rgb(0, 0, 0)");
+  // }
+}
+
+/**
  * @desc Populates bar chart with information provided by data, setting domains and ticks for axes.
  * @public
  * @param {(String|Array)} data String-like or Array data to populate bar chart.
@@ -2104,8 +2142,8 @@ d3BarChart.prototype.populateBarChart = function(data)
         .attr("text-anchor", "end")
         .text("Frequency");
 
-    var line = this.getG().append("g")
-        .attr('transform', 'translate()');
+    /** Create a dashed line to separate different bar charts */
+    this.createDashedLines(data);
 
   	// // text label for the x axis
   	// this.barChart().append("text")
@@ -3543,7 +3581,7 @@ EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
     var tempArr = [];
     for(key in vertices[j])
     {
-      if(key != "sha-id") tempArr.push(key);
+      if(key != "sha-id" && key != "id") tempArr.push(key);
     }
     if(vertexVueHeaders.length < tempArr.length)
     {

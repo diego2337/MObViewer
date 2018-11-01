@@ -1083,7 +1083,7 @@ EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
     var tempArr = [];
     for(key in vertices[j])
     {
-      if(key != "sha-id") tempArr.push(key);
+      if(key != "sha-id" && key != "id") tempArr.push(key);
     }
     if(vertexVueHeaders.length < tempArr.length)
     {

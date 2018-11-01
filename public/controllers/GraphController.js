@@ -953,44 +953,56 @@ exports.getColors = function(req, res){
   {
     // if(getColor(req.body.nodes[i], getLabelValue(req.body.nodes[i])) !== undefined) colors.push(getColor(req.body.nodes[i], getLabelValue(req.body.nodes[i])));
     colors.push(getColor(req.body.nodes[i], getLabelValue(req.body.nodes[i])));
-    if(colors[colors.length-1] != undefined && colors[colors.length-1][0] != undefined)
+    // if(colors[colors.length-1] != undefined && colors[colors.length-1][0] != undefined)
+    if(colors[colors.length-1] != undefined)
     {
-      if(colors[colors.length-1].length == 1)
-      {
-        repeats.push([1]);
-        colores.push(colors[colors.length-1]);
-      }
-      else
-      {
-        var repeat = [];
-        var cores = [];
-        /** Sort colors */
-        colors[colors.length-1].sort();
-        cores.push(colors[colors.length-1][0]);
-        for(var k = 0, j = 1; k < colors[colors.length-1].length && j < colors[colors.length-1].length; )
+      var hasUndefined = false;
+      colors[colors.length-1].forEach(function(d, i){
+        if(d == undefined)
         {
-          /** Compare indexes; if they are the same, increase j. Otherwise assign number of repeats and i = j */
-          if(colors[colors.length-1][k][0] == colors[colors.length-1][j][0] && colors[colors.length-1][k][1] == colors[colors.length-1][j][1] && colors[colors.length-1][k][2] == colors[colors.length-1][j][2])
-          {
-            j = j + 1;
-          }
-          else
-          {
-            cores.push(colors[colors.length-1][j]);
-            repeat.push(j-k);
-            k = j;
-            // j = j + 1;
-          }
+          // hasUndefined = true;
+          colors[colors.length-1][i] = [0.0, 0.0, 0.0];
         }
-        repeat.push(j-k);
-        // if(j-1 == k)
-        // {
-        //   cores.push(colors[colors.length-1][k]);
-        //   repeat.push(1);
-        // }
-        repeats.push(repeat);
-        colores.push(cores);
-      }
+      });
+      // if(!hasUndefined)
+      // {
+        if(colors[colors.length-1].length == 1)
+        {
+          repeats.push([1]);
+          colores.push(colors[colors.length-1]);
+        }
+        else
+        {
+          var repeat = [];
+          var cores = [];
+          /** Sort colors */
+          colors[colors.length-1].sort();
+          cores.push(colors[colors.length-1][0]);
+          for(var k = 0, j = 1; k < colors[colors.length-1].length && j < colors[colors.length-1].length; )
+          {
+            /** Compare indexes; if they are the same, increase j. Otherwise assign number of repeats and i = j */
+            if(colors[colors.length-1][k][0] == colors[colors.length-1][j][0] && colors[colors.length-1][k][1] == colors[colors.length-1][j][1] && colors[colors.length-1][k][2] == colors[colors.length-1][j][2])
+            {
+              j = j + 1;
+            }
+            else
+            {
+              cores.push(colors[colors.length-1][j]);
+              repeat.push(j-k);
+              k = j;
+              // j = j + 1;
+            }
+          }
+          repeat.push(j-k);
+          // if(j-1 == k)
+          // {
+          //   cores.push(colors[colors.length-1][k]);
+          //   repeat.push(1);
+          // }
+          repeats.push(repeat);
+          colores.push(cores);
+        }
+      // }
     }
   }
   /** Return from server-side */
