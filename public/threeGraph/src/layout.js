@@ -19,6 +19,8 @@ var Layout = function(svgId)
   this.numOfLevels = 0;
   /** @desc Define if gradient legend is already present */
   this.gradientLegend = undefined;
+  /** @desc Define if communities legend is already present */
+  this.communitiesLegend = undefined;
   /** @desc Define standard layout - (2) for horizontal bipartite graph, (3) for vertical bipartite graph */
   this.lay = 2;
   /** @desc Define events object */
@@ -695,5 +697,29 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   this.gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo.minEdgeWeight, bipartiteGraph.graphInfo.maxEdgeWeight, 300, 50, 5);
   this.gradientLegend.createGradientLegend("gradientScale", "Edge weights:");
 
-  animate();
+  /** Create communities legend */
+  if(this.communitiesLegend !== undefined)
+  {
+    this.communitiesLegend.clear();
+    delete this.communitiesLegend;
+  }
+
+  /** To create object, check if "colors.json" exists and send its information to constructor; otherwise just send 'No attribute' and  '[0.0, 0.0, 0.0]' as color */
+  $.ajax({
+    url: '/graph/getColorFile',
+    type: 'POST',
+    /** FIXME - NEVER EVER EVER EVEEEEEEEEEEEEEEEER <b>EVEEEEEEER</b> use async! */
+    async: false,
+    success: function(data) {
+      data = JSON.parse(data);
+      /** Get array of values - from https://stackoverflow.com/questions/7306669/how-to-get-all-properties-values-of-a-javascript-object-without-knowing-the-key/16643074#16643074 */
+      var vals = Object.keys(data).map(function (key) {
+          return data[key];
+      });
+      this.communitiesLegend = new ScaleLegend(Object.keys(data), vals, Object.keys(data).length*50);
+      this.communitiesLegend.createScaleLegend("communityLegend", "Community values:");
+      animate();
+    },
+    xhr: loadGraph
+  });
 }
