@@ -944,6 +944,32 @@ exports.createGraphColors = function(req, res){
 };
 
 /**
+ * Server-side callback function from 'express' framework for get colors file. Get 'colors.json' contents.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+exports.getColorFile = function(req, res){
+  indexController.fs.readFile('colors.json', 'utf8', function(err, data){
+    if(err)
+    {
+      /** No file found; return black color */
+      res.type('text');
+      res.end(JSON.stringify({ 'Unknown': [0.0, 0.0, 0.0] }));
+    }
+    else
+    {
+      data = JSON.parse(data);
+      /** Found 'colors.json' file; return it as JSON */
+      /** Add black color for undefined values */
+      data['Unknown'] = [0.0, 0.0, 0.0];
+      res.type('text');
+      res.end(JSON.stringify(data));
+    }
+  });
+};
+
+/**
  * Server-side callback function from 'express' framework for get vertice colors. Get vertices colors based on both a pre-defined color scheme and the number of vertices composing a super-vertice.
  * @public @callback
  * @param {Object} req header incoming from HTTP;

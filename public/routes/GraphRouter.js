@@ -38,4 +38,6 @@ router.post('/graph/getMostCoarsenedGraph', graphController.getMostCoarsenedGrap
 
 router.post('/graph/getColor', graphController.getColor);
 
+router.post('/graph/getColorFile', graphController.getColorFile);
+
 module.exports = router;
