@@ -3622,26 +3622,38 @@ EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
   }
   for(var j = 0; j < vertices.length; j++)
   {
-    /** Sort vertices[j] */
     var ordered = {};
-    var vertKeys = Object.keys(vertices[j]).sort();
-    vertexVueHeaders.sort();
-    var i = 0;
     for(key in vertexVueHeaders)
     {
-      // if(vertKeys[key] != "sha-id")
-      // {
-        if(vertKeys[i] != vertexVueHeaders[key])
-        {
-          ordered[vertexVueHeaders[key]] = "No value";
-        }
-        else
-        {
-          i = i + 1;
-          ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
-        }
-      // }
+      if(!(vertexVueHeaders[key] in vertices[j]))
+      {
+        ordered[vertexVueHeaders[key]] = "No value";
+      }
+      else
+      {
+        ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
+      }
     }
+    /** Sort vertices[j] */
+    // var ordered = {};
+    // var vertKeys = Object.keys(vertices[j]).sort();
+    // vertexVueHeaders.sort();
+    // var i = 0;
+    // for(key in vertexVueHeaders)
+    // {
+    //   // if(vertKeys[key] != "sha-id")
+    //   // {
+    //     if(vertKeys[i] != vertexVueHeaders[key])
+    //     {
+    //       ordered[vertexVueHeaders[key]] = "No value";
+    //     }
+    //     else
+    //     {
+    //       i = i + 1;
+    //       ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
+    //     }
+    //   // }
+    // }
     // Object.keys(vertices[j]).sort().forEach(function(key) {
     //   console.log("key: " + key);
     //   if(key != "sha-id") ordered[key] = vertices[j][key];
@@ -5090,9 +5102,6 @@ ScaleLegend.prototype.createScaleLegend = function(elementId, legendTitle)
       .append("svg")
       .attr("width", this.width)
       .attr("height", this.height);
-
-    console.log("this.toRGB(this.range):");
-    console.log(this.toRGB(this.range));
 
     /** Set domain adjusted to range */
     var ordinal = d3.scaleOrdinal()
