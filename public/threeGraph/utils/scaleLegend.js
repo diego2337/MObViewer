@@ -91,7 +91,7 @@ ScaleLegend.prototype.createScaleLegend = function(elementId, legendTitle)
 
     svg.append("g")
       .attr("class", "legendOrdinal")
-      .attr("transform", "translate(10,20)");
+      .attr("transform", "translate(30,20)");
 
     var paddingValue = 0;
     this.domain.forEach(function(d, i){
@@ -103,7 +103,7 @@ ScaleLegend.prototype.createScaleLegend = function(elementId, legendTitle)
 
     var legendOrdinal = d3.legendColor()
       .shape("path", d3.symbol().type(d3.symbolCircle).size(150)())
-      .shapePadding(paddingValue*4)
+      .shapePadding(paddingValue*4.5)
       .orient("horizontal")
       .scale(ordinal);
 
