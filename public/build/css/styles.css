@@ -44,9 +44,12 @@
 
 .fixed-div-lowerLeft {
   position: fixed;
-  top: 550px;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
   bottom: 10px;
-  left: 10px;
+  left: 10px;*/
 }
 
 .fixed-div-upperLeft {

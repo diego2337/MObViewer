@@ -9,8 +9,9 @@
  * @param {String} HTMLelement HTML element to build d3Tooltip div in.
  * @param {String} SVGId Id to store <svg> id value.
  * @param {int} numOfLevels Number of coarsened graphs.
+ * @param {String} d3WordCloudId HTML element to build d3WordCloud in.
  */
-var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
+var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels, d3WordCloudId)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
     this.raycaster.linePrecision = 0.1;
@@ -27,7 +28,7 @@ var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
     /** Counts number of edges to be created while showing parents */
     this.nEdges = 0;
     /** Object to handle statistics processing and visualization */
-    this.statsHandler = new statsHandler(SVGId);
+    this.statsHandler = new statsHandler(SVGId, d3WordCloudId);
     this.SVGId = SVGId;
 }
 
@@ -1180,6 +1181,8 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene, layout)
       // }
       /** Show stats in bar charts (if any is available) */
       this.statsHandler.generateAndVisualizeStats(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
+      /** Show word cloud (if any is available) */
+      this.statsHandler.generateAndVisualizeWordCloud(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */

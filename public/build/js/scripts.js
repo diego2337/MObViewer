@@ -184,6 +184,23 @@ function createLabelFile(textarea)
   });
 }
 
+/**
+ * Create 'wordCloud.txt' file.
+ * @param {String} textarea "<textarea>" tag.
+ */
+function createWordCloudFile(textarea)
+{
+  $.ajax({
+    url: 'graph/defineWordCloud',
+    type: 'POST',
+    data: { l: textarea.value },
+    success: function(html){
+      alert(".txt file successfully created!");
+    },
+    xhr: loadGraph
+  });
+}
+
 /** Apply multilevel coarsening with user defined reduction factor and number of levels */
 $("#coarseGraph").on('click', function(){
   /** Iterate through a for loop to create nLevels of coarsened graphs */
@@ -394,6 +411,36 @@ $("#defineCategories").on('click', function(){
     });
 });
 
+/** Show text area to define word cloud attribute on click */
+$("#defineWordCloud").on('click', function(){
+  var meta = 'wordCloud';
+  showDialog({
+        title: 'Define word cloud attribute',
+        metaTitle: meta,
+        text: 'Create a .txt file associating with an attribute, to be used as element to be checked for word cloud, e.g \'artist\' will look for \'artist\' key in JSON graph to define as word cloud attribute.',
+        textArea: true,
+        negative: {
+            title: 'Go back'
+        },
+        positive: {
+            title: 'Create',
+            onClick: function(e) {
+              // console.log(document.getElementsByTagName("textarea"));
+              var text = document.getElementsByTagName("textarea");
+              var createWordCloud = undefined;
+              for(t in text)
+              {
+                if(text[t].id == "")
+                {
+                  createWordCloud = text[t];
+                }
+              }
+              createWordCloudFile(createWordCloud);
+            }
+        }
+    });
+});
+
 /** Clear data table on click */
 $("#clearTable1").on('click', function(){
   $("#divVertexInfoTable").css('visibility', 'hidden');
@@ -410,6 +457,11 @@ $("#clearTable2").on('click', function(){
 /** Clear histogram card */
 $("#clearTableVertexStats").on('click', function(){
   $("#vertexStatsCard").css('visibility', 'hidden');
+});
+
+/** Clear word cloud card */
+$("#wordCloudCard").on('click', function(){
+  $("#wordCloudCard").css('visibility', 'hidden');
 });
 
 /** Show text area to define label on click */

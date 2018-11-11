@@ -40,4 +40,8 @@ router.post('/graph/getColor', graphController.getColor);
 
 router.post('/graph/getColorFile', graphController.getColorFile);
 
+router.post('/graph/fetchWords', graphController.fetchWords);
+
+router.post('/graph/defineWordCloud', graphController.defineWordCloud);
+
 module.exports = router;
