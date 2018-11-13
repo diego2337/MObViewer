@@ -303,7 +303,7 @@ function processStats(stats)
 /**
  * Perform a binary search on array 'a' to find a given range for value. From https://rosettacode.org/wiki/Binary_search#JavaScript and adapted with answer from https://stackoverflow.com/questions/22123489/olog-n-algorithm-to-find-best-insert-position-in-sorted-array
  * @param {Array} a Sorted array to search for range.
- * @param {(float|int)} value Value for searching.
+ * @param {(float|int)} value Value to search.
  * @returns {int} Index for ending range of value.
  */
 function binary_search_iterative(a, value)
@@ -606,6 +606,83 @@ function getLabelValue(node)
       return node[label];
     }
   });
+}
+
+/**
+ * @desc Get neighbors of a given vertex id, in a given level.
+ * @param {Number} id Vertex id.
+ * @param {Number} level Level in graph hierarchy.
+ * @returns {Array} Array of objects, where each object is a neighbor.
+ */
+function getNeighbors(id, level)
+{
+  var neighbors = [];
+  var graphFile = indexController.fs.readFileSync('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + indexController.fileName.split(".")[0] + ".json", 'utf8');
+  try
+  {
+    var wordCloud = indexController.fs.readFileSync('wordCloud.txt', 'utf8');
+  }
+  catch(err)
+  {
+    wordCloud = undefined;
+  }
+  graphFile = JSON.parse(graphFile);
+  /** Find neighbors of a given vertex id */
+  /** Sort edges array */
+  var edges = graphFile['links'];
+  edges.sort(function(a, b){
+    return a.source - b.source;
+  });
+  /** FIXME - maybe use binary search? Search sequentially for id vertex in edge array */
+  var i = 0;
+  while(edges[i].source != id)
+  {
+    i = i + 1;
+  }
+  for(; i < edges.length && edges[i].source == id; i++)
+  {
+    if(wordCloud != undefined) neighbors.push({ [graphFile['nodes'][edges[i].target][wordCloud]]: parseInt(edges[i].weight) });
+  }
+  /** Return neighbors */
+  return neighbors;
+  /** Use binary search to find neighbors of vertex */
+  // var mid, lo = 0, hi = edges.length - 1;
+  // while (lo < hi) {
+  //   mid = Math.floor((lo + hi) / 2);
+  //
+  //   edges[mid].source > id ? hi = mid : lo = mid + 1
+  // }
+}
+
+/**
+ * @desc Get, for a clicked node 'node', all frequencies (edge weights) of its neighbors.
+ * @param {Object} node Vertex to get neighbor edge weights.
+ * @returns {Object} Object containing all neighbors of a given node, with their frequencies.
+ */
+function getFrequencies(node)
+{
+  /** Create dictionary of words */
+  var words = {};
+  if(!("vertexes" in node))
+  {
+    node.vertexes = node;
+  }
+  for(el in node.vertexes)
+  {
+    var neighbors = getNeighbors(node.vertexes[el].id, 0);
+    for(neighbor in neighbors)
+    {
+      if(Object.keys(neighbors[neighbor])[0] in words)
+      {
+        words[Object.keys(neighbors[neighbor])[0]] = words[Object.keys(neighbors[neighbor])[0]] + neighbors[neighbor][Object.keys(neighbors[neighbor])[0]];
+      }
+      else
+      {
+        words[Object.keys(neighbors[neighbor])[0]] = neighbors[neighbor][Object.keys(neighbors[neighbor])[0]];
+      }
+    }
+  }
+  return words;
 }
 
 /** Graph AJAX callback functions */
@@ -1047,9 +1124,43 @@ exports.getColors = function(req, res){
  * @param {Object} req header incoming from HTTP;
  * @param {Object} res header to be sent via HTTP for HTML page.
  */
- exports.getColor = function(req, res){
-   var color = getColor(req.body.node, getLabelValue(req.body.node));
-   /** Return from server-side */
-   res.type('text');
-   res.end(JSON.stringify({ color }));
- }
+exports.getColor = function(req, res){
+  var color = getColor(req.body.node, getLabelValue(req.body.node));
+  /** Return from server-side */
+  res.type('text');
+  res.end(JSON.stringify({ color }));
+}
+
+ /**
+  * Server-side callback function from 'express' framework for fetch words. Get neighbors of a specific vertex (or super-vertex) and add their frequencies to a dicitonary.
+  * @public @callback
+  * @param {Object} req header incoming from HTTP;
+  * @param {Object} res header to be sent via HTTP for HTML page.
+  */
+exports.fetchWords = function(req, res){
+  /** Return from server-side */
+  res.type('text');
+  res.end(JSON.stringify({ frequencies: getFrequencies(req.body.node) }));
+}
+
+/**
+ * Server-side callback function from 'express' framework for create word cloud. Create a 'wordCloud.txt' file, to be later used
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+exports.defineWordCloud = function(req, res){
+  /** Write 'wordCloud.txt' file */
+  indexController.fs.writeFile("wordCloud.txt", req.body.l, function(err){
+    if(err)
+    {
+      console.log(err);
+    }
+    else
+    {
+      /** Finished; return to client-side */
+      res.type('text');
+      res.end();
+    }
+  });
+}

@@ -173,7 +173,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
 
   if(this.eventHandler === undefined)
   {
-    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels);
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels, "#wordCloudCard");
     var eventHandler = this.eventHandler
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){

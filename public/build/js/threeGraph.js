@@ -721,7 +721,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
 
   if(this.eventHandler === undefined)
   {
-    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels);
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels, "#wordCloudCard");
     var eventHandler = this.eventHandler
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
@@ -2247,6 +2247,115 @@ d3BarChart.prototype.clearBarChart = function()
 }
 
 /**
+ * Base class for positioning d3 elements in an HTML page.
+ * @author Diego Cintra
+ * Date: 08 November 2018
+ */
+
+/**
+ * @class d3Position
+ */
+class d3Position
+{
+  /**
+   * @constructor
+   * @param {String} HTMLelement HTML element to build d3WordCloud div in.
+   * @param {Number} width Width of element.
+   * @param {Number} height Height of element.
+   * @param {Number} margin Margin of element.
+   */
+  constructor(HTMLelement, width, height, margin = 2)
+  {
+    this.HTMLelement = HTMLelement;
+    this.width = width;
+    this.height = height;
+    this.margin = margin;
+  }
+
+  /**
+   * @desc Getter for margin.
+   * @returns {Number} Margin properties.
+   */
+   getMargin()
+   {
+     return this.margin;
+   }
+
+   /**
+    * @desc Setter for margin.
+    * @param {Number} margin Margin properties.
+    */
+    setMargin(margin)
+    {
+      this.margin = margin;
+    }
+
+    /**
+     * @desc Getter for width.
+     * @returns {Number} width.
+     */
+    getWidth()
+    {
+      return this.width;
+    }
+
+    /**
+     * @desc Setter for width.
+     * @param {Number} width width.
+     */
+     setWidth(width)
+     {
+       this.width = width;
+     }
+
+     /**
+      * @desc Getter for height.
+      * @returns {Number} height.
+      */
+     getHeight()
+     {
+       return this.height;
+     }
+
+     /**
+      * @desc Setter for height.
+      * @param {Number} height height.
+      */
+     setHeight(height)
+     {
+       this.height = height;
+     }
+
+     /**
+      * @desc Getter for HTMLelement.
+      * @returns {String} HTMLelement.
+      */
+     getHTMLelement()
+     {
+       return this.HTMLelement;
+     }
+
+     /**
+      * @desc Setter for HTMLelement.
+      * @param {String} HTMLelement HTMLelement.
+      */
+     setHTMLelement(HTMLelement)
+     {
+       this.HTMLelement = HTMLelement;
+     }
+
+     /**
+      * @desc Clear element from HTML page.
+      * @param {String} svgElement <svg> tag to be removed from HTML page.
+      */
+     clearElement(svgElement)
+     {
+       d3.select(svgElement).remove();
+       this.width = this.height = this.margin = undefined;
+     }
+}
+
+/**
  * Base class for d3's tooltip, to visualize vertex info inside a node. Based on https://evortigosa.github.io/pollution/
  * @author Diego Cintra
  * Date: 22 may 2018
@@ -2386,6 +2495,209 @@ d3Tooltip.prototype.clearTooltip = function()
 d3Tooltip.prototype.setPosition = function(x, y)
 {
   this.tooltip.style("left", (x - this.xOffset) + "px").style("top", (y - this.yOffset) + "px");
+}
+
+/**
+ * Base class for d3's word cloud, to visualize vertex values as word clouds. Using word cloud code from https://github.com/jasondavies/d3-cloud, and based on https://bl.ocks.org/jyucsiro/767539a876836e920e38bc80d2031ba7
+ * @author Diego Cintra
+ * Date: 08 November 2018
+ */
+
+class d3WordCloud extends d3Position
+{
+  /**
+   * @constructor
+   * @param {String} HTMLelement HTML element to build d3WordCloud div in.
+   * @param {Number} width Width of element.
+   * @param {Number} height Height of element.
+   * @param {Number} margin Margin of element.
+   * @param {Array} words Array of word objects, containing attributes such as "font", "width", "height" and "value".
+   */
+   constructor(HTMLelement, width, height, margin, words = undefined)
+   {
+     super(HTMLelement, width, height, margin);
+     if(words != undefined) this.setWords(words);
+   }
+
+   /**
+    * @desc Getter for words.
+    * @returns {Array} Array of words.
+    */
+   getWords()
+   {
+     return this.words;
+   }
+
+   /**
+    * @desc Setter for words.
+    * @param {Array} words Array of words.
+    */
+   setWords(words)
+   {
+     this.words = words;
+   }
+
+   /**
+    * @desc Getter for xScale.
+    * @param {Object} word Word to be scaled.
+    * @returns {Object} Scaling function.
+    */
+   getXScale(word)
+   {
+     return this.xScale(word);
+   }
+
+   /**
+    * @desc Setter for xScale.
+    * @param {Object} words Set of words to be scaled to a specific domain.
+    */
+   setXScale(words)
+   {
+     this.xScale = d3.scaleLinear()
+          .domain([0, d3.max(words, function(d){
+             return d.value;
+           })])
+          .range([10,50]);
+   }
+
+   /**
+    * @desc Clear word cloud from HTML page.
+    */
+   clearWordCloud()
+   {
+     super.clearElement("#wordCloudStats");
+    //  d3.select("#wordCloudStats").remove();
+    //  this.HTMLelement = super.getWidth() = super.getHeight() = super.getMargin() = this.words = undefined;
+   }
+
+   /**
+    * FIXME - Not working outside of anonymous function
+    * @desc Draw word cloud in container.
+    * @param {Array} words Array of words resulting from 'd3.layout.cloud' (callback defined parameter)
+    */
+   drawWordCloud(words)
+   {
+     var width = 500, height = 400;
+     var fill = d3.scaleOrdinal(d3.schemeCategory20);
+     var d3WordCloudScope = this;
+     d3.select("#wordCloudCard").append("svg")
+        .attr("id", "wordCloudStats")
+        .attr("width", 500)
+        .attr("height", 400)
+      .append("g")
+        .attr("transform", "translate(" + [500 >> 1,  400 >> 1] + ")")
+      .selectAll("text")
+      .data(words)
+      .enter().append("text")
+        .style("font-size", function(d) {console.log(d3WordCloudScope); return d3WordCloudScope.getXScale(d.value) + "px"; })
+        .style("font-family", "Impact")
+        .style("fill", function(d, i) { return fill(i); })
+        .attr("text-anchor", "middle")
+        .attr("transform", function(d) {
+          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        })
+        .text(function(d) { return d.key; });
+
+     d3.layout.cloud().stop();
+   }
+
+   /**
+    * @desc Create a word cloud and display it on HTML page.
+    * @param {Array} words Array of word objects, containing attributes such as "font", "width", "height" and "value".
+    * @param {String} HTMLelement HTML element to build d3BarChart div in; if specified, replaces "this.parentElement" value.
+    * @param {Number} width Width of element; if specified, replaces "super.getWidth()" value.
+    * @param {Number} height Width of element; if specified, replaces "super.getWidth()" value.
+    */
+   created3WordCloud(words, HTMLelement, width, height)
+   {
+     try
+     {
+       console.log("words:");
+       console.log(words);
+      // super.setHTMLelement(ecmaStandard(HTMLelement, super.getHTMLelement()));
+      // super.setWidth(ecmaStandard(width, super.getWidth()));
+      // super.setHeight(ecmaStandard(width, super.getHeight()));
+      this.setWords(ecmaStandard(words, this.getWords()));
+      var wordEntries = d3.entries(this.getWords());
+      /** Scale words from its domain to range [10,100] */
+      this.setXScale(wordEntries);
+      var d3WordCloudScope = this;
+      /** Define word cloud  */
+      d3.layout.cloud().size([500, 400])
+          .timeInterval(20)
+          .words(wordEntries)
+          .fontSize(function(d) { return d3WordCloudScope.getXScale(+d.value); })
+          .text(function(d) { return d.key; })
+          .rotate(function() { return ~~(Math.random() * 2) * 90; })
+          .font("Impact")
+          .on("end", function(words){
+            var fill = d3.scaleOrdinal(d3.schemeCategory20);
+            d3.select("#wordCloudCard").append("svg")
+               .attr("id", "wordCloudStats")
+               .attr("width", 500)
+               .attr("height", 400)
+             .append("g")
+               .attr("transform", "translate(" + [250,  200] + ")")
+             .selectAll("text")
+             .data(words)
+             .enter().append("text")
+               .style("font-size", function(d) { return d3WordCloudScope.getXScale(d.value) + "px"; })
+               .style("font-family", "Impact")
+               .style("fill", function(d, i) { return fill(i); })
+               .attr("text-anchor", "middle")
+               .attr("transform", function(d) {
+                 return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+               })
+               .text(function(d) { return d.key; });
+
+            d3.layout.cloud().stop();
+          })
+          .start();
+     }
+     catch(err)
+     {
+       throw "Unexpected error ocurred at line " + err.lineNumber + ", in function created3WordCloud. " + err;
+     }
+   }
+}
+
+/**
+ * Base class for d3's word cloud, serving as bridge between client and server side operations, mostly to fetch words server side.
+ * @author Diego Cintra
+ * Date: 08 November 2018
+ */
+
+class d3WordCloudWrapper
+{
+  /**
+   * @constructor
+   */
+  constructor()
+  {
+    /** Default constructor, nothing to be done here */
+  }
+
+  /**
+   * @desc Make an AJAX call to fetch words server-side.
+   * @param {Object} clickedNode Clicked node.
+   * @param {Object} d3WordCloud d3WordCloud object to call callback response.
+   * @returns {Array} Array of words, respecting https://github.com/jasondavies/d3-cloud syntax.
+   */
+  fetchWords(clickedNode, d3WordCloud)
+  {
+    // let words;
+    $.ajax({
+      url: '/graph/fetchWords',
+      type: 'POST',
+      async: true,
+      data: { node: clickedNode },
+      success: function(data){
+        // words = JSON.parse(data).frequencies;
+        d3WordCloud.created3WordCloud(JSON.parse(data).frequencies, 500, 400);
+      }
+    });
+    // return words;
+  }
 }
 
 /**
@@ -2533,8 +2845,9 @@ var ecmaStandard = function(variable, defaultValue)
  * @param {String} HTMLelement HTML element to build d3Tooltip div in.
  * @param {String} SVGId Id to store <svg> id value.
  * @param {int} numOfLevels Number of coarsened graphs.
+ * @param {String} d3WordCloudId HTML element to build d3WordCloud in.
  */
-var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
+var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels, d3WordCloudId)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
     this.raycaster.linePrecision = 0.1;
@@ -2551,7 +2864,7 @@ var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
     /** Counts number of edges to be created while showing parents */
     this.nEdges = 0;
     /** Object to handle statistics processing and visualization */
-    this.statsHandler = new statsHandler(SVGId);
+    this.statsHandler = new statsHandler(SVGId, d3WordCloudId);
     this.SVGId = SVGId;
 }
 
@@ -3704,6 +4017,8 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene, layout)
       // }
       /** Show stats in bar charts (if any is available) */
       this.statsHandler.generateAndVisualizeStats(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
+      /** Show word cloud (if any is available) */
+      this.statsHandler.generateAndVisualizeWordCloud(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */
@@ -5145,10 +5460,13 @@ ScaleLegend.prototype.createScaleLegend = function(elementId, legendTitle)
 /**
  * @constructor
  * @param {String} SVGId Id to store <svg> id value.
+ * @param {String} d3WordCloudId HTML element to build d3WordCloud in.
  */
-var statsHandler = function(SVGId)
+var statsHandler = function(SVGId, d3WordCloudId)
 {
   this.d3BarChart = new d3BarChart(SVGId);
+  this.d3WordCloudWrapper = new d3WordCloudWrapper();
+  this.d3WordCloud = new d3WordCloud(d3WordCloudId, 300, 600, 1);
 }
 
 /**
@@ -5205,4 +5523,20 @@ statsHandler.prototype.generateAndVisualizeStats = function(vertexProps)
   this.generateStats(vertexProps);
   /** Visualize statistics */
   this.visualizeStats(vertexProps.id);
+}
+
+/**
+ * @desc Generate and visualize word cloud, if any is available.
+ * @param {JSON} vertexProps Vertex properties, to generate statistics.
+ */
+statsHandler.prototype.generateAndVisualizeWordCloud = function(vertexProps)
+{
+  if(this.d3WordCloud != undefined)
+  {
+    this.d3WordCloud.clearWordCloud();
+  }
+  /** Fetch array of words and frequencies */
+  this.d3WordCloudWrapper.fetchWords(vertexProps, this.d3WordCloud);
+  $("#wordCloudCard").css('visibility', 'visible');
+  // this.d3WordCloud.created3WordCloud(this.d3WordCloudWrapper.fetchWords(vertexProps));
 }

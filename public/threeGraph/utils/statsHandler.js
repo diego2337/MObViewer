@@ -7,10 +7,13 @@
 /**
  * @constructor
  * @param {String} SVGId Id to store <svg> id value.
+ * @param {String} d3WordCloudId HTML element to build d3WordCloud in.
  */
-var statsHandler = function(SVGId)
+var statsHandler = function(SVGId, d3WordCloudId)
 {
   this.d3BarChart = new d3BarChart(SVGId);
+  this.d3WordCloudWrapper = new d3WordCloudWrapper();
+  this.d3WordCloud = new d3WordCloud(d3WordCloudId, 300, 600, 1);
 }
 
 /**
@@ -67,4 +70,20 @@ statsHandler.prototype.generateAndVisualizeStats = function(vertexProps)
   this.generateStats(vertexProps);
   /** Visualize statistics */
   this.visualizeStats(vertexProps.id);
+}
+
+/**
+ * @desc Generate and visualize word cloud, if any is available.
+ * @param {JSON} vertexProps Vertex properties, to generate statistics.
+ */
+statsHandler.prototype.generateAndVisualizeWordCloud = function(vertexProps)
+{
+  if(this.d3WordCloud != undefined)
+  {
+    this.d3WordCloud.clearWordCloud();
+  }
+  /** Fetch array of words and frequencies */
+  this.d3WordCloudWrapper.fetchWords(vertexProps, this.d3WordCloud);
+  $("#wordCloudCard").css('visibility', 'visible');
+  // this.d3WordCloud.created3WordCloud(this.d3WordCloudWrapper.fetchWords(vertexProps));
 }
