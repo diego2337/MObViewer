@@ -284,6 +284,8 @@ def main():
 					d['vertices'] = graph['vertices']
 					d['reduction_factor'] = options.reduction_factor
 					d['max_levels'] = options.max_levels
+					# Added this line for MLBGViewer
+					d['total_levels'] = hierarchy_levels[-1]
 					d['similarity'] = options.similarity
 					d['matching'] = options.matching
 					d['level'] = levels

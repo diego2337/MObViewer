@@ -2612,8 +2612,6 @@ class d3WordCloud extends d3Position
    {
      try
      {
-       console.log("words:");
-       console.log(words);
       // super.setHTMLelement(ecmaStandard(HTMLelement, super.getHTMLelement()));
       // super.setWidth(ecmaStandard(width, super.getWidth()));
       // super.setHeight(ecmaStandard(width, super.getHeight()));

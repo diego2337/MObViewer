@@ -633,9 +633,9 @@ function getNeighbors(id, level)
   edges.sort(function(a, b){
     return a.source - b.source;
   });
-  /** FIXME - maybe use binary search? Search sequentially for id vertex in edge array */
+  /** FIXME - maybe use binary search? Currently searching sequentially for id vertex in edge array */
   var i = 0;
-  while(edges[i].source != id)
+  while(i < edges.length && edges[i].source != id)
   {
     i = i + 1;
   }

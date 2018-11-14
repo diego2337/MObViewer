@@ -50,12 +50,23 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
             if (!err)
             {
               /** Coarsening was successfully executed; get number of levels from .conf file */
-              let lr = req.body.jsonInput.reduction_factor[0] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[0].toString().split(".")[0] + req.body.jsonInput.reduction_factor[0].toString().split(".")[1];
-              let rr = req.body.jsonInput.reduction_factor[1] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[1].toString().split(".")[0] + req.body.jsonInput.reduction_factor[1].toString().split(".")[1];
-              var dat = fs.readFileSync(req.body.jsonInput.filename.split(".")[0] + "Coarsened" + "l" + lr + "r" + rr + "nl" + req.body.jsonInput.max_levels[0] + "nr" + req.body.jsonInput.max_levels[1] + ".conf", 'utf8');
+              // let lr = req.body.jsonInput.reduction_factor[0] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[0].toString().split(".")[0] + req.body.jsonInput.reduction_factor[0].toString().split(".")[1];
+              // let rr = req.body.jsonInput.reduction_factor[1] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[1].toString().split(".")[0] + req.body.jsonInput.reduction_factor[1].toString().split(".")[1];
+              // var dat = fs.readFileSync(req.body.jsonInput.filename.split(".")[0] + "Coarsened" + "l" + lr + "r" + rr + "nl" + req.body.jsonInput.max_levels[0] + "nr" + req.body.jsonInput.max_levels[1] + ".conf", 'utf8');
+              let lr = req.body.jsonInput.reduction_factor == undefined ? "05" : req.body.jsonInput.reduction_factor[0] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[0].toString().split(".")[0] + req.body.jsonInput.reduction_factor[0].toString().split(".")[1];
+              let rr = req.body.jsonInput.reduction_factor == undefined ? "05" : req.body.jsonInput.reduction_factor[1] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[1].toString().split(".")[0] + req.body.jsonInput.reduction_factor[1].toString().split(".")[1];
+              var dat = fs.readFileSync(req.body.jsonInput.filename.split(".")[0] + "Coarsened" + "l" + lr + "r" + rr + "nl" + "1" + "nr" + "1" + ".conf", 'utf8');
               dat = JSON.parse(dat);
+              lr = lr[0] + "." + lr[1];
+              rr = rr[0] + "." + rr[1];
+              /** Open "input.json" and write missing values */
+              var inputFile = fs.readFileSync("input.json", 'utf8');
+              inputFile = JSON.parse(inputFile);
+              inputFile['reduction_factor'] = dat.reduction_factor;
+              inputFile['max_levels'] = dat.total_levels;
+              fs.writeFileSync('input.json', JSON.stringify(inputFile));
               res.type('text');
-              res.end(JSON.stringify({ nl: dat.max_levels[0], nr: dat.max_levels[1] }));
+              res.end(JSON.stringify({ nl: dat.total_levels[0], nr: dat.total_levels[1], lr: lr, rr: rr }));
             }
             else
             {

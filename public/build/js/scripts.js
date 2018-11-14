@@ -298,6 +298,8 @@ $("#showConnections").on('click', function(){
 
 var maxLevelsNl = 0;
 var maxLevelsNr = 0;
+var leftReductionFactor = 0;
+var rightReductionFactor = 0;
 /** Coarse graph based on json input given by user */
 $("#coarseJson").on('click', function(){
   $.ajax({
@@ -308,6 +310,9 @@ $("#coarseJson").on('click', function(){
       html = JSON.parse(html);
       maxLevelsNl = html.nl;
       maxLevelsNr = html.nr;
+      leftReductionFactor = html.lr;
+      rightReductionFactor = html.rr;
+      JSON.parse($("#jsonTextArea")[0].value).reduction_factor = [html.lr, html.rr];
       // let maxCoarsening = Math.max(JSON.parse($("#jsonTextArea")[0].value).max_levels[0], JSON.parse($("#jsonTextArea")[0].value).max_levels[1]);
       let maxCoarsening = Math.max(maxLevelsNl, maxLevelsNr);
       let nOfExecutions = maxCoarsening;
@@ -329,7 +334,8 @@ $("#coarseJson").on('click', function(){
             url:'/system/convert',
             type: 'POST',
             // data: {firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
-            data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+            // data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+            data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: leftReductionFactor, coarseningSecondSet: rightReductionFactor, firstSet: leftReductionFactor != 0 ? 1 : 0, currentLevel: (i+1).toString()},
             success: function(html){
               /** Finished all conversions; set properties properly */
               if(nOfExecutions == 1)
@@ -337,7 +343,7 @@ $("#coarseJson").on('click', function(){
                   $.ajax({
                     url:'/system/setProperties',
                     type: 'POST',
-                    data: {nLevels: maxCoarsening, firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0},
+                    data: {nLevels: maxCoarsening, firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: leftReductionFactor, coarseningSecondSet: rightReductionFactor, firstSet: leftReductionFactor != 0 ? 1 : 0},
                     success: function(html){
                       $("#userInfo").prop("disabled", false);
                       /** Update vertex data */
