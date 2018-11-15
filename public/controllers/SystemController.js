@@ -55,7 +55,10 @@ function ncolAndCoarse(pyPath, pyProg, fs, req, res)
               // var dat = fs.readFileSync(req.body.jsonInput.filename.split(".")[0] + "Coarsened" + "l" + lr + "r" + rr + "nl" + req.body.jsonInput.max_levels[0] + "nr" + req.body.jsonInput.max_levels[1] + ".conf", 'utf8');
               let lr = req.body.jsonInput.reduction_factor == undefined ? "05" : req.body.jsonInput.reduction_factor[0] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[0].toString().split(".")[0] + req.body.jsonInput.reduction_factor[0].toString().split(".")[1];
               let rr = req.body.jsonInput.reduction_factor == undefined ? "05" : req.body.jsonInput.reduction_factor[1] == 0.0 ? "00" : req.body.jsonInput.reduction_factor[1].toString().split(".")[0] + req.body.jsonInput.reduction_factor[1].toString().split(".")[1];
-              var dat = fs.readFileSync(req.body.jsonInput.filename.split(".")[0] + "Coarsened" + "l" + lr + "r" + rr + "nl" + "1" + "nr" + "1" + ".conf", 'utf8');
+              // let nl = req.body.jsonInput.max_levels == undefined ? "1" : req.body.jsonInput.max_levels[0].toString();
+              // let nr = req.body.jsonInput.max_levels == undefined ? "1" : req.body.jsonInput.max_levels[1].toString();
+              // var dat = fs.readFileSync(req.body.jsonInput.filename.split(".")[0] + "Coarsened" + "l" + lr + "r" + rr + "nl" + nl + "nr" + nr + ".conf", 'utf8');
+              var dat = fs.readFileSync(req.body.jsonInput.filename.split(".")[0] + "Coarsened" + ".conf", 'utf8');
               dat = JSON.parse(dat);
               lr = lr[0] + "." + lr[1];
               rr = rr[0] + "." + rr[1];

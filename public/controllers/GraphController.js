@@ -641,7 +641,7 @@ function getNeighbors(id, level)
   }
   for(; i < edges.length && edges[i].source == id; i++)
   {
-    if(wordCloud != undefined) neighbors.push({ [graphFile['nodes'][edges[i].target][wordCloud]]: parseInt(edges[i].weight) });
+    if(wordCloud != undefined) neighbors.push({ [graphFile['nodes'][edges[i].target][wordCloud]]: parseFloat(edges[i].weight) });
   }
   /** Return neighbors */
   return neighbors;

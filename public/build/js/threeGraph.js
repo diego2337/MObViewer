@@ -2554,10 +2554,12 @@ class d3WordCloud extends d3Position
    setXScale(words)
    {
      this.xScale = d3.scaleLinear()
-          .domain([0, d3.max(words, function(d){
-             return d.value;
+          .domain([d3.min(words, function(d){
+             return parseFloat(d.value);
+           }), d3.max(words, function(d){
+             return parseFloat(d.value);
            })])
-          .range([10,50]);
+          .range([15,50]);
    }
 
    /**
@@ -3772,7 +3774,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
     // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
     this.doubleClick.updateLayout(scene, this);
   }
-  else if(!this.doubleClick.getClicked().wasClicked)
+  if(!this.doubleClick.getClicked().wasClicked)
   {
     this.doubleClick.setClicked({wasClicked: true});
     /* Execute ray tracing */

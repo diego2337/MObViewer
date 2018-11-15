@@ -55,10 +55,12 @@ class d3WordCloud extends d3Position
    setXScale(words)
    {
      this.xScale = d3.scaleLinear()
-          .domain([0, d3.max(words, function(d){
-             return d.value;
+          .domain([d3.min(words, function(d){
+             return parseFloat(d.value);
+           }), d3.max(words, function(d){
+             return parseFloat(d.value);
            })])
-          .range([10,50]);
+          .range([15,50]);
    }
 
    /**

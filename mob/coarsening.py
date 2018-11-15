@@ -273,7 +273,8 @@ def main():
 
 			if options.save_conf:
 				# with open(output + '_' + str(index) + '.conf', 'w+') as f:
-				with open(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.conf', 'w+') as f:
+				# with open(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.conf', 'w+') as f:
+				with open(output + '.conf', 'w+') as f:
 					d = {}
 					d['source_input'] = options.input
 					d['source_vertices'] = [options.vertices[0], options.vertices[1]]
