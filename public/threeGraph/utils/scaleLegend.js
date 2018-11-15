@@ -35,8 +35,9 @@ ScaleLegend.prototype.clear = function()
 {
   try
   {
+    // d3.select("#" + this.legendElementId).remove();
+    d3.select("#scaleLegendSVGID").remove();
     d3.select("#" + this.legendElementId).remove();
-    d3.select("svg").remove();
   }
   catch(err)
   {
@@ -81,6 +82,7 @@ ScaleLegend.prototype.createScaleLegend = function(elementId, legendTitle)
     /** Create SVG element */
     var svg = d3.select("#" + elementId)
       .append("svg")
+      .attr("id", "scaleLegendSVGID")
       .attr("width", this.width)
       .attr("height", this.height);
 

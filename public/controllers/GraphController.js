@@ -92,7 +92,7 @@ exports.readJsonFile = function(path, fs, req, res)
       if(indexController.graphSize.length == 0) JSON.parse(data).graphInfo[0].vlayer != undefined ? indexController.graphSize = JSON.parse(data).graphInfo[0].vlayer : indexController.graphSize = JSON.parse(data).graphInfo[0].vertices;
       /* Send data to client */
       res.type('text');
-      res.end(JSON.stringify({graph: addValues(data), nLevels: [nl, nr], firstSetLevel: nl, secondSetLevel: nr, graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet}));
+      res.end(JSON.stringify({graph: addValues(data), nLevels: [nl, nr], firstSetLevel: nl, secondSetLevel: nr, graphName: path, firstSet: req.body.coarsening, secondSet: req.body.coarseningSecondSet, onlyCoarsest: req.body.onlyCoarsest}));
     }
   });
 }
@@ -753,6 +753,7 @@ exports.getGraph = function(req, res){
  */
 exports.getMostCoarsenedGraph = function(req, res){
   /** Execute python script to get most coarsened graph */
+  console.log('python mob/getMostCoarsened.py -i ' + req.body.graphName + ' -d ' + 'uploads' + indexController.folderChar + req.body.graphName + indexController.folderChar);
   indexController.nodeCmd.get('python mob/getMostCoarsened.py -i ' + req.body.graphName + ' -d ' + 'uploads' + indexController.folderChar + req.body.graphName + indexController.folderChar, function(dat, name, stderror){
     if(name)
     {
