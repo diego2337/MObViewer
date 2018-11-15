@@ -579,6 +579,8 @@ var Layout = function(svgId)
   this.parentConnections = 0;
   /** @desc String that defines svg tag id */
   this.svgId = svgId;
+  /** @desc Boolean that tells to render only most coarsened bipartite graph */
+  this.onlyCoarsest = 1;
 }
 
 /**
@@ -1204,6 +1206,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   this.numOfLevels = Math.max(...numOfLevels);
   var firstSet = data.firstSet;
   var secondSet = data.secondSet;
+  this.onlyCoarsest = data.onlyCoarsest !== undefined ? data.onlyCoarsest : this.onlyCoarsest;
   var data = data.graph;
   var lay = ecmaStandard(layout, 2);
   this.lay = lay;
@@ -1231,7 +1234,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo, (parseInt(Math.max(...numOfLevels))+2)*2.0, 2.0, Array(0.0, 0.0, 0.0));
 
   /** Build and render bipartite graphs from previous levels of coarsening */
-  this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  if(parseInt(this.onlyCoarsest) == 0) this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
 
   delete jason;
 
@@ -1246,12 +1249,13 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   this.gradientLegend.createGradientLegend("gradientScale", "Edge weights:");
 
   /** Create communities legend */
-  if(this.communitiesLegend !== undefined)
+  if(this.communitiesLegend != undefined)
   {
     this.communitiesLegend.clear();
     delete this.communitiesLegend;
   }
 
+  var layScope = this;
   /** To create object, check if "colors.json" exists and send its information to constructor; otherwise just send 'No attribute' and  '[0.0, 0.0, 0.0]' as color */
   $.ajax({
     url: '/graph/getColorFile',
@@ -1264,8 +1268,8 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
       var vals = Object.keys(data).map(function (key) {
           return data[key];
       });
-      this.communitiesLegend = new ScaleLegend(Object.keys(data), vals, Object.keys(data).length*50);
-      this.communitiesLegend.createScaleLegend("communityLegend", "Community values:");
+      layScope.communitiesLegend = new ScaleLegend(Object.keys(data), vals, Object.keys(data).length*50);
+      layScope.communitiesLegend.createScaleLegend("communityLegend", "Community values:");
       animate();
     },
     xhr: loadGraph
@@ -4058,7 +4062,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
           return (elmt.vertexInfo == el && elmt.mesh == element.name);
           // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
         });
-        if(fd === undefined)
+        if(element !== undefined && fd === undefined)
         {
           if((element.name == this.highlightedElements[i].meshName))
           {
@@ -4072,7 +4076,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
           }
         }
       }
-      if(fd === undefined) this.highlightedElements.splice(i, 1);
+      if(element !== undefined && fd === undefined) this.highlightedElements.splice(i, 1);
     }
     /** Hiding vertex information */
     /* Highlight element (if intersected) */
@@ -5369,8 +5373,9 @@ ScaleLegend.prototype.clear = function()
 {
   try
   {
+    // d3.select("#" + this.legendElementId).remove();
+    d3.select("#scaleLegendSVGID").remove();
     d3.select("#" + this.legendElementId).remove();
-    d3.select("svg").remove();
   }
   catch(err)
   {
@@ -5415,6 +5420,7 @@ ScaleLegend.prototype.createScaleLegend = function(elementId, legendTitle)
     /** Create SVG element */
     var svg = d3.select("#" + elementId)
       .append("svg")
+      .attr("id", "scaleLegendSVGID")
       .attr("width", this.width)
       .attr("height", this.height);
 

@@ -1222,7 +1222,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
           return (elmt.vertexInfo == el && elmt.mesh == element.name);
           // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
         });
-        if(fd === undefined)
+        if(element !== undefined && fd === undefined)
         {
           if((element.name == this.highlightedElements[i].meshName))
           {
@@ -1236,7 +1236,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
           }
         }
       }
-      if(fd === undefined) this.highlightedElements.splice(i, 1);
+      if(element !== undefined && fd === undefined) this.highlightedElements.splice(i, 1);
     }
     /** Hiding vertex information */
     /* Highlight element (if intersected) */
