@@ -129,7 +129,8 @@ class d3WordCloud extends d3Position
           .words(wordEntries)
           .fontSize(function(d) { return d3WordCloudScope.getXScale(+d.value); })
           .text(function(d) { return d.key; })
-          .rotate(function() { return ~~(Math.random() * 2) * 90; })
+          .rotate(function() { return ~~(Math.random() * 2); })
+          // .rotate(function() { return ~~(Math.random() * 2) * 90; })
           .font("Impact")
           .on("end", function(words){
             var fill = d3.scaleOrdinal(d3.schemeCategory20);

@@ -423,7 +423,7 @@ $("#defineWordCloud").on('click', function(){
   showDialog({
         title: 'Define word cloud attribute',
         metaTitle: meta,
-        text: 'Create a .txt file associating with an attribute, to be used as element to be checked for word cloud, e.g \'artist\' will look for \'artist\' key in JSON graph to define as word cloud attribute.',
+        text: 'Create a .txt file associated with an attribute, to be used as element to be checked for word cloud, e.g \'artist\' will look for \'artist\' key in JSON graph to define as word cloud attribute.',
         textArea: true,
         negative: {
             title: 'Go back'
@@ -488,7 +488,7 @@ $("#defineUserLabel").on('click', function(){
   showDialog({
         title: 'Define user label',
         metaTitle: meta,
-        text: 'Create a txt file with a label, from vertex attributes, to be used as color coding for vertexes.',
+        text: 'Create a .txt file with a label, from vertex attributes, to be used as color coding for vertexes.',
         textArea: true,
         negative: {
             title: 'Go back'

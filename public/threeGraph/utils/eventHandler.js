@@ -1219,7 +1219,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
         // var el = (this.highlightedElements[i]/32) + 8;
         var el = this.highlightedElements[i];
         var fd = this.neighbors.find(function(elmt){
-          return (elmt.vertexInfo == el && elmt.mesh == element.name);
+          return (element !== undefined && elmt.vertexInfo == el && elmt.mesh == element.name);
           // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
         });
         if(element !== undefined && fd === undefined)
