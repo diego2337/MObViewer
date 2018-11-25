@@ -15,7 +15,7 @@ module.exports = function(grunt){
     },
     concat: {
       scripts: {
-        src: ['public/javascripts/*.js'],
+        src: ['public/javascripts/Components.js', 'public/javascripts/*.js'],
         dest: 'public/build/js/scripts.js',
       },
       threegraph: {

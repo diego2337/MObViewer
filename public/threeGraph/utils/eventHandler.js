@@ -784,6 +784,113 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
 }
 
 /**
+ * Show vertex information with Vue.js.
+ * @public
+ * @param {JSON} vertices Properties from vertex face.
+ * @param {Array} rows Rows to insert data.
+ * @param {String} table Table ID where vertex info will be displayed.
+ */
+EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
+{
+  var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
+  /** Load already existing elements clicked in array of rows */
+  for(var j = 0; j < rows.length; j++)
+  {
+    vertexVueRows.push(rows[j]);
+  }
+  /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
+  if(vertices.vertexes !== undefined)
+  {
+    vertices = vertices.vertexes;
+  }
+  else
+  {
+    var simpleArr = [];
+    simpleArr.push(vertices);
+    vertices = simpleArr;
+  }
+  /** Check if intersected vertex is either from first or second layer */
+  for(var j = 0; j < vertices.length; j++)
+  {
+    var tempArr = [];
+    for(key in vertices[j])
+    {
+      if(key != "sha-id" && key != "id") tempArr.push(key);
+    }
+    if(vertexVueHeaders.length < tempArr.length)
+    {
+      vertexVueHeaders = tempArr;
+      /** Sort headers */
+      vertexVueHeaders.sort(function(a, b){
+        return ('' + a).localeCompare(b);
+      });
+      /** Construct a new vue table header */
+      // header.push(vertexVueHeaders);
+      if(header.length == 0)
+      {
+        vertexVueHeaders.forEach(function(element){
+          header.push(element);
+        });
+      }
+    }
+  }
+  for(var j = 0; j < vertices.length; j++)
+  {
+    var ordered = {};
+    for(key in vertexVueHeaders)
+    {
+      if(!(vertexVueHeaders[key] in vertices[j]))
+      {
+        ordered[vertexVueHeaders[key]] = "No value";
+      }
+      else
+      {
+        ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
+      }
+    }
+    vertexVueRows.push(ordered);
+    /** Sort vertices[j] */
+    // var ordered = {};
+    // var vertKeys = Object.keys(vertices[j]).sort();
+    // vertexVueHeaders.sort();
+    // var i = 0;
+    // for(key in vertexVueHeaders)
+    // {
+    //   // if(vertKeys[key] != "sha-id")
+    //   // {
+    //     if(vertKeys[i] != vertexVueHeaders[key])
+    //     {
+    //       ordered[vertexVueHeaders[key]] = "No value";
+    //     }
+    //     else
+    //     {
+    //       i = i + 1;
+    //       ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
+    //     }
+    //   // }
+    // }
+    // Object.keys(vertices[j]).sort().forEach(function(key) {
+    //   console.log("key: " + key);
+    //   if(key != "sha-id") ordered[key] = vertices[j][key];
+    // });
+    // for(key in vertexVueHeaders)
+    // {
+    //   if(!(vertexVueHeaders[key] in ordered))
+    //   {
+    //     ordered[key] = "No value";
+    //   }
+    // }
+  }
+  /** Construct a new vue table data */
+  // rows.push(vertexVueRows);
+  vertexVueRows.forEach(function(element){
+    rows.push(element);
+  });
+  /** Show tables containing vertex info */
+  $(table).css('visibility', 'visible');
+}
+
+/**
  * Show neighbor vertexes from selected element information.
  * @param {Object} scene Scene for raycaster.
  */
@@ -793,7 +900,8 @@ EventHandler.prototype.showNeighborInfo = function(scene)
   for(let i = 0; i < this.realNeighbors.length; i++)
   {
     /** Show vertex info for every neighbor found */
-    parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeader, vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeaderSecondLayer, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
+    parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueRootInstance.$data.tableCards[0].headers, vueRootInstance.$data.tableCards[0].rows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueRootInstance.$data.tableCards[1].headers, vueRootInstance.$data.tableCards[1].rows, "#divVertexInfoTableSecondLayer");
+    // parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeader, vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeaderSecondLayer, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
     // mesh.geometry.faces[this.realNeighbors[i].vertexInfo].faceIndex <= mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32 ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
   }
 }
@@ -950,18 +1058,23 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
       /** Check which layer vertex is in */
       JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id >= JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).lastLayer ? layer = 1 : layer = 0;
       /** Delete vertex info from vueTableHeader and vueTableRows - FIXME not EventHandler responsibility */
-      if(vueTableHeader._data.headers != "" || vueTableHeaderSecondLayer._data.headers != "")
+      for(var i = 0; i < vueRootInstance.$data.tableCards.length; i++)
       {
-        vueTableHeader._data.headers = "";
-        vueTableHeaderSecondLayer._data.headers = "";
-        $("#divVertexInfoTable").css('visibility', 'hidden');
-        $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
+        if(vueRootInstance.$data.tableCards[i].headers != "") vueRootInstance.$data.tableCards[i].headers = [];
+        if(vueRootInstance.$data.tableCards[i].rows != "") vueRootInstance.$data.tableCards[i].rows = [];
       }
-      if(vueTableRows._data.rows != "" || vueTableRowsSecondLayer._data.rows != "")
-      {
-        vueTableRows._data.rows = "";
-        vueTableRowsSecondLayer._data.rows = "";
-      }
+      // if(vueTableHeader._data.headers != "" || vueTableHeaderSecondLayer._data.headers != "")
+      // {
+      //   vueTableHeader._data.headers = "";
+      //   vueTableHeaderSecondLayer._data.headers = "";
+      //   $("#divVertexInfoTable").css('visibility', 'hidden');
+      //   $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
+      // }
+      // if(vueTableRows._data.rows != "" || vueTableRowsSecondLayer._data.rows != "")
+      // {
+      //   vueTableRows._data.rows = "";
+      //   vueTableRowsSecondLayer._data.rows = "";
+      // }
       /** Show both parent and child edges */
       this.showHierarchy(intersection, scene, layout, layer);
       // if(intersection.object.name == "MainMesh")
@@ -1050,104 +1163,6 @@ EventHandler.prototype.getTooltipInfo = function(vertices)
     }
   }
   return filteredVerts;
-}
-
-/**
- * Show vertex information with Vue.js.
- * @public
- * @param {JSON} vertices Properties from vertex face.
- * @param {Array} rows Rows to insert data.
- * @param {String} table Table ID where vertex info will be displayed.
- */
-EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
-{
-  var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
-  /** Load already existing elements clicked in array of rows */
-  for(var j = 0; j < rows._data.rows.length; j++)
-  {
-    vertexVueRows.push(rows._data.rows[j]);
-  }
-  /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
-  if(vertices.vertexes !== undefined)
-  {
-    vertices = vertices.vertexes;
-  }
-  else
-  {
-    var simpleArr = [];
-    simpleArr.push(vertices);
-    vertices = simpleArr;
-  }
-  /** Check if intersected vertex is either from first or second layer */
-  for(var j = 0; j < vertices.length; j++)
-  {
-    var tempArr = [];
-    for(key in vertices[j])
-    {
-      if(key != "sha-id" && key != "id") tempArr.push(key);
-    }
-    if(vertexVueHeaders.length < tempArr.length)
-    {
-      vertexVueHeaders = tempArr;
-      /** Sort headers */
-      vertexVueHeaders.sort(function(a, b){
-        return ('' + a).localeCompare(b);
-      });
-      /** Construct a new vue table header */
-      header._data.headers = vertexVueHeaders;
-    }
-  }
-  for(var j = 0; j < vertices.length; j++)
-  {
-    var ordered = {};
-    for(key in vertexVueHeaders)
-    {
-      if(!(vertexVueHeaders[key] in vertices[j]))
-      {
-        ordered[vertexVueHeaders[key]] = "No value";
-      }
-      else
-      {
-        ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
-      }
-    }
-    /** Sort vertices[j] */
-    // var ordered = {};
-    // var vertKeys = Object.keys(vertices[j]).sort();
-    // vertexVueHeaders.sort();
-    // var i = 0;
-    // for(key in vertexVueHeaders)
-    // {
-    //   // if(vertKeys[key] != "sha-id")
-    //   // {
-    //     if(vertKeys[i] != vertexVueHeaders[key])
-    //     {
-    //       ordered[vertexVueHeaders[key]] = "No value";
-    //     }
-    //     else
-    //     {
-    //       i = i + 1;
-    //       ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
-    //     }
-    //   // }
-    // }
-    // Object.keys(vertices[j]).sort().forEach(function(key) {
-    //   console.log("key: " + key);
-    //   if(key != "sha-id") ordered[key] = vertices[j][key];
-    // });
-    // for(key in vertexVueHeaders)
-    // {
-    //   if(!(vertexVueHeaders[key] in ordered))
-    //   {
-    //     ordered[key] = "No value";
-    //   }
-    // }
-    vertexVueRows.push(ordered);
-  }
-  /** Construct a new vue table data */
-  rows._data.rows = vertexVueRows;
-  /** Show tables containing vertex info */
-  $(table).css('visibility', 'visible');
 }
 
 /**

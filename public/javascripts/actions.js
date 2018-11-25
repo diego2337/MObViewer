@@ -301,90 +301,185 @@ var maxLevelsNr = 0;
 var leftReductionFactor = 0;
 var rightReductionFactor = 0;
 /** Coarse graph based on json input given by user */
-$("#coarseJson").on('click', function(){
-  $.ajax({
-    url:'/system/coarse',
-    type: 'POST',
-    data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
-    success: function(html){
-      html = JSON.parse(html);
-      maxLevelsNl = html.nl;
-      maxLevelsNr = html.nr;
-      leftReductionFactor = html.lr;
-      rightReductionFactor = html.rr;
-      JSON.parse($("#jsonTextArea")[0].value).reduction_factor = [html.lr, html.rr];
-      // let maxCoarsening = Math.max(JSON.parse($("#jsonTextArea")[0].value).max_levels[0], JSON.parse($("#jsonTextArea")[0].value).max_levels[1]);
-      let maxCoarsening = Math.max(maxLevelsNl, maxLevelsNr);
-      let nOfExecutions = maxCoarsening;
-      let nl = nr = 0;
-      if(maxCoarsening != 0)
-      {
-        /** Finished coarsening, perform multiple ajax calls to convert from .gml to .json */
-        for(let i = 0; i < maxCoarsening; i++)
-        {
-          if(nl < maxLevelsNl)
-          {
-            nl = nl + 1;
-          }
-          if(nr < maxLevelsNr)
-          {
-            nr = nr + 1;
-          }
-          $.ajax({
-            url:'/system/convert',
-            type: 'POST',
-            // data: {firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
-            // data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
-            data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: leftReductionFactor, coarseningSecondSet: rightReductionFactor, firstSet: leftReductionFactor != 0 ? 1 : 0, currentLevel: (i+1).toString()},
-            success: function(html){
-              /** Finished all conversions; set properties properly */
-              if(nOfExecutions == 1)
-              {
-                  $.ajax({
-                    url:'/system/setProperties',
-                    type: 'POST',
-                    data: {nLevels: maxCoarsening, firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: leftReductionFactor, coarseningSecondSet: rightReductionFactor, firstSet: leftReductionFactor != 0 ? 1 : 0},
-                    success: function(html){
-                      $("#userInfo").prop("disabled", false);
-                      /** Update vertex data */
-                      vueTableUserRows._data.rows = layout.vertexInfo.getProps();
-                      graphUpdate(html, layout.lay);
-                    }
-                  });
-              }
-              else
-              {
-                nOfExecutions = nOfExecutions - 1;
-              }
-            }
-          });
-        }
-      }
-      else
-      {
-        $.ajax({
-          url:'/graph/getGraph',
-          type: 'POST',
-          data: {graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0]},
-          success: function(html){
-            $("#userInfo").prop("disabled", false);
-            /** Update vertex data */
-            vueTableUserRows._data.rows = layout.vertexInfo.getProps();
-            graphUpdate(html, layout.lay);
-          }
-        });
-      }
-      /** Tell layout to update variable "parentConnections" */
-      // layout.parentConnections == 0 ? layout.parentConnections = 1 : layout.parentConnections = 0;
-      // graphUpdate(html, layout.lay);
-    },
-    xhr: loadGraph
-  });
-});
+// $("#coarseJson").on('click', function(){
+//   $.ajax({
+//     url:'/system/coarse',
+//     type: 'POST',
+//     data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
+//     success: function(html){
+//       html = JSON.parse(html);
+//       maxLevelsNl = html.nl;
+//       maxLevelsNr = html.nr;
+//       leftReductionFactor = html.lr;
+//       rightReductionFactor = html.rr;
+//       JSON.parse($("#jsonTextArea")[0].value).reduction_factor = [html.lr, html.rr];
+//       // let maxCoarsening = Math.max(JSON.parse($("#jsonTextArea")[0].value).max_levels[0], JSON.parse($("#jsonTextArea")[0].value).max_levels[1]);
+//       let maxCoarsening = Math.max(maxLevelsNl, maxLevelsNr);
+//       let nOfExecutions = maxCoarsening;
+//       let nl = nr = 0;
+//       if(maxCoarsening != 0)
+//       {
+//         /** Finished coarsening, perform multiple ajax calls to convert from .gml to .json */
+//         for(let i = 0; i < maxCoarsening; i++)
+//         {
+//           if(nl < maxLevelsNl)
+//           {
+//             nl = nl + 1;
+//           }
+//           if(nr < maxLevelsNr)
+//           {
+//             nr = nr + 1;
+//           }
+//           $.ajax({
+//             url:'/system/convert',
+//             type: 'POST',
+//             // data: {firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+//             // data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+//             data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: leftReductionFactor, coarseningSecondSet: rightReductionFactor, firstSet: leftReductionFactor != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+//             success: function(html){
+//               /** Finished all conversions; set properties properly */
+//               if(nOfExecutions == 1)
+//               {
+//                   $.ajax({
+//                     url:'/system/setProperties',
+//                     type: 'POST',
+//                     data: {nLevels: maxCoarsening, firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: leftReductionFactor, coarseningSecondSet: rightReductionFactor, firstSet: leftReductionFactor != 0 ? 1 : 0},
+//                     success: function(html){
+//                       $("#userInfo").prop("disabled", false);
+//                       /** Update vertex data */
+//                       vueTableUserRows._data.rows = layout.vertexInfo.getProps();
+//                       graphUpdate(html, layout.lay);
+//                     }
+//                   });
+//               }
+//               else
+//               {
+//                 nOfExecutions = nOfExecutions - 1;
+//               }
+//             }
+//           });
+//         }
+//       }
+//       else
+//       {
+//         $.ajax({
+//           url:'/graph/getGraph',
+//           type: 'POST',
+//           data: {graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0]},
+//           success: function(html){
+//             $("#userInfo").prop("disabled", false);
+//             /** Update vertex data */
+//             vueTableUserRows._data.rows = layout.vertexInfo.getProps();
+//             graphUpdate(html, layout.lay);
+//           }
+//         });
+//       }
+//       /** Tell layout to update variable "parentConnections" */
+//       // layout.parentConnections == 0 ? layout.parentConnections = 1 : layout.parentConnections = 0;
+//       // graphUpdate(html, layout.lay);
+//     },
+//     xhr: loadGraph
+//   });
+// });
 
 /** Show json input card on click */
 $("#jsonInfo").on('click', function(){
-    $("#jsonInput").css('visibility') == 'hidden' ?  $("#jsonInput").css('visibility', 'visible') : $("#jsonInput").css('visibility', 'hidden');
+    // $("#jsonInput").css('visibility') == 'hidden' ?  $("#jsonInput").css('visibility', 'visible') : $("#jsonInput").css('visibility', 'hidden');
+    var meta = 'jsonTextArea';
+    showDialog({
+          title: 'Define json input',
+          metaTitle: meta,
+          text: 'Create a .json file associating attributes for execution of multilevel paradigm, e.g: { "vertices": [10, 20], "reduction_factor": [0.2, 0.3] ... }',
+          textArea: true,
+          negative: {
+              title: 'Go back'
+          },
+          positive: {
+              title: 'Create',
+              onClick: function(e) {
+                var text = document.getElementsByTagName('textarea');
+                $("#jsonTextArea").val(text[1].value);
+                $.ajax({
+                  url:'/system/coarse',
+                  type: 'POST',
+                  data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
+                  success: function(html){
+                    html = JSON.parse(html);
+                    maxLevelsNl = html.nl;
+                    maxLevelsNr = html.nr;
+                    leftReductionFactor = html.lr;
+                    rightReductionFactor = html.rr;
+                    JSON.parse($("#jsonTextArea")[0].value).reduction_factor = [html.lr, html.rr];
+                    // let maxCoarsening = Math.max(JSON.parse($("#jsonTextArea")[0].value).max_levels[0], JSON.parse($("#jsonTextArea")[0].value).max_levels[1]);
+                    let maxCoarsening = Math.max(maxLevelsNl, maxLevelsNr);
+                    let nOfExecutions = maxCoarsening;
+                    let nl = nr = 0;
+                    if(maxCoarsening != 0)
+                    {
+                      /** Finished coarsening, perform multiple ajax calls to convert from .gml to .json */
+                      for(let i = 0; i < maxCoarsening; i++)
+                      {
+                        if(nl < maxLevelsNl)
+                        {
+                          nl = nl + 1;
+                        }
+                        if(nr < maxLevelsNr)
+                        {
+                          nr = nr + 1;
+                        }
+                        $.ajax({
+                          url:'/system/convert',
+                          type: 'POST',
+                          // data: {firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+                          // data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+                          data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: leftReductionFactor, coarseningSecondSet: rightReductionFactor, firstSet: leftReductionFactor != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+                          success: function(html){
+                            /** Finished all conversions; set properties properly */
+                            if(nOfExecutions == 1)
+                            {
+                                $.ajax({
+                                  url:'/system/setProperties',
+                                  type: 'POST',
+                                  data: {nLevels: maxCoarsening, firstSetLevel: maxLevelsNl, secondSetLevel: maxLevelsNr, coarsening: leftReductionFactor, coarseningSecondSet: rightReductionFactor, firstSet: leftReductionFactor != 0 ? 1 : 0},
+                                  success: function(html){
+                                    $("#userInfo").prop("disabled", false);
+                                    /** Update vertex data */
+                                    vueTableUserRows._data.rows = layout.vertexInfo.getProps();
+                                    graphUpdate(html, layout.lay);
+                                  }
+                                });
+                            }
+                            else
+                            {
+                              nOfExecutions = nOfExecutions - 1;
+                            }
+                          }
+                        });
+                      }
+                    }
+                    else
+                    {
+                      $.ajax({
+                        url:'/graph/getGraph',
+                        type: 'POST',
+                        data: {graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0]},
+                        success: function(html){
+                          $("#userInfo").prop("disabled", false);
+                          /** Update vertex data */
+                          vueTableUserRows._data.rows = layout.vertexInfo.getProps();
+                          graphUpdate(html, layout.lay);
+                        }
+                      });
+                    }
+                    /** Tell layout to update variable "parentConnections" */
+                    // layout.parentConnections == 0 ? layout.parentConnections = 1 : layout.parentConnections = 0;
+                    // graphUpdate(html, layout.lay);
+                  },
+                  xhr: loadGraph
+                });
+              }
+          }
+      });
 });
 
 /** Show text area to define categories on click */
@@ -529,6 +624,13 @@ $("#useLabel").on('click', function(){
     },
     xhr: loadGraph
   });
+});
+
+/** Trigger upload-input element click */
+$("#loadGraphButton").on('click', function (){
+    $('#upload-input').click();
+    $('.progress-bar').text('0%');
+    $('.progress-bar').width('0%');
 });
 
 /** Define label */

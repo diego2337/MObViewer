@@ -317,8 +317,10 @@ Layout.prototype.disposeHierarchy = function(node, callback)
 Layout.prototype.configAPIParams = function(mainSection, WebGL)
 {
   /* Get the size of the inner window (content area) to create a full size renderer */
-  canvasWidth = (document.getElementById(mainSection).clientWidth);
-  canvasHeight = (document.getElementById(mainSection).clientHeight);
+  canvasWidth = 1200;
+  canvasHeight = 900;
+  // canvasWidth = (document.getElementById(mainSection).clientWidth);
+  // canvasHeight = (document.getElementById(mainSection).clientHeight);
   if(globalRenderer == undefined)
   {
       /* Create a new WebGL renderer */
@@ -673,7 +675,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   var jason = JSON.parse(data);
 
   /** Remove any information from graphs */
-  this.removeGraphInfo(nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  // this.removeGraphInfo(nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
 
   /** Instantiate renderer, scene, camera and lights, and configure additional parameters */
   this.configAPIParams(mainSection, WebGL);

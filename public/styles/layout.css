@@ -1,0 +1,23 @@
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }

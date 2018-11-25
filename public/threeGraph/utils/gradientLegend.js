@@ -65,13 +65,15 @@ GradientLegend.prototype.createGradientLegend = function(elementId, gradientTitl
     var span = d3.select("#" + elementId)
       .append("span")
       .attr("id", this.spanElementId)
-      .style("padding-right", "20px");
+      .style("padding-right", "20px")
+      .style("margin", "25px");
     span._groups[0][0].innerHTML = gradientTitle;
     /** Create SVG element */
     var key = d3.select("#" + elementId)
       .append("svg")
       .attr("width", this.width)
-      .attr("height", this.height);
+      .attr("height", this.height)
+      .style("margin", "25px");
     var legend = key.append("defs")
         .append("svg:linearGradient")
         .attr("id", "gradient")
