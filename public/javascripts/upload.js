@@ -43,17 +43,18 @@ $('#upload-input').on('change', function(){
       processData: false,
       contentType: false,
       success: function(data){
-          console.log('Upload successful!\n');
-          /* Show slider's current value */
-          showValue();
+          // console.log('Upload successful!\n');
+          window.alert("Upload successful! You can now use 'define json input...' to apply the multilevel paradigm.\n");
           /** Allow button to select user info to be clicked */
           $("#userInfo").prop("disabled", false);
           /** Allow button to select parameters for coarsening to be clicked */
           $("#jsonInfo").prop("disabled", false);
-          /* Build graph after loading .json file */
-          layout.build(data);
-          /** Update vertex data */
-          vueTableUserRows._data.rows = layout.vertexInfo.getProps();
+          // /* Show slider's current value */
+          // showValue();
+          // /* Build graph after loading .json file */
+          // layout.build(data);
+          // /** Update vertex data */
+          // vueTableUserRows._data.rows = layout.vertexInfo.getProps();
       },
       xhr: loadGraph
     });

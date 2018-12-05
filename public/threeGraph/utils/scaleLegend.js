@@ -77,14 +77,16 @@ ScaleLegend.prototype.createScaleLegend = function(elementId, legendTitle)
     var span = d3.select("#" + elementId)
       .append("span")
       .attr("id", this.legendElementId)
-      .style("padding-right", "20px");
+      .style("padding-right", "20px")
+      .style("margin", "25px");
     span._groups[0][0].innerHTML = legendTitle;
     /** Create SVG element */
     var svg = d3.select("#" + elementId)
       .append("svg")
       .attr("id", "scaleLegendSVGID")
       .attr("width", this.width)
-      .attr("height", this.height);
+      .attr("height", this.height)
+      .style("margin", "25px");
 
     /** Set domain adjusted to range */
     var ordinal = d3.scaleOrdinal()

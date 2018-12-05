@@ -1,11 +1,11 @@
 .scrollable-x {
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: scroll;
 }
 
 .scrollable-y {
   max-height: 100%;
-  overflow-y: auto;
+  overflow-y: scroll;
 }
 
 .bar {

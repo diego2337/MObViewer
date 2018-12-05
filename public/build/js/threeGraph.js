@@ -593,10 +593,11 @@ var Layout = function(svgId)
  */
 Layout.prototype.removeGraphInfo = function(numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
-  document.getElementById(numberOfVertices).innerHTML = "";
-  document.getElementById(numberOfEdges).innerHTML = "";
-  document.getElementById(nVerticesFirstLayer).innerHTML = "";
-  document.getElementById(nVerticesSecondLayer).innerHTML = "";
+  vueRootInstance.$data.graphInfo.rows = [];
+  // document.getElementById(numberOfVertices).innerHTML = "";
+  // document.getElementById(numberOfEdges).innerHTML = "";
+  // document.getElementById(nVerticesFirstLayer).innerHTML = "";
+  // document.getElementById(nVerticesSecondLayer).innerHTML = "";
 }
 
 /**
@@ -610,12 +611,9 @@ Layout.prototype.removeGraphInfo = function(numberOfVertices, numberOfEdges, nVe
  */
 Layout.prototype.displayGraphInfo = function(jason, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
-  /** Store innerHTML elements in variables for consistency */
-  var numOfVertexes = document.getElementById(numberOfVertices), vertexes;
-  var numOfEdges = document.getElementById(numberOfEdges);
-  var nVerticesFirstLayer = document.getElementById(nVerticesFirstLayer), firstLevel;
-  var nVerticesSecondLayer = document.getElementById(nVerticesSecondLayer), secondLevel;
-  /** Making necessary assignments according to information from graphInfo */
+  var vertexes;
+  var firstLevel;
+  var secondLevel;
   if(jason.graphInfo[0].vlayer !== undefined)
   {
     vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
@@ -628,21 +626,49 @@ Layout.prototype.displayGraphInfo = function(jason, numberOfVertices, numberOfEd
     firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
     secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
   }
-  /* Display number of vertices, edges, vertexes for first and second level separately */
-  if(numOfVertexes.innerHTML == "")
-  {
-    numOfVertexes.innerHTML = vertexes;
-    numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
-    nVerticesFirstLayer.innerHTML = firstLevel;
-    nVerticesSecondLayer.innerHTML = secondLevel;
-  }
-  else
-  {
-    numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
-    numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
-    nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
-    nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
-  }
+  /** Fill tables with appropriate values */
+  var values = [];
+  /** Add values in following order - 'graph level', 'vertices', 'edges', 'first layer', 'second layer' */
+  values.push("n");
+  values.push(parseInt(vertexes));
+  values.push(parseInt(jason.graphInfo[0].edges));
+  values.push(firstLevel);
+  values.push(secondLevel);
+  vueRootInstance.$data.graphInfo.rows.push(values);
+  /** FIXME - deprecated */
+  /** Store innerHTML elements in variables for consistency */
+  // var numOfVertexes = document.getElementById(numberOfVertices), vertexes;
+  // var numOfEdges = document.getElementById(numberOfEdges);
+  // var nVerticesFirstLayer = document.getElementById(nVerticesFirstLayer), firstLevel;
+  // var nVerticesSecondLayer = document.getElementById(nVerticesSecondLayer), secondLevel;
+  // /** Making necessary assignments according to information from graphInfo */
+  // if(jason.graphInfo[0].vlayer !== undefined)
+  // {
+  //   vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  //   firstLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
+  //   secondLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  // }
+  // else
+  // {
+  //   vertexes = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  //   firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
+  //   secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  // }
+  // /* Display number of vertices, edges, vertexes for first and second level separately */
+  // if(numOfVertexes.innerHTML == "")
+  // {
+  //   numOfVertexes.innerHTML = vertexes;
+  //   numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
+  //   nVerticesFirstLayer.innerHTML = firstLevel;
+  //   nVerticesSecondLayer.innerHTML = secondLevel;
+  // }
+  // else
+  // {
+  //   numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
+  //   numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
+  //   nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
+  //   nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
+  // }
 }
 
 /**
@@ -865,8 +891,10 @@ Layout.prototype.disposeHierarchy = function(node, callback)
 Layout.prototype.configAPIParams = function(mainSection, WebGL)
 {
   /* Get the size of the inner window (content area) to create a full size renderer */
-  canvasWidth = (document.getElementById(mainSection).clientWidth);
-  canvasHeight = (document.getElementById(mainSection).clientHeight);
+  canvasWidth = 1200;
+  canvasHeight = 900;
+  // canvasWidth = (document.getElementById(mainSection).clientWidth);
+  // canvasHeight = (document.getElementById(mainSection).clientHeight);
   if(globalRenderer == undefined)
   {
       /* Create a new WebGL renderer */
@@ -1234,7 +1262,15 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo, (parseInt(Math.max(...numOfLevels))+2)*2.0, 2.0, Array(0.0, 0.0, 0.0));
 
   /** Build and render bipartite graphs from previous levels of coarsening */
-  if(parseInt(this.onlyCoarsest) == 0) this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  if(parseInt(this.onlyCoarsest) == 0)
+  {
+    vueRootInstance.$data.graphInfo.rows = [];
+    this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  }
+  else
+  {
+    this.displayGraphInfo(jason);
+  }
 
   delete jason;
 
@@ -3625,6 +3661,87 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
 }
 
 /**
+ * Show vertex information with Vue.js.
+ * @public
+ * @param {JSON} vertices Properties from vertex face.
+ * @param {Array} rows Rows to insert data.
+ * @param {String} table Table ID where vertex info will be displayed.
+ */
+EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
+{
+  var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
+  /** Load already existing elements clicked in array of rows */
+  // for(var j = 0; j < rows.length; j++)
+  // {
+  //   vertexVueRows.push(rows[j]);
+  // }
+  /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
+  if(vertices.vertexes !== undefined)
+  {
+    vertices = vertices.vertexes;
+  }
+  else
+  {
+    var simpleArr = [];
+    simpleArr.push(vertices);
+    vertices = simpleArr;
+  }
+  /** Check if intersected vertex is either from first or second layer */
+  for(var j = 0; j < vertices.length; j++)
+  {
+    var tempArr = [];
+    for(key in vertices[j])
+    {
+      if(key != "sha-id" && key != "id") tempArr.push(key);
+    }
+    if(vertexVueHeaders.length < tempArr.length)
+    {
+      vertexVueHeaders = tempArr;
+      /** Sort headers */
+      vertexVueHeaders.sort(function(a, b){
+        return ('' + a).localeCompare(b);
+      });
+      /** Construct a new vue table header */
+      // header.push(vertexVueHeaders);
+      if(header.length == 0)
+      {
+        vertexVueHeaders.forEach(function(element){
+          header.push(element);
+        });
+      }
+    }
+  }
+  for(var j = 0; j < vertices.length; j++)
+  {
+    var ordered = {};
+    for(key in vertexVueHeaders)
+    {
+      if(!(vertexVueHeaders[key] in vertices[j]))
+      {
+        ordered[vertexVueHeaders[key]] = "No value";
+      }
+      else
+      {
+        ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
+      }
+    }
+    // vertexVueRows.push(ordered);
+    rows.push(ordered);
+  }
+  /** Construct a new vue table data */
+  // rows.push(vertexVueRows);
+  // for(var i = 0; i < vertexVueRows.length; i++)
+  // {
+  //   rows.push(vertexVueRows[i]);
+  // }
+  // vertexVueRows.forEach(function(element){
+  //   rows.push(element);
+  // });
+  /** Show tables containing vertex info */
+  $(table).css('visibility', 'visible');
+}
+
+/**
  * Show neighbor vertexes from selected element information.
  * @param {Object} scene Scene for raycaster.
  */
@@ -3634,7 +3751,8 @@ EventHandler.prototype.showNeighborInfo = function(scene)
   for(let i = 0; i < this.realNeighbors.length; i++)
   {
     /** Show vertex info for every neighbor found */
-    parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeader, vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeaderSecondLayer, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
+    parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueRootInstance.$data.tableCards[0].headers, vueRootInstance.$data.tableCards[0].rows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueRootInstance.$data.tableCards[1].headers, vueRootInstance.$data.tableCards[1].rows, "#divVertexInfoTableSecondLayer");
+    // parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeader, vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeaderSecondLayer, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
     // mesh.geometry.faces[this.realNeighbors[i].vertexInfo].faceIndex <= mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32 ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
   }
 }
@@ -3791,18 +3909,23 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
       /** Check which layer vertex is in */
       JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id >= JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).lastLayer ? layer = 1 : layer = 0;
       /** Delete vertex info from vueTableHeader and vueTableRows - FIXME not EventHandler responsibility */
-      if(vueTableHeader._data.headers != "" || vueTableHeaderSecondLayer._data.headers != "")
+      for(var i = 0; i < vueRootInstance.$data.tableCards.length; i++)
       {
-        vueTableHeader._data.headers = "";
-        vueTableHeaderSecondLayer._data.headers = "";
-        $("#divVertexInfoTable").css('visibility', 'hidden');
-        $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
+        if(vueRootInstance.$data.tableCards[i].headers != "") vueRootInstance.$data.tableCards[i].headers = [];
+        if(vueRootInstance.$data.tableCards[i].rows != "") vueRootInstance.$data.tableCards[i].rows = [];
       }
-      if(vueTableRows._data.rows != "" || vueTableRowsSecondLayer._data.rows != "")
-      {
-        vueTableRows._data.rows = "";
-        vueTableRowsSecondLayer._data.rows = "";
-      }
+      // if(vueTableHeader._data.headers != "" || vueTableHeaderSecondLayer._data.headers != "")
+      // {
+      //   vueTableHeader._data.headers = "";
+      //   vueTableHeaderSecondLayer._data.headers = "";
+      //   $("#divVertexInfoTable").css('visibility', 'hidden');
+      //   $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
+      // }
+      // if(vueTableRows._data.rows != "" || vueTableRowsSecondLayer._data.rows != "")
+      // {
+      //   vueTableRows._data.rows = "";
+      //   vueTableRowsSecondLayer._data.rows = "";
+      // }
       /** Show both parent and child edges */
       this.showHierarchy(intersection, scene, layout, layer);
       // if(intersection.object.name == "MainMesh")
@@ -3891,104 +4014,6 @@ EventHandler.prototype.getTooltipInfo = function(vertices)
     }
   }
   return filteredVerts;
-}
-
-/**
- * Show vertex information with Vue.js.
- * @public
- * @param {JSON} vertices Properties from vertex face.
- * @param {Array} rows Rows to insert data.
- * @param {String} table Table ID where vertex info will be displayed.
- */
-EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
-{
-  var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
-  /** Load already existing elements clicked in array of rows */
-  for(var j = 0; j < rows._data.rows.length; j++)
-  {
-    vertexVueRows.push(rows._data.rows[j]);
-  }
-  /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
-  if(vertices.vertexes !== undefined)
-  {
-    vertices = vertices.vertexes;
-  }
-  else
-  {
-    var simpleArr = [];
-    simpleArr.push(vertices);
-    vertices = simpleArr;
-  }
-  /** Check if intersected vertex is either from first or second layer */
-  for(var j = 0; j < vertices.length; j++)
-  {
-    var tempArr = [];
-    for(key in vertices[j])
-    {
-      if(key != "sha-id" && key != "id") tempArr.push(key);
-    }
-    if(vertexVueHeaders.length < tempArr.length)
-    {
-      vertexVueHeaders = tempArr;
-      /** Sort headers */
-      vertexVueHeaders.sort(function(a, b){
-        return ('' + a).localeCompare(b);
-      });
-      /** Construct a new vue table header */
-      header._data.headers = vertexVueHeaders;
-    }
-  }
-  for(var j = 0; j < vertices.length; j++)
-  {
-    var ordered = {};
-    for(key in vertexVueHeaders)
-    {
-      if(!(vertexVueHeaders[key] in vertices[j]))
-      {
-        ordered[vertexVueHeaders[key]] = "No value";
-      }
-      else
-      {
-        ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
-      }
-    }
-    /** Sort vertices[j] */
-    // var ordered = {};
-    // var vertKeys = Object.keys(vertices[j]).sort();
-    // vertexVueHeaders.sort();
-    // var i = 0;
-    // for(key in vertexVueHeaders)
-    // {
-    //   // if(vertKeys[key] != "sha-id")
-    //   // {
-    //     if(vertKeys[i] != vertexVueHeaders[key])
-    //     {
-    //       ordered[vertexVueHeaders[key]] = "No value";
-    //     }
-    //     else
-    //     {
-    //       i = i + 1;
-    //       ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
-    //     }
-    //   // }
-    // }
-    // Object.keys(vertices[j]).sort().forEach(function(key) {
-    //   console.log("key: " + key);
-    //   if(key != "sha-id") ordered[key] = vertices[j][key];
-    // });
-    // for(key in vertexVueHeaders)
-    // {
-    //   if(!(vertexVueHeaders[key] in ordered))
-    //   {
-    //     ordered[key] = "No value";
-    //   }
-    // }
-    vertexVueRows.push(ordered);
-  }
-  /** Construct a new vue table data */
-  rows._data.rows = vertexVueRows;
-  /** Show tables containing vertex info */
-  $(table).css('visibility', 'visible');
 }
 
 /**
@@ -4136,6 +4161,7 @@ var GradientLegend = function(linearScale, minDomainValue, maxDomainValue, width
   {
     // this.graphInfo = graphInfo;
     this.spanElementId = "spanElementId";
+    this.gradientLegendId = "gradientScaleId";
     this.width = ecmaStandard(width, 300);
     this.height = ecmaStandard(height, 50);
     this.minDomainValue = ecmaStandard(minDomainValue, 1.0);
@@ -4160,7 +4186,7 @@ GradientLegend.prototype.clear = function()
   try
   {
     d3.select("#" + this.spanElementId).remove();
-    d3.select("svg").remove();
+    d3.select("#" + this.gradientLegendId).remove();
   }
   catch(err)
   {
@@ -4182,13 +4208,16 @@ GradientLegend.prototype.createGradientLegend = function(elementId, gradientTitl
     var span = d3.select("#" + elementId)
       .append("span")
       .attr("id", this.spanElementId)
-      .style("padding-right", "20px");
+      .style("padding-right", "20px")
+      .style("margin", "25px");
     span._groups[0][0].innerHTML = gradientTitle;
     /** Create SVG element */
     var key = d3.select("#" + elementId)
       .append("svg")
+      .attr("id", this.gradientLegendId)
       .attr("width", this.width)
-      .attr("height", this.height);
+      .attr("height", this.height)
+      .style("margin", "25px");
     var legend = key.append("defs")
         .append("svg:linearGradient")
         .attr("id", "gradient")
@@ -5416,14 +5445,16 @@ ScaleLegend.prototype.createScaleLegend = function(elementId, legendTitle)
     var span = d3.select("#" + elementId)
       .append("span")
       .attr("id", this.legendElementId)
-      .style("padding-right", "20px");
+      .style("padding-right", "20px")
+      .style("margin", "25px");
     span._groups[0][0].innerHTML = legendTitle;
     /** Create SVG element */
     var svg = d3.select("#" + elementId)
       .append("svg")
       .attr("id", "scaleLegendSVGID")
       .attr("width", this.width)
-      .attr("height", this.height);
+      .attr("height", this.height)
+      .style("margin", "25px");
 
     /** Set domain adjusted to range */
     var ordinal = d3.scaleOrdinal()

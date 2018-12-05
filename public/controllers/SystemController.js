@@ -182,10 +182,10 @@ exports.upload = function(req, res) {
   /* Specify that we want to allow the user to upload multiple files in a single request */
   form.multiples = true;
   /* Store all uploads in the /uploads directory */
-  form.uploadDir = path.join(__dirname, '/uploads');
+  form.uploadDir = indexController.path.join(__dirname, '/uploads');
   /** Every time a file has been uploaded successfully, rename it to it's orignal name */
   form.on('file', function(field, file) {
-    fs.rename(file.path, path.join(form.uploadDir, file.name), function(){return;});
+    indexController.fs.rename(file.path, indexController.path.join(form.uploadDir, file.name), function(){return;});
     /** Creates directory for uploaded graph */
     indexController.nodeCmd.get('mkdir -p uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar, function(data, err, stderr) {
       if (!err)

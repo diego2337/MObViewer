@@ -1,3 +1,27 @@
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
 .demo-card-wide.mdl-card {
   width: 600px;
   height: 500px;
@@ -5,6 +29,12 @@
 
 .mdl-card {
   overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
 }
 /*.mdl-card__title {
   color: #fff;
@@ -15,12 +45,3630 @@
 
 .scrollable-x {
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: scroll;
 }
 
 .scrollable-y {
   max-height: 100%;
-  overflow-y: auto;
+  overflow-y: scroll;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+  width: 600px;
+	bottom: 10px;
+	right: 40px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
+  bottom: 10px;
+  left: 10px;*/
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	left: 10px;
+}
+
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.fixed-div {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	right: 40px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+.z-index-front {
+    z-index: 100;
+}
+
+.z-index-behind {
+    z-index: -1;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+  /*shape-rendering: auto;*/
+}
+svg {
+  padding-right: 50px;
+}
+
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
+}
+
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.no-display {
+  display: none;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
+}
+
+#upload-input {
+  display: none;
+}
+
+.marg {
+    margin : 0;
+}
+
+.btn:focus, .upload-btn:focus{
+  outline: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+  /*background-color: #4791D2;*/
+  background-color: #FFFFFF;
+}
+
+/*body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}*/
+
+.row {
+  margin-top: 80px;
+}
+
+.upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.upload-btn:hover,
+.upload-btn:focus,
+.upload-btn:active,
+.upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+h4 {
+  padding-bottom: 30px;
+  color: #B8BDC1;
+}
+
+.glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    width: 450px;
+  }
+}
+
+/**
+ * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
+ */
+a {
+  cursor: pointer;
+}
+
+.mdl-collapse.mdl-collapse--opened {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: -1px;
+}
+
+.mdl-collapse.mdl-collapse--opened + .mdl-collapse.mdl-collapse--opened {
+  border-top: none;
+  margin-top: 0;
+}
+
+.mdl-collapse .mdl-collapse__content-wrapper {
+  overflow: hidden;
+}
+
+.mdl-collapse .mdl-collapse__content {
+  transition-property: margin-top;
+  transition-duration: 0.2s;
+}
+
+.mdl-collapse .mdl-collapse__icon {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  color: rgba(0,0,0,0.3);
+
+  /* MDL should provide some facility for positioning icons inside list items so I don't have to do this */
+  position: absolute;
+  right: 6px;
+  margin-top: -3px;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__icon {
+  transform: rotate(-180deg);
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__button {
+  color: teal;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
+  margin-top: 0 !important;
+}
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
+}
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
+.mdl-card {
+  overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
+/*.mdl-card__title {
+  color: #fff;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #3F51B5;
+}*/
+
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: scroll;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+  width: 600px;
+	bottom: 10px;
+	right: 40px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
+  bottom: 10px;
+  left: 10px;*/
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	left: 10px;
+}
+
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.fixed-div {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	right: 40px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+.z-index-front {
+    z-index: 100;
+}
+
+.z-index-behind {
+    z-index: -1;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+  /*shape-rendering: auto;*/
+}
+svg {
+  padding-right: 50px;
+}
+
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
+}
+
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.no-display {
+  display: none;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
+}
+
+#upload-input {
+  display: none;
+}
+
+.marg {
+    margin : 0;
+}
+
+.btn:focus, .upload-btn:focus{
+  outline: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+  /*background-color: #4791D2;*/
+  background-color: #FFFFFF;
+}
+
+/*body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}*/
+
+.row {
+  margin-top: 80px;
+}
+
+.upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.upload-btn:hover,
+.upload-btn:focus,
+.upload-btn:active,
+.upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+h4 {
+  padding-bottom: 30px;
+  color: #B8BDC1;
+}
+
+.glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    width: 450px;
+  }
+}
+
+/**
+ * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
+ */
+a {
+  cursor: pointer;
+}
+
+.mdl-collapse.mdl-collapse--opened {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: -1px;
+}
+
+.mdl-collapse.mdl-collapse--opened + .mdl-collapse.mdl-collapse--opened {
+  border-top: none;
+  margin-top: 0;
+}
+
+.mdl-collapse .mdl-collapse__content-wrapper {
+  overflow: hidden;
+}
+
+.mdl-collapse .mdl-collapse__content {
+  transition-property: margin-top;
+  transition-duration: 0.2s;
+}
+
+.mdl-collapse .mdl-collapse__icon {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  color: rgba(0,0,0,0.3);
+
+  /* MDL should provide some facility for positioning icons inside list items so I don't have to do this */
+  position: absolute;
+  right: 6px;
+  margin-top: -3px;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__icon {
+  transform: rotate(-180deg);
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__button {
+  color: teal;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
+  margin-top: 0 !important;
+}
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
+}
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
+.mdl-card {
+  overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
+/*.mdl-card__title {
+  color: #fff;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #3F51B5;
+}*/
+
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: scroll;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+  width: 600px;
+	bottom: 10px;
+	right: 40px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
+  bottom: 10px;
+  left: 10px;*/
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	left: 10px;
+}
+
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.fixed-div {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	right: 40px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+.z-index-front {
+    z-index: 100;
+}
+
+.z-index-behind {
+    z-index: -1;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+  /*shape-rendering: auto;*/
+}
+svg {
+  padding-right: 50px;
+}
+
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
+}
+
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.no-display {
+  display: none;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
+}
+
+#upload-input {
+  display: none;
+}
+
+.marg {
+    margin : 0;
+}
+
+.btn:focus, .upload-btn:focus{
+  outline: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+  /*background-color: #4791D2;*/
+  background-color: #FFFFFF;
+}
+
+/*body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}*/
+
+.row {
+  margin-top: 80px;
+}
+
+.upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.upload-btn:hover,
+.upload-btn:focus,
+.upload-btn:active,
+.upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+h4 {
+  padding-bottom: 30px;
+  color: #B8BDC1;
+}
+
+.glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    width: 450px;
+  }
+}
+
+/**
+ * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
+ */
+a {
+  cursor: pointer;
+}
+
+.mdl-collapse.mdl-collapse--opened {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: -1px;
+}
+
+.mdl-collapse.mdl-collapse--opened + .mdl-collapse.mdl-collapse--opened {
+  border-top: none;
+  margin-top: 0;
+}
+
+.mdl-collapse .mdl-collapse__content-wrapper {
+  overflow: hidden;
+}
+
+.mdl-collapse .mdl-collapse__content {
+  transition-property: margin-top;
+  transition-duration: 0.2s;
+}
+
+.mdl-collapse .mdl-collapse__icon {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  color: rgba(0,0,0,0.3);
+
+  /* MDL should provide some facility for positioning icons inside list items so I don't have to do this */
+  position: absolute;
+  right: 6px;
+  margin-top: -3px;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__icon {
+  transform: rotate(-180deg);
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__button {
+  color: teal;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
+  margin-top: 0 !important;
+}
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
+}
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
+.mdl-card {
+  overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
+/*.mdl-card__title {
+  color: #fff;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #3F51B5;
+}*/
+
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: scroll;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+  width: 600px;
+	bottom: 10px;
+	right: 40px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
+  bottom: 10px;
+  left: 10px;*/
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	left: 10px;
+}
+
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.fixed-div {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	right: 40px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+.z-index-front {
+    z-index: 100;
+}
+
+.z-index-behind {
+    z-index: -1;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+  /*shape-rendering: auto;*/
+}
+svg {
+  padding-right: 50px;
+}
+
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
+}
+
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.no-display {
+  display: none;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
+}
+
+#upload-input {
+  display: none;
+}
+
+.marg {
+    margin : 0;
+}
+
+.btn:focus, .upload-btn:focus{
+  outline: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+  /*background-color: #4791D2;*/
+  background-color: #FFFFFF;
+}
+
+/*body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}*/
+
+.row {
+  margin-top: 80px;
+}
+
+.upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.upload-btn:hover,
+.upload-btn:focus,
+.upload-btn:active,
+.upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+h4 {
+  padding-bottom: 30px;
+  color: #B8BDC1;
+}
+
+.glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    width: 450px;
+  }
+}
+
+/**
+ * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
+ */
+a {
+  cursor: pointer;
+}
+
+.mdl-collapse.mdl-collapse--opened {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: -1px;
+}
+
+.mdl-collapse.mdl-collapse--opened + .mdl-collapse.mdl-collapse--opened {
+  border-top: none;
+  margin-top: 0;
+}
+
+.mdl-collapse .mdl-collapse__content-wrapper {
+  overflow: hidden;
+}
+
+.mdl-collapse .mdl-collapse__content {
+  transition-property: margin-top;
+  transition-duration: 0.2s;
+}
+
+.mdl-collapse .mdl-collapse__icon {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  color: rgba(0,0,0,0.3);
+
+  /* MDL should provide some facility for positioning icons inside list items so I don't have to do this */
+  position: absolute;
+  right: 6px;
+  margin-top: -3px;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__icon {
+  transform: rotate(-180deg);
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__button {
+  color: teal;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
+  margin-top: 0 !important;
+}
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
+}
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
+.mdl-card {
+  overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
+/*.mdl-card__title {
+  color: #fff;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #3F51B5;
+}*/
+
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: scroll;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+  width: 600px;
+	bottom: 10px;
+	right: 40px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
+  bottom: 10px;
+  left: 10px;*/
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	left: 10px;
+}
+
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.fixed-div {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	right: 40px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+.z-index-front {
+    z-index: 100;
+}
+
+.z-index-behind {
+    z-index: -1;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+  /*shape-rendering: auto;*/
+}
+svg {
+  padding-right: 50px;
+}
+
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
+}
+
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.no-display {
+  display: none;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
+}
+
+#upload-input {
+  display: none;
+}
+
+.marg {
+    margin : 0;
+}
+
+.btn:focus, .upload-btn:focus{
+  outline: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+  /*background-color: #4791D2;*/
+  background-color: #FFFFFF;
+}
+
+/*body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}*/
+
+.row {
+  margin-top: 80px;
+}
+
+.upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.upload-btn:hover,
+.upload-btn:focus,
+.upload-btn:active,
+.upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+h4 {
+  padding-bottom: 30px;
+  color: #B8BDC1;
+}
+
+.glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    width: 450px;
+  }
+}
+
+/**
+ * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
+ */
+a {
+  cursor: pointer;
+}
+
+.mdl-collapse.mdl-collapse--opened {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: -1px;
+}
+
+.mdl-collapse.mdl-collapse--opened + .mdl-collapse.mdl-collapse--opened {
+  border-top: none;
+  margin-top: 0;
+}
+
+.mdl-collapse .mdl-collapse__content-wrapper {
+  overflow: hidden;
+}
+
+.mdl-collapse .mdl-collapse__content {
+  transition-property: margin-top;
+  transition-duration: 0.2s;
+}
+
+.mdl-collapse .mdl-collapse__icon {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  color: rgba(0,0,0,0.3);
+
+  /* MDL should provide some facility for positioning icons inside list items so I don't have to do this */
+  position: absolute;
+  right: 6px;
+  margin-top: -3px;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__icon {
+  transform: rotate(-180deg);
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__button {
+  color: teal;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
+  margin-top: 0 !important;
+}
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
+}
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
+.mdl-card {
+  overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
+/*.mdl-card__title {
+  color: #fff;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #3F51B5;
+}*/
+
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: scroll;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+  width: 600px;
+	bottom: 10px;
+	right: 40px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
+  bottom: 10px;
+  left: 10px;*/
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	left: 10px;
+}
+
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.fixed-div {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	right: 40px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+.z-index-front {
+    z-index: 100;
+}
+
+.z-index-behind {
+    z-index: -1;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+  /*shape-rendering: auto;*/
+}
+svg {
+  padding-right: 50px;
+}
+
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
+}
+
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.no-display {
+  display: none;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
+}
+
+#upload-input {
+  display: none;
+}
+
+.marg {
+    margin : 0;
+}
+
+.btn:focus, .upload-btn:focus{
+  outline: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+  /*background-color: #4791D2;*/
+  background-color: #FFFFFF;
+}
+
+/*body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}*/
+
+.row {
+  margin-top: 80px;
+}
+
+.upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.upload-btn:hover,
+.upload-btn:focus,
+.upload-btn:active,
+.upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+h4 {
+  padding-bottom: 30px;
+  color: #B8BDC1;
+}
+
+.glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    width: 450px;
+  }
+}
+
+/**
+ * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
+ */
+a {
+  cursor: pointer;
+}
+
+.mdl-collapse.mdl-collapse--opened {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: -1px;
+}
+
+.mdl-collapse.mdl-collapse--opened + .mdl-collapse.mdl-collapse--opened {
+  border-top: none;
+  margin-top: 0;
+}
+
+.mdl-collapse .mdl-collapse__content-wrapper {
+  overflow: hidden;
+}
+
+.mdl-collapse .mdl-collapse__content {
+  transition-property: margin-top;
+  transition-duration: 0.2s;
+}
+
+.mdl-collapse .mdl-collapse__icon {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  color: rgba(0,0,0,0.3);
+
+  /* MDL should provide some facility for positioning icons inside list items so I don't have to do this */
+  position: absolute;
+  right: 6px;
+  margin-top: -3px;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__icon {
+  transform: rotate(-180deg);
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__button {
+  color: teal;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
+  margin-top: 0 !important;
+}
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
+}
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
+.mdl-card {
+  overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
+/*.mdl-card__title {
+  color: #fff;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #3F51B5;
+}*/
+
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: scroll;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+  width: 600px;
+	bottom: 10px;
+	right: 40px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
+  bottom: 10px;
+  left: 10px;*/
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	left: 10px;
+}
+
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.fixed-div {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	right: 40px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+.z-index-front {
+    z-index: 100;
+}
+
+.z-index-behind {
+    z-index: -1;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+  /*shape-rendering: auto;*/
+}
+svg {
+  padding-right: 50px;
+}
+
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
+}
+
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.no-display {
+  display: none;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
+}
+
+#upload-input {
+  display: none;
+}
+
+.marg {
+    margin : 0;
+}
+
+.btn:focus, .upload-btn:focus{
+  outline: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+  /*background-color: #4791D2;*/
+  background-color: #FFFFFF;
+}
+
+/*body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}*/
+
+.row {
+  margin-top: 80px;
+}
+
+.upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.upload-btn:hover,
+.upload-btn:focus,
+.upload-btn:active,
+.upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+h4 {
+  padding-bottom: 30px;
+  color: #B8BDC1;
+}
+
+.glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    width: 450px;
+  }
+}
+
+/**
+ * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
+ */
+a {
+  cursor: pointer;
+}
+
+.mdl-collapse.mdl-collapse--opened {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: -1px;
+}
+
+.mdl-collapse.mdl-collapse--opened + .mdl-collapse.mdl-collapse--opened {
+  border-top: none;
+  margin-top: 0;
+}
+
+.mdl-collapse .mdl-collapse__content-wrapper {
+  overflow: hidden;
+}
+
+.mdl-collapse .mdl-collapse__content {
+  transition-property: margin-top;
+  transition-duration: 0.2s;
+}
+
+.mdl-collapse .mdl-collapse__icon {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  color: rgba(0,0,0,0.3);
+
+  /* MDL should provide some facility for positioning icons inside list items so I don't have to do this */
+  position: absolute;
+  right: 6px;
+  margin-top: -3px;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__icon {
+  transform: rotate(-180deg);
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__button {
+  color: teal;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
+  margin-top: 0 !important;
+}
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
+}
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
+.mdl-card {
+  overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
+/*.mdl-card__title {
+  color: #fff;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #3F51B5;
+}*/
+
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: scroll;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+  width: 600px;
+	bottom: 10px;
+	right: 40px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
+  bottom: 10px;
+  left: 10px;*/
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	left: 10px;
+}
+
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.fixed-div {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	right: 40px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+.z-index-front {
+    z-index: 100;
+}
+
+.z-index-behind {
+    z-index: -1;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+  /*shape-rendering: auto;*/
+}
+svg {
+  padding-right: 50px;
+}
+
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
+}
+
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.no-display {
+  display: none;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
+}
+
+#upload-input {
+  display: none;
+}
+
+.marg {
+    margin : 0;
+}
+
+.btn:focus, .upload-btn:focus{
+  outline: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+  /*background-color: #4791D2;*/
+  background-color: #FFFFFF;
+}
+
+/*body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}*/
+
+.row {
+  margin-top: 80px;
+}
+
+.upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.upload-btn:hover,
+.upload-btn:focus,
+.upload-btn:active,
+.upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+h4 {
+  padding-bottom: 30px;
+  color: #B8BDC1;
+}
+
+.glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    width: 450px;
+  }
+}
+
+/**
+ * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
+ */
+a {
+  cursor: pointer;
+}
+
+.mdl-collapse.mdl-collapse--opened {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: -1px;
+}
+
+.mdl-collapse.mdl-collapse--opened + .mdl-collapse.mdl-collapse--opened {
+  border-top: none;
+  margin-top: 0;
+}
+
+.mdl-collapse .mdl-collapse__content-wrapper {
+  overflow: hidden;
+}
+
+.mdl-collapse .mdl-collapse__content {
+  transition-property: margin-top;
+  transition-duration: 0.2s;
+}
+
+.mdl-collapse .mdl-collapse__icon {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  color: rgba(0,0,0,0.3);
+
+  /* MDL should provide some facility for positioning icons inside list items so I don't have to do this */
+  position: absolute;
+  right: 6px;
+  margin-top: -3px;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__icon {
+  transform: rotate(-180deg);
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__button {
+  color: teal;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
+  margin-top: 0 !important;
+}
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
+}
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
+.mdl-card {
+  overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
+/*.mdl-card__title {
+  color: #fff;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #3F51B5;
+}*/
+
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: scroll;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.fixed-div-lowerRight {
+	position: fixed;
+  width: 600px;
+	bottom: 10px;
+	right: 40px;
+}
+
+.fixed-div-lowerLeft {
+  position: fixed;
+  width: 600px;
+	bottom: 10px;
+	left: 40px;
+  /*top: 550px;
+  bottom: 10px;
+  left: 10px;*/
+}
+
+.fixed-div-upperLeft {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	left: 10px;
+}
+
+.fixed-div-center-2 {
+	position: fixed;
+	top: 25%;
+	left: 40%;
+}
+
+.fixed-div-center {
+	position: fixed;
+	top: 40%;
+	left: 40%;
+}
+
+.side-margin {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.fixed-div {
+	position: fixed;
+	top: 130px;
+  bottom: 550px;
+	right: 40px;
+}
+
+.small-margin {
+	margin: 10px;
+}
+
+.overflow-y-scroll {
+	overflow-y: scroll;
+	overflow: hidden;
+}
+
+div.tooltip {
+	width: auto;
+	padding: 5px;
+	font: 11px sans-serif;
+	font-weight: bold;
+	text-align: center;
+	color: #fff;
+	position: absolute;
+	background: rgba(0,0,0,0.7);
+	border: 0px;
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+.z-index-front {
+    z-index: 100;
+}
+
+.z-index-behind {
+    z-index: -1;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+  /*shape-rendering: auto;*/
+}
+svg {
+  padding-right: 50px;
+}
+
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+
+.outer-div {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.middle-div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.inner-div {
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px; /*whatever width you want*/
+}
+
+.margin-zero-auto {
+  height: auto;
+  margin: 0 auto;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.relative-div {
+  position: relative;
+}
+
+.absolute-div {
+  position: absolute;
+}
+
+.hidden-visibility {
+  visibility: hidden;
+}
+
+.no-display {
+  display: none;
+}
+
+.center-right {
+  top: 25%;
+  left: 50%;
+}
+
+.no-display {
+  display: none;
+}
+
+.options-padding {
+  margin-left: 250px;
+}
+
+.no-padding {
+  padding: 0px;
+}
+
+.lower-case {
+  text-transform: capitalize;
+}
+
+#upload-input {
+  display: none;
+}
+
+.marg {
+    margin : 0;
+}
+
+.btn:focus, .upload-btn:focus{
+  outline: 0 !important;
+}
+
+html,
+body {
+  height: 100%;
+  /*background-color: #4791D2;*/
+  background-color: #FFFFFF;
+}
+
+/*body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}*/
+
+.row {
+  margin-top: 80px;
+}
+
+.upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.upload-btn:hover,
+.upload-btn:focus,
+.upload-btn:active,
+.upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+h4 {
+  padding-bottom: 30px;
+  color: #B8BDC1;
+}
+
+.glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    width: 450px;
+  }
+}
+
+/**
+ * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
+ */
+a {
+  cursor: pointer;
+}
+
+.mdl-collapse.mdl-collapse--opened {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: -1px;
+}
+
+.mdl-collapse.mdl-collapse--opened + .mdl-collapse.mdl-collapse--opened {
+  border-top: none;
+  margin-top: 0;
+}
+
+.mdl-collapse .mdl-collapse__content-wrapper {
+  overflow: hidden;
+}
+
+.mdl-collapse .mdl-collapse__content {
+  transition-property: margin-top;
+  transition-duration: 0.2s;
+}
+
+.mdl-collapse .mdl-collapse__icon {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  color: rgba(0,0,0,0.3);
+
+  /* MDL should provide some facility for positioning icons inside list items so I don't have to do this */
+  position: absolute;
+  right: 6px;
+  margin-top: -3px;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__icon {
+  transform: rotate(-180deg);
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__button {
+  color: teal;
+}
+
+.mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
+  margin-top: 0 !important;
+}
+.dialog-container,
+.loading-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    opacity: 0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+}
+
+.dialog-container > div {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    min-height: 25px;
+    margin: 10% auto;
+    z-index: 99999;
+    padding: 16px 16px 0;
+}
+
+.dialog-button-bar {
+    text-align: right;
+    margin-top: 8px;
+}
+
+.loading-container > div {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 10% auto;
+    z-index: 99999;
+}
+
+.loading-container > div > div {
+    width: 100%;
+    height: 100%;
+}
+/**
+ * @desc "Layout" type CSS elements, based on https://smacss.com/.
+ * @author Diego Cintra
+ * 18 November 2018
+ */
+ .layout-lower-case {
+   text-transform: capitalize;
+ }
+
+ .layout-side-margin {
+ 	margin-left: 100px;
+ 	margin-right: 100px;
+ }
+
+ .layout-wrapper {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+ }
+
+ .layout-scrollable-child {
+   overflow-y: auto;
+ }
+
+.demo-card-wide.mdl-card {
+  width: 600px;
+  height: 500px;
+}
+
+.mdl-card {
+  overflow: auto;
+  transition: All 1s ease-in-out;
+}
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
+/*.mdl-card__title {
+  color: #fff;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #3F51B5;
+}*/
+
+.scrollable-x {
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: scroll;
 }
 
 .bar {
