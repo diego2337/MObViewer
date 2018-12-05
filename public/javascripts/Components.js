@@ -147,6 +147,6 @@ var vueRootInstance = new Vue({
     ],
     headers: "",
     rows: "",
-    graphInfo: { headers: ['Graph level', 'Vertices', 'Edges', 'First layer', 'Second layer'], rows: [] },
+    graphInfo: { headers: ['Graph level', 'Vertices', 'Edges', 'First layer', 'Second layer'], rows: [['#1', '770', '887', '274', '496'], ['#2', '540', '605', '192', '348'], ['#3', '379', '419', '135', '244']] },
   },
 })

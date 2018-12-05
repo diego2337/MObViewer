@@ -794,10 +794,10 @@ EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
 {
   var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
   /** Load already existing elements clicked in array of rows */
-  for(var j = 0; j < rows.length; j++)
-  {
-    vertexVueRows.push(rows[j]);
-  }
+  // for(var j = 0; j < rows.length; j++)
+  // {
+  //   vertexVueRows.push(rows[j]);
+  // }
   /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
   if(vertices.vertexes !== undefined)
   {
@@ -848,44 +848,18 @@ EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
         ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
       }
     }
-    vertexVueRows.push(ordered);
-    /** Sort vertices[j] */
-    // var ordered = {};
-    // var vertKeys = Object.keys(vertices[j]).sort();
-    // vertexVueHeaders.sort();
-    // var i = 0;
-    // for(key in vertexVueHeaders)
-    // {
-    //   // if(vertKeys[key] != "sha-id")
-    //   // {
-    //     if(vertKeys[i] != vertexVueHeaders[key])
-    //     {
-    //       ordered[vertexVueHeaders[key]] = "No value";
-    //     }
-    //     else
-    //     {
-    //       i = i + 1;
-    //       ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
-    //     }
-    //   // }
-    // }
-    // Object.keys(vertices[j]).sort().forEach(function(key) {
-    //   console.log("key: " + key);
-    //   if(key != "sha-id") ordered[key] = vertices[j][key];
-    // });
-    // for(key in vertexVueHeaders)
-    // {
-    //   if(!(vertexVueHeaders[key] in ordered))
-    //   {
-    //     ordered[key] = "No value";
-    //   }
-    // }
+    // vertexVueRows.push(ordered);
+    rows.push(ordered);
   }
   /** Construct a new vue table data */
   // rows.push(vertexVueRows);
-  vertexVueRows.forEach(function(element){
-    rows.push(element);
-  });
+  // for(var i = 0; i < vertexVueRows.length; i++)
+  // {
+  //   rows.push(vertexVueRows[i]);
+  // }
+  // vertexVueRows.forEach(function(element){
+  //   rows.push(element);
+  // });
   /** Show tables containing vertex info */
   $(table).css('visibility', 'visible');
 }

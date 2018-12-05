@@ -480,12 +480,13 @@ function generateVertexStats(categories, vertex)
     }
   }
   /** Write vertex info */
-  indexController.fs.writeFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + vertex.id + 'Stats.json', stringify(Object.assign({}, categoricalDict, ordinalDict)), function(err){
-    if(err)
-    {
-      console.log("Error writing " + vertex.id + 'Stats.json.');
-    }
-  });
+  indexController.fs.writeFileSync('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + vertex.id + 'Stats.json', stringify(Object.assign({}, categoricalDict, ordinalDict)));
+  // indexController.fs.writeFile('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + vertex.id + 'Stats.json', stringify(Object.assign({}, categoricalDict, ordinalDict)), function(err){
+  //   if(err)
+  //   {
+  //     console.log("Error writing " + vertex.id + 'Stats.json.');
+  //   }
+  // });
 }
 
 /**
@@ -1004,6 +1005,7 @@ exports.defineLabel = function(req, res){
  */
 exports.createGraphColors = function(req, res){
   var label = indexController.fs.readFileSync('label.txt', 'utf8');
+  console.log("indexController.fileName: " + indexController.fileName);
   var graphFile = indexController.fs.readFileSync('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + indexController.fileName.split(".")[0] + ".json", 'utf8');
   graphFile = JSON.parse(graphFile);
   /** Iterate through all nodes and store existing values on a dictionary */
