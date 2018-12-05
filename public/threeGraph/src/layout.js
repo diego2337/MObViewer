@@ -45,10 +45,11 @@ var Layout = function(svgId)
  */
 Layout.prototype.removeGraphInfo = function(numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
-  document.getElementById(numberOfVertices).innerHTML = "";
-  document.getElementById(numberOfEdges).innerHTML = "";
-  document.getElementById(nVerticesFirstLayer).innerHTML = "";
-  document.getElementById(nVerticesSecondLayer).innerHTML = "";
+  vueRootInstance.$data.graphInfo.rows = [];
+  // document.getElementById(numberOfVertices).innerHTML = "";
+  // document.getElementById(numberOfEdges).innerHTML = "";
+  // document.getElementById(nVerticesFirstLayer).innerHTML = "";
+  // document.getElementById(nVerticesSecondLayer).innerHTML = "";
 }
 
 /**
@@ -62,12 +63,9 @@ Layout.prototype.removeGraphInfo = function(numberOfVertices, numberOfEdges, nVe
  */
 Layout.prototype.displayGraphInfo = function(jason, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
-  /** Store innerHTML elements in variables for consistency */
-  var numOfVertexes = document.getElementById(numberOfVertices), vertexes;
-  var numOfEdges = document.getElementById(numberOfEdges);
-  var nVerticesFirstLayer = document.getElementById(nVerticesFirstLayer), firstLevel;
-  var nVerticesSecondLayer = document.getElementById(nVerticesSecondLayer), secondLevel;
-  /** Making necessary assignments according to information from graphInfo */
+  var vertexes;
+  var firstLevel;
+  var secondLevel;
   if(jason.graphInfo[0].vlayer !== undefined)
   {
     vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
@@ -80,21 +78,49 @@ Layout.prototype.displayGraphInfo = function(jason, numberOfVertices, numberOfEd
     firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
     secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
   }
-  /* Display number of vertices, edges, vertexes for first and second level separately */
-  if(numOfVertexes.innerHTML == "")
-  {
-    numOfVertexes.innerHTML = vertexes;
-    numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
-    nVerticesFirstLayer.innerHTML = firstLevel;
-    nVerticesSecondLayer.innerHTML = secondLevel;
-  }
-  else
-  {
-    numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
-    numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
-    nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
-    nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
-  }
+  /** Fill tables with appropriate values */
+  var values = [];
+  /** Add values in following order - 'graph level', 'vertices', 'edges', 'first layer', 'second layer' */
+  values.push("n");
+  values.push(parseInt(vertexes));
+  values.push(parseInt(jason.graphInfo[0].edges));
+  values.push(firstLevel);
+  values.push(secondLevel);
+  vueRootInstance.$data.graphInfo.rows.push(values);
+  /** FIXME - deprecated */
+  /** Store innerHTML elements in variables for consistency */
+  // var numOfVertexes = document.getElementById(numberOfVertices), vertexes;
+  // var numOfEdges = document.getElementById(numberOfEdges);
+  // var nVerticesFirstLayer = document.getElementById(nVerticesFirstLayer), firstLevel;
+  // var nVerticesSecondLayer = document.getElementById(nVerticesSecondLayer), secondLevel;
+  // /** Making necessary assignments according to information from graphInfo */
+  // if(jason.graphInfo[0].vlayer !== undefined)
+  // {
+  //   vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  //   firstLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
+  //   secondLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  // }
+  // else
+  // {
+  //   vertexes = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  //   firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
+  //   secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  // }
+  // /* Display number of vertices, edges, vertexes for first and second level separately */
+  // if(numOfVertexes.innerHTML == "")
+  // {
+  //   numOfVertexes.innerHTML = vertexes;
+  //   numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
+  //   nVerticesFirstLayer.innerHTML = firstLevel;
+  //   nVerticesSecondLayer.innerHTML = secondLevel;
+  // }
+  // else
+  // {
+  //   numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
+  //   numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
+  //   nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
+  //   nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
+  // }
 }
 
 /**
@@ -675,7 +701,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   var jason = JSON.parse(data);
 
   /** Remove any information from graphs */
-  // this.removeGraphInfo(nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  this.removeGraphInfo(nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
 
   /** Instantiate renderer, scene, camera and lights, and configure additional parameters */
   this.configAPIParams(mainSection, WebGL);
@@ -688,7 +714,15 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo, (parseInt(Math.max(...numOfLevels))+2)*2.0, 2.0, Array(0.0, 0.0, 0.0));
 
   /** Build and render bipartite graphs from previous levels of coarsening */
-  if(parseInt(this.onlyCoarsest) == 0) this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  if(parseInt(this.onlyCoarsest) == 0)
+  {
+    vueRootInstance.$data.graphInfo.rows = [];
+    this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  }
+  else
+  {
+    this.displayGraphInfo(jason);
+  }
 
   delete jason;
 

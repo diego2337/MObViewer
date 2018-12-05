@@ -19,6 +19,7 @@ var GradientLegend = function(linearScale, minDomainValue, maxDomainValue, width
   {
     // this.graphInfo = graphInfo;
     this.spanElementId = "spanElementId";
+    this.gradientLegendId = "gradientScaleId";
     this.width = ecmaStandard(width, 300);
     this.height = ecmaStandard(height, 50);
     this.minDomainValue = ecmaStandard(minDomainValue, 1.0);
@@ -43,7 +44,7 @@ GradientLegend.prototype.clear = function()
   try
   {
     d3.select("#" + this.spanElementId).remove();
-    d3.select("svg").remove();
+    d3.select("#" + this.gradientLegendId).remove();
   }
   catch(err)
   {
@@ -71,6 +72,7 @@ GradientLegend.prototype.createGradientLegend = function(elementId, gradientTitl
     /** Create SVG element */
     var key = d3.select("#" + elementId)
       .append("svg")
+      .attr("id", this.gradientLegendId)
       .attr("width", this.width)
       .attr("height", this.height)
       .style("margin", "25px");

@@ -30,7 +30,7 @@ Vue.component('mdl-icon', {
 Vue.component('mdl-card', {
  props: ['identification', 'tooltip', 'title'],
  template: `
-  <div v-bind:id="identification" class="scrollable-y scrollable-x mdl-card mdl-shadow--2dp">
+  <div v-bind:id="identification" class="scrollable-y scrollable-x mdl-card mdl-expandable-card mdl-shadow--2dp">
     <div class="mdl-card__title mdl-card--table__header">
       <h4 class="mdl-card__title-text">{{ title }}</h4>
     </div>
@@ -111,7 +111,8 @@ var vueRootInstance = new Vue({
     margins5: { margin: '5px' },
     floatLeft: { float: 'left' },
     floatRight: { float: 'right' },
-    overflowAuto: { overflow: 'scroll' },
+    overflowAuto: { overflow: 'auto' },
+    absolute: { position: 'absolute' },
     /** HTML elements */
     buttons: [
       { identification: 'jsonInfo', title: 'Define json input', description: 'Toggle between showing or hiding dialog for input parameters.' },
@@ -147,7 +148,7 @@ var vueRootInstance = new Vue({
     ],
     headers: "",
     rows: "",
-    graphInfo: { headers: ['Graph level', 'Vertices', 'Edges', 'First layer', 'Second layer'], rows: [['#1', '770', '887', '274', '496'], ['#2', '540', '605', '192', '348'], ['#3', '379', '419', '135', '244']] },
+    graphInfo: { headers: ['Graph level', 'Vertices', 'Edges', 'First layer', 'Second layer'], rows: [] },
   },
 })
 

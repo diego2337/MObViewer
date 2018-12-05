@@ -5,7 +5,13 @@
 
 .mdl-card {
   overflow: auto;
+  transition: All 1s ease-in-out;
 }
+
+/*.mdl-expandable-card:hover {
+  position: fixed;
+  width: 500px;
+}*/
 /*.mdl-card__title {
   color: #fff;
   padding-top: 20px;
