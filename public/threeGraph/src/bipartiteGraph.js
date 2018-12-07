@@ -216,7 +216,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   var singleGeometry = new THREE.Geometry();
   /** y represents space between two layers, while theta space between each vertice of each layer */
   var y = -document.getElementById("mainSection").clientHeight/this.distanceBetweenSets;
-  var theta = 15;
+  var theta = 20;
   /** Define x-axis starting position */
   var pos = (-1 * (parseInt(this.firstLayer) / 2.0));
   /** Fill an array with nodes from first set */

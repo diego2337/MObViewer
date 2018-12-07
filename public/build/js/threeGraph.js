@@ -216,7 +216,7 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   var singleGeometry = new THREE.Geometry();
   /** y represents space between two layers, while theta space between each vertice of each layer */
   var y = -document.getElementById("mainSection").clientHeight/this.distanceBetweenSets;
-  var theta = 15;
+  var theta = 20;
   /** Define x-axis starting position */
   var pos = (-1 * (parseInt(this.firstLayer) / 2.0));
   /** Fill an array with nodes from first set */
@@ -2816,12 +2816,12 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
     var mesh = scene.getObjectByName(eventHandler.neighbors[i].mesh);
     for(var j = 0; j < 32; j++)
     {
-      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j] !== undefined)
+      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j] !== undefined && mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)].properties !== undefined)
       {
         // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.8, 0.8, 0.8);
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.b-0.3);
       }
-      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
+      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined && mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)].properties !== undefined)
       {
         // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.8, 0.8, 0.8);
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.b-0.3);

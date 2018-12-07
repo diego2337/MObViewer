@@ -1005,7 +1005,6 @@ exports.defineLabel = function(req, res){
  */
 exports.createGraphColors = function(req, res){
   var label = indexController.fs.readFileSync('label.txt', 'utf8');
-  console.log("indexController.fileName: " + indexController.fileName);
   var graphFile = indexController.fs.readFileSync('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + indexController.fileName.split(".")[0] + ".json", 'utf8');
   graphFile = JSON.parse(graphFile);
   /** Iterate through all nodes and store existing values on a dictionary */
