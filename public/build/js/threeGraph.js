@@ -2631,8 +2631,8 @@ class d3WordCloud extends d3Position
       .selectAll("text")
       .data(words)
       .enter().append("text")
-        .style("font-size", function(d) {console.log(d3WordCloudScope); return d3WordCloudScope.getXScale(d.value) + "px"; })
-        .style("font-family", "Impact")
+        .style("font-size", function(d) { return d3WordCloudScope.getXScale(d.value) + "px"; })
+        .style("font-family", "Palatino")
         .style("fill", function(d, i) { return fill(i); })
         .attr("text-anchor", "middle")
         .attr("transform", function(d) {
@@ -2670,7 +2670,7 @@ class d3WordCloud extends d3Position
           .text(function(d) { return d.key; })
           .rotate(function() { return ~~(Math.random() * 2); })
           // .rotate(function() { return ~~(Math.random() * 2) * 90; })
-          .font("Impact")
+          .font("Palatino")
           .on("end", function(words){
             var fill = d3.scaleOrdinal(d3.schemeCategory20);
             d3.select("#wordCloudCard").append("svg")
@@ -2683,7 +2683,7 @@ class d3WordCloud extends d3Position
              .data(words)
              .enter().append("text")
                .style("font-size", function(d) { return d3WordCloudScope.getXScale(d.value) + "px"; })
-               .style("font-family", "Impact")
+               .style("font-family", "Palatino")
                .style("fill", function(d, i) { return fill(i); })
                .attr("text-anchor", "middle")
                .attr("transform", function(d) {
@@ -2821,7 +2821,7 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
         // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.8, 0.8, 0.8);
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.b-0.3);
       }
-      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined && mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)].properties !== undefined)
+      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined && mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)].properties !== undefined)
       {
         // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.8, 0.8, 0.8);
         mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.b-0.3);
