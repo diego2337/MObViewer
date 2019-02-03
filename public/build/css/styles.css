@@ -43,6 +43,22 @@
   background: #3F51B5;
 }*/
 
+#divVertexInfoTable {
+  transition: all .2s ease-in-out;
+}
+
+#divVertexInfoTableSecondLayer {
+  transition: all .2s ease-in-out;
+}
+
+#divVertexInfoTable:hover {
+  width: 1000px;
+}
+
+#divVertexInfoTableSecondLayer:hover {
+  width: 1000px;
+}
+
 .scrollable-x {
   max-width: 100%;
   overflow-x: scroll;

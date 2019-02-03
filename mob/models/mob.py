@@ -449,7 +449,6 @@ class MGraph(Graph):
 		"""
 		Naive matching via weight-constrained label propagation and neigborhood.
 		"""
-
 		if global_min_vertices:
 			min_vertices = global_min_vertices
 		else:
