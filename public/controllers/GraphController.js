@@ -670,16 +670,39 @@ function getFrequencies(node)
   }
   for(el in node.vertexes)
   {
-    var neighbors = getNeighbors(node.vertexes[el].id, 0);
-    for(neighbor in neighbors)
+    try
     {
-      if(Object.keys(neighbors[neighbor])[0] in words)
+      var wordCloud = indexController.fs.readFileSync('wordCloud.txt', 'utf8');
+    }
+    catch(err)
+    {
+      wordCloud = undefined;
+    }
+    if(wordCloud != undefined && wordCloud in node.vertexes[el])
+    {
+      if(el[wordCloud] in words)
       {
-        words[Object.keys(neighbors[neighbor])[0]] = words[Object.keys(neighbors[neighbor])[0]] + neighbors[neighbor][Object.keys(neighbors[neighbor])[0]];
+        words[node.vertexes[el][wordCloud]] = words[node.vertexes[el][wordCloud]] + 1;
       }
       else
       {
-        words[Object.keys(neighbors[neighbor])[0]] = neighbors[neighbor][Object.keys(neighbors[neighbor])[0]];
+        words[node.vertexes[el][wordCloud]] = 1;
+      }
+    }
+    else
+    {
+      /** If clicked vertice is a neighbor, search for neighbors that are words */
+      var neighbors = getNeighbors(node.vertexes[el].id, 0);
+      for(neighbor in neighbors)
+      {
+        if(Object.keys(neighbors[neighbor])[0] in words)
+        {
+          words[Object.keys(neighbors[neighbor])[0]] = words[Object.keys(neighbors[neighbor])[0]] + neighbors[neighbor][Object.keys(neighbors[neighbor])[0]];
+        }
+        else
+        {
+          words[Object.keys(neighbors[neighbor])[0]] = neighbors[neighbor][Object.keys(neighbors[neighbor])[0]];
+        }
       }
     }
   }
