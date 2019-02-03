@@ -5536,9 +5536,9 @@ statsHandler.prototype.visualizeStats = function(id)
     type: 'POST',
     data: { vertexId: id },
     success: function(html){
-      html = JSON.parse(html).arr;
-      if(html != undefined || html != "" || (html.length !== undefined && html.length > 0))
+      if(html != undefined && html != "" && (html.length !== undefined && html.length > 0))
       {
+          html = JSON.parse(html).arr;
           statsHandlerScope.d3BarChart.populateAndShowBarChart(html);
           $("#vertexStatsCard").css('visibility', 'visible');
       }
