@@ -43,6 +43,22 @@
   background: #3F51B5;
 }*/
 
+#vertexStatsCard {
+  transition: all .2s ease-in-out;
+}
+
+#vertexStatsCard:hover {
+  width: 500px;
+}
+
+#wordCloudCard {
+  transition: all .2s ease-in-out;
+}
+
+#wordCloudCard:hover {
+  width: 500px;
+}
+
 #divVertexInfoTable {
   transition: all .2s ease-in-out;
 }

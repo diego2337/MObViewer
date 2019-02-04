@@ -636,13 +636,22 @@ function getNeighbors(id, level)
   });
   /** FIXME - maybe use binary search? Currently searching sequentially for id vertex in edge array */
   var i = 0;
-  while(i < edges.length && edges[i].source != id)
+  while(i < edges.length && (parseInt(edges[i].source) != parseInt(id) && parseInt(edges[i].target) != parseInt(id)))
   {
     i = i + 1;
   }
-  for(; i < edges.length && edges[i].source == id; i++)
+  for(; i < edges.length && (parseInt(edges[i].source) == parseInt(id) || parseInt(edges[i].target) == parseInt(id)); i++)
   {
-    if(wordCloud != undefined) neighbors.push({ [graphFile['nodes'][edges[i].target][wordCloud]]: parseFloat(edges[i].weight) });
+    var t;
+    if(parseInt(edges[i].source) == parseInt(id))
+    {
+      t = "target";
+    }
+    else
+    {
+      t = "source";
+    }
+    if(wordCloud != undefined) neighbors.push({ [graphFile['nodes'][edges[i][t]][wordCloud]] : parseFloat(edges[i].weight) });
   }
   /** Return neighbors */
   return neighbors;
@@ -678,6 +687,7 @@ function getFrequencies(node)
     {
       wordCloud = undefined;
     }
+    /** Search inside super-vertice for attributes that match 'wordCloud' */
     if(wordCloud != undefined && wordCloud in node.vertexes[el])
     {
       if(el[wordCloud] in words)

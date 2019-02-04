@@ -135,7 +135,7 @@ var vueRootInstance = new Vue({
       // { identification: 'graphInfo', tooltip: 'graphInfoTooltip', title: 'Graph info' },
       { identification: 'wordCloudCard', tooltip: 'wordCloudCardTooltip', title: 'Word cloud' },
       { identification: 'vertexStatsCard', tooltip: 'vertexStatsCardTooltip', title: 'Frequency histogram' },
-      { identification: 'gradientScale', tooltip: 'gradientScaleTooltip', title: 'Edge weights' },
+      // { identification: 'gradientScale', tooltip: 'gradientScaleTooltip', title: 'Edge weights' },
       // { identification: 'communityLegend', tooltip: 'communityLegendTooltip', title: 'Communities legend' }
     ],
     icons: [

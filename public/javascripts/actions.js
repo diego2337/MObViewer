@@ -626,6 +626,9 @@ $("#useLabel").on('click', function(){
   });
 });
 
+/** Open a bigger mdl-card showing entire word cloud */
+
+
 /** Trigger upload-input element click */
 $("#loadGraphButton").on('click', function (){
     $('#upload-input').click();

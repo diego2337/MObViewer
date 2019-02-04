@@ -69,15 +69,10 @@
       </mdl-header>
       <!-- Aside section of page -->
       <mdl-aside v-bind:style="floatLeft">
-        <mdl-card v-bind:style="margins" identification="graphInteraction" tooltip="tooltipInteraction" title="Graph interaction">
-          <ul class="mdl-mini-footer__link-list">
-            <div v-for="icon in icons">
-              <li><mdl-icon v-bind:style="[margins]" v-bind:icon="icon.icon" v-bind:tooltip="icon.tooltip" v-bind:description="icon.description"></mdl-icon></li>
-            </div>
-          </ul>
-        </mdl-card>
-        <mdl-card v-bind:style="margins" identification="communityLegend" tooltip="communityLegendTooltip" title="Communities legend">
-        </mdl-card>
+        <div v-for="card in cards">
+          <mdl-card v-bind:style="margins" v-bind:identification="card.identification" v-bind:tooltip="card.tooltip" v-bind:title="card.title">
+          </mdl-card>
+        </div>
         <div v-for="tableCard in tableCards">
           <mdl-card v-bind:style="margins" v-bind:identification="tableCard.identification" v-bind:tooltip="tableCard.tooltip" v-bind:title="tableCard.title">
             <table v-bind:style="margins" v-bind:id="tableCard.tableId" class="mdl-data-table mdl-js-data-table">
@@ -129,10 +124,17 @@
             </tbody>
           </table>
         </mdl-card>
-        <div v-for="card in cards">
-          <mdl-card v-bind:style="margins" v-bind:identification="card.identification" v-bind:tooltip="card.tooltip" v-bind:title="card.title">
-          </mdl-card>
-        </div>
+        <mdl-card v-bind:style="margins" identification="graphInteraction" tooltip="tooltipInteraction" title="Graph interaction">
+          <ul class="mdl-mini-footer__link-list">
+            <div v-for="icon in icons">
+              <li><mdl-icon v-bind:style="[margins]" v-bind:icon="icon.icon" v-bind:tooltip="icon.tooltip" v-bind:description="icon.description"></mdl-icon></li>
+            </div>
+          </ul>
+        </mdl-card>
+        <mdl-card v-bind:style="margins" identification="communityLegend" tooltip="communityLegendTooltip" title="Communities legend">
+        </mdl-card>
+        <mdl-card v-bind:style="margins" identification="gradientScale" tooltip="gradientScaleTooltip" title="Edge weights">
+        </mdl-card>
       </mdl-aside>
     </div>
     <script src="build/js/threeGraph.js"></script>
