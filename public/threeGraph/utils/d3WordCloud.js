@@ -60,7 +60,7 @@ class d3WordCloud extends d3Position
            }), d3.max(words, function(d){
              return parseFloat(d.value);
            })])
-          .range([15,50]);
+          .range([13,48]);
    }
 
    /**

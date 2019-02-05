@@ -30,7 +30,7 @@ Vue.component('mdl-icon', {
 Vue.component('mdl-card', {
  props: ['identification', 'tooltip', 'title'],
  template: `
-  <div v-bind:id="identification" class="scrollable-y scrollable-x mdl-card mdl-expandable-card mdl-shadow--2dp">
+  <div v-bind:id="identification" class="mdl-card mdl-shadow--2dp scrollable-y scrollable-x">
     <div class="mdl-card__title mdl-card--table__header">
       <h4 class="mdl-card__title-text">{{ title }}</h4>
     </div>

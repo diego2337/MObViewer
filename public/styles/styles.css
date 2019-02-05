@@ -4,6 +4,7 @@
 
 #vertexStatsCard:hover {
   width: 500px;
+  height: 400px;
 }
 
 #wordCloudCard {
@@ -12,6 +13,7 @@
 
 #wordCloudCard:hover {
   width: 500px;
+  height: 450px;
 }
 
 #divVertexInfoTable {
@@ -31,12 +33,12 @@
 }
 
 .scrollable-x {
-  max-width: 100%;
+  width: 320px;
   overflow-x: scroll;
 }
 
 .scrollable-y {
-  max-height: 100%;
+  height: 320px;
   overflow-y: scroll;
 }
 
