@@ -699,14 +699,21 @@ $("#defineWordCloud").on('click', function(){
 /** Toggle between showing all coarsened graphs in the hierarchy or just most coarsened */
 $("#toggleLayout").on('click', function(){
   $.ajax({
-    url: '/graph/getMostCoarsenedGraph',
+    url: '/graph/getConfFile',
     type: 'POST',
-    data: { graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0], firstSetLevel: parseInt(JSON.parse($("#jsonTextArea")[0].value).max_levels[0]), secondSetLevel: parseInt(JSON.parse($("#jsonTextArea")[0].value).max_levels[1]), onlyCoarsest: parseInt(layout.onlyCoarsest) == 1 ? 0 : 1 },
-    success: function(html) {
-      graphUpdate(html);
+    success: function(data) {
+      $.ajax({
+        url: '/graph/getMostCoarsenedGraph',
+        type: 'POST',
+        // data: { graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0], firstSetLevel: parseInt(JSON.parse($("#jsonTextArea")[0].value).max_levels[0]), secondSetLevel: parseInt(JSON.parse($("#jsonTextArea")[0].value).max_levels[1]), onlyCoarsest: parseInt(layout.onlyCoarsest) == 1 ? 0 : 1 },
+        data: { graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0], firstSetLevel: parseInt(JSON.parse(data).conf.total_levels[0]), secondSetLevel: parseInt(JSON.parse(data).conf.total_levels[1]), onlyCoarsest: parseInt(layout.onlyCoarsest) == 1 ? 0 : 1 },
+        success: function(html) {
+          graphUpdate(html);
+        }
+      });
     }
   });
-}) ;
+});
 
 /** Clear data table on click */
 $("#clearTable1").on('click', function(){

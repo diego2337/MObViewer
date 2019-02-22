@@ -2599,7 +2599,7 @@ class d3WordCloud extends d3Position
            }), d3.max(words, function(d){
              return parseFloat(d.value);
            })])
-          .range([13,48]);
+          .range([10,45]);
    }
 
    /**
@@ -2654,6 +2654,8 @@ class d3WordCloud extends d3Position
    {
      try
      {
+       console.log("words:");
+       console.log(words);
       // super.setHTMLelement(ecmaStandard(HTMLelement, super.getHTMLelement()));
       // super.setWidth(ecmaStandard(width, super.getWidth()));
       // super.setHeight(ecmaStandard(width, super.getHeight()));

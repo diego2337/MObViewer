@@ -44,4 +44,6 @@ router.post('/graph/fetchWords', graphController.fetchWords);
 
 router.post('/graph/defineWordCloud', graphController.defineWordCloud);
 
+router.post('/graph/getConfFile', graphController.getConfFile);
+
 module.exports = router;

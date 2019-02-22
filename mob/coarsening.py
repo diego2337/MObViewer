@@ -238,7 +238,7 @@ def main():
 					if options.matching[layer] in ['mlp']:
 						param['tolerance'] = options.tolerance[layer]
 						param['itr'] = options.itr[layer]
-
+					# TODO - Here to run co-cluster
 					if options.matching[layer] in ['hem', 'lem', 'rm']:
 						one_mode_graph = graph.weighted_one_mode_projection(vertices)
 						matching_method = getattr(one_mode_graph, options.matching[layer])
@@ -301,7 +301,7 @@ def main():
 
 			if options.save_source:
 				# with open(output + '_' + str(index) + '.source', 'w+') as f:
-				with open(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.predecessor', 'w+') as f:
+				with open(output + 'l' + ''.join(str(options.reduction_factor[0]).split('.')) + 'r' + ''.join(str(options.reduction_factor[1]).split('.')) + 'nl' + str(levels[0]) + 'nr' + str(levels[1]) + '.source', 'w+') as f:
 					for v in graph.vs():
 						f.write(' '.join(map(str, v['source'])) + '\n')
 

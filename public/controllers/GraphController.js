@@ -631,27 +631,42 @@ function getNeighbors(id, level)
   /** Find neighbors of a given vertex id */
   /** Sort edges array */
   var edges = graphFile['links'];
-  edges.sort(function(a, b){
-    return a.source - b.source;
-  });
-  /** FIXME - maybe use binary search? Currently searching sequentially for id vertex in edge array */
-  var i = 0;
-  while(i < edges.length && (parseInt(edges[i].source) != parseInt(id) && parseInt(edges[i].target) != parseInt(id)))
-  {
-    i = i + 1;
-  }
-  for(; i < edges.length && (parseInt(edges[i].source) == parseInt(id) || parseInt(edges[i].target) == parseInt(id)); i++)
+  // edges.sort(function(a, b){
+  //   return parseInt(a.source) - parseInt(b.source);
+  // });
+  // /** FIXME - maybe use binary search? Currently searching sequentially for id vertex in edge array */
+  // var i = 0;
+  // while(i < edges.length && (parseInt(edges[i].source) != parseInt(id) && parseInt(edges[i].target) != parseInt(id)))
+  // {
+  //   i = i + 1;
+  // }
+  // for(; i < edges.length && (parseInt(edges[i].source) == parseInt(id) || parseInt(edges[i].target) == parseInt(id)); i++)
+  // {
+  //   var t;
+  //   if(parseInt(edges[i].source) == parseInt(id))
+  //   {
+  //     t = "target";
+  //   }
+  //   else
+  //   {
+  //     t = "source";
+  //   }
+  //   if(wordCloud != undefined) neighbors.push({ [graphFile['nodes'][edges[i][t]][wordCloud]] : parseFloat(edges[i].weight) });
+  // }
+  /* FIXME - Super slow (O(n)) method to search for elements, use a faster approach to solve problem */
+  for(var i = 0; i < edges.length; i++)
   {
     var t;
     if(parseInt(edges[i].source) == parseInt(id))
     {
       t = "target";
+      if(wordCloud != undefined) neighbors.push({ [graphFile['nodes'][edges[i][t]][wordCloud]] : parseFloat(edges[i].weight) });
     }
-    else
+    else if(parseInt(edges[i].target) == parseInt(id))
     {
       t = "source";
+      if(wordCloud != undefined) neighbors.push({ [graphFile['nodes'][edges[i][t]][wordCloud]] : parseFloat(edges[i].weight) });
     }
-    if(wordCloud != undefined) neighbors.push({ [graphFile['nodes'][edges[i][t]][wordCloud]] : parseFloat(edges[i].weight) });
   }
   /** Return neighbors */
   return neighbors;
@@ -787,6 +802,8 @@ exports.getGraph = function(req, res){
  */
 exports.getMostCoarsenedGraph = function(req, res){
   /** Execute python script to get most coarsened graph */
+  // console.log('python mob/getMostCoarsened.py -i ' + req.body.graphName + "nl" + req.body.firstSetLevel + "nr" + req.body.secondSetLevel + ' -d ' + 'uploads' + indexController.folderChar + req.body.graphName + indexController.folderChar);
+  // indexController.nodeCmd.get('python mob/getMostCoarsened.py -i ' + req.body.graphName + "nl" + req.body.firstSetLevel + "nr" + req.body.secondSetLevel + ' -d ' + 'uploads' + indexController.folderChar + req.body.graphName + indexController.folderChar, function(dat, name, stderror){
   console.log('python mob/getMostCoarsened.py -i ' + req.body.graphName + ' -d ' + 'uploads' + indexController.folderChar + req.body.graphName + indexController.folderChar);
   indexController.nodeCmd.get('python mob/getMostCoarsened.py -i ' + req.body.graphName + ' -d ' + 'uploads' + indexController.folderChar + req.body.graphName + indexController.folderChar, function(dat, name, stderror){
     if(name)
@@ -1179,7 +1196,7 @@ exports.fetchWords = function(req, res){
 }
 
 /**
- * Server-side callback function from 'express' framework for create word cloud. Create a 'wordCloud.txt' file, to be later used
+ * Server-side callback function from 'express' framework for create word cloud. Create a 'wordCloud.txt' file, to be later used in word cloud.
  * @public @callback
  * @param {Object} req header incoming from HTTP;
  * @param {Object} res header to be sent via HTTP for HTML page.
@@ -1198,4 +1215,19 @@ exports.defineWordCloud = function(req, res){
       res.end();
     }
   });
+}
+
+/**
+ * Server-side callback function from 'express' framework for get conf file. Get a graph ".conf" file, containing information regarding coarsening process.
+ * @public @callback
+ * @param {Object} req header incoming from HTTP;
+ * @param {Object} res header to be sent via HTTP for HTML page.
+ */
+exports.getConfFile = function(req, res){
+  /** Read 'graph.conf' file */
+  confFile = indexController.fs.readFileSync('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + indexController.fileName.split(".")[0] + "Coarsened.conf", 'utf8');
+  confFile = JSON.parse(confFile);
+  /** Return to client-side */
+  res.type('text');
+  res.end(JSON.stringify({ conf: confFile }));
 }
