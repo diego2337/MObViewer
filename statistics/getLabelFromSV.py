@@ -44,21 +44,20 @@ def getLabelFromSV(file, verts, label, side, output):
 					if(superVertex[label] not in labelDict):
 						labelDict[superVertex[label]] = labelIndex
 						labelIndex = labelIndex + 1
-					predictedArr[int(superVertex['id'])] = labelDict[superVertex[label]]
-					# if(side == 1):
-					#	predictedArr[int(superVertex['id'])] = i-vertices[0]
-					# else:
-					#	predictedArr[int(superVertex['id'])] = i
+					if(side == 1):
+						predictedArr[int(superVertex['id'])] = i-vertices[0]
+					else:
+						predictedArr[int(superVertex['id'])] = i
 	superVertexesSize = i
 	# Step 4 - Fit array size and write to vector #
 	if(side == 0):
 		predictedArr = predictedArr[:verts[0]]
 	elif(side == 1):
 		predictedArr = predictedArr[verts[0]:]
-	# elif(side == 2):
-	#	for i in range(0, len(predictedArr)):
-	#		if(predictedArr[i] != -1):
-	#			predictedArr[i] = predictedArr[i] % int(math.ceil(superVertexesSize/2))
+	elif(side == 2):
+		for i in range(0, len(predictedArr)):
+			if(predictedArr[i] != -1):
+				predictedArr[i] = predictedArr[i] % int(math.ceil(superVertexesSize/2))
 	outputFile = open(output + '.txt', 'w')
 	outputFile.write(str(predictedArr))
 

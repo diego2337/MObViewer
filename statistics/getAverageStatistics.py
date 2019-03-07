@@ -14,6 +14,8 @@ from getModularity import *
 from getStatistics import *
 from getAndProcessCoarsening import *
 
+# @returns {tuple} Values for [nmi with multilevel paradigm for first layer, nmi with multilevel paradigm for second layer, average nmi with multilevel paradigm, nmi with co-cluster for first layer, nmi with co-cluster for second layer, average nmi with co-cluster, modularity for multilevel paradigm, modularity for co-cluster]
+
 # @desc Get average from statistics for coarsened bipartite graph.
 # @param {str} file .json file representing uncoarsened bipartite graph.
 # @param {str} ncol .ncol file to be read.
@@ -24,18 +26,18 @@ from getAndProcessCoarsening import *
 # @param {str} input Input to use for 'coarsening' of multilevel paradigm.
 # @param {str} path Path where 'coarsening.py' file is.
 # @param {int} times Number of times to run statistics, for average.
-# @returns {tuple} Values for [nmi with multilevel paradigm for first layer, nmi with multilevel paradigm for second layer, average nmi with multilevel paradigm, nmi with co-cluster for first layer, nmi with co-cluster for second layer, average nmi with co-cluster, modularity for multilevel paradigm, modularity for co-cluster]
+# @returns {tuple} Values for [average nmi with multilevel paradigm, average nmi with co-cluster, modularity for multilevel paradigm, modularity for co-cluster]
 def getAverageStatistics(file, ncol, clusters, label, side, vertices, input, path, times):
 	# Step 1 - Loop for n-times #
 	averageStats = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 	for i in range(0, times):
-        	print "Execution number " + str(i+1)
+        	print("Execution number " + str(i+1))
 		# # Step 2 - Open 'input' and find 'directory' file #
   #       	f = open(input + "/input.json", "r")
 		# entrada = json.load(f)
   #       	f.close()
 		# Step 3 - Remove any elements in 'directory' path, avoid name conflicts between executions #
-		print "Removing files from previous \'coarsening\' execution."
+		print("Removing files from previous \'coarsening\' execution.")
 		# os.system('rm ' + "/".join(file.split("/")[:-1]) + '/((?!' + file.split("/")[-1].split(".")[0] + ').)*')
         	pwd = os.getcwd()
         	# print 'cd ' + "/".join(file.split("/")[:-1]) + '; rm $(find -type f ! -name ' + file.split("/")[-1] + '); cd ' + pwd
@@ -48,7 +50,7 @@ def getAverageStatistics(file, ncol, clusters, label, side, vertices, input, pat
         	print statistics
 	    	for j in range(0, len(averageStats)):
 	    		averageStats[j] = averageStats[j] + statistics[j]
-        	print "--------------------------------------------------------"
+        	print("--------------------------------------------------------")
 	# Step 6 - Calculate average #
 	for k in range(0, len(averageStats)):
 		averageStats[k] = averageStats[k] / times
@@ -80,11 +82,11 @@ if __name__ == "__main__":
     options = parser.parse_args()
 
     averageStats = getAverageStatistics(options.file, options.ncol, options.clusters, options.label, options.side, options.vertices, options.input, options.path, options.times)
-    print "NMI for Multilevel paradigm algorithm:"
-    print averageStats[2]
-    print "NMI for Spectral Co-Clustering algorithm:"
-    print averageStats[5]
-    print "Modularity for Multilevel paradigm algorithm:"
-    print averageStats[6]
-    print "Modularity for Spectral Co-Clustering algorithm:"
-    print averageStats[7]
+    print("NMI for Multilevel paradigm algorithm:")
+    print(averageStats[0])
+    print("NMI for Spectral Co-Clustering algorithm:")
+    print(averageStats[1])
+    print("Modularity for Multilevel paradigm algorithm:")
+    print(averageStats[2])
+    print("Modularity for Spectral Co-Clustering algorithm:")
+    print(averageStats[3])
