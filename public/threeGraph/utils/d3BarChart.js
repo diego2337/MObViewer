@@ -200,7 +200,8 @@ d3BarChart.prototype.definePosition = function(position)
 d3BarChart.prototype.created3BarChart = function(HTMLelement)
 {
   /** FIXME - receive width and height from parameters */
-  var width = height = 300;
+  var height = 300;
+  var width = 600;
   this.parentElement = ecmaStandard(HTMLelement, this.parentElement);
   /** Create bar chart */
   this.barChart = d3.select("#" + this.parentElement)
@@ -212,7 +213,7 @@ d3BarChart.prototype.created3BarChart = function(HTMLelement)
   /** Define dimensions if none was defined */
   if(this.getMargin() == undefined)
   {
-    this.setMargin({top: 20, right: 20, bottom: 40, left: 80});
+    this.setMargin({top: 20, right: 20, bottom: 150, left: 50});
     /** Define sizes */
     this.defineSizes(+width - this.getMargin().left - this.getMargin().right, +height - this.getMargin().top - this.getMargin().bottom);
     /** Define axes */
@@ -236,6 +237,63 @@ d3BarChart.prototype.populateAndShowBarChart = function(data)
 }
 
 /**
+ * FIXME - Not d3BarChart responsibility
+ * @desc Return bar chart data properties, to be used as labels for x axis.
+ * @param {Array} data String-like or Array data to populate bar chart.
+ * @returns {Array} Sorted array of properties.
+ */
+d3BarChart.prototype.getProperties = function(data)
+{
+  var dict = {};
+  for(element in data)
+  {
+    if(!(data[element].property in dict))
+    {
+      dict[data[element].property] = 1;
+    }
+  }
+  return Object.keys(dict).sort();
+}
+
+/**
+ * @desc Create dashed lines according to number of categories and amount of values for each category.
+ * @public
+ * @param {(String|Array)} data String-like or Array data to populate bar chart.
+ */
+d3BarChart.prototype.createDashedLines = function(data)
+{
+  // /** Count number of categories and values for each category */
+  // var cats = {};
+  // for(var i = 0; i < data.length; i++)
+  // {
+  //   if(!(data[i].property in cats))
+  //   {
+  //     if(i != 0)
+  //     {
+  //       cats[data[i-1].property].endIndex = i;
+  //     }
+  //     cats[data[i].property] = { startIndex: i, endIndex: -1 };
+  //   }
+  // }
+  // /** Draw lines according to number of properties */
+  // var properties = Object.keys(cats);
+  // for(var i = 0; i < properties.length-1; i++)
+  // {
+  //   /** Draw line according to start and end indexes */
+  //   this.getG().append('line')
+  //       // .attr('x1', (cats[properties[i]].endIndex*this.getX().bandwidth())+(cats[properties[i]].startIndex*this.getX().bandwidth())+32)
+  //       .attr('x1', (cats[properties[i]].endIndex*this.getX().bandwidth()))
+  //       .attr('y1', 0)
+  //       // .attr('x2', (cats[properties[i]].endIndex*this.getX().bandwidth())+(cats[properties[i]].startIndex*this.getX().bandwidth())+32)
+  //       .attr('x2', (cats[properties[i]].endIndex*this.getX().bandwidth()))
+  //       .attr('y2', this.getHeight())
+  //       .style("stroke-dasharray", ("3, 3"))
+  //       .style("stroke-width", "2")
+  //       .style("stroke", "rgb(0, 0, 0)");
+  // }
+}
+
+/**
  * @desc Populates bar chart with information provided by data, setting domains and ticks for axes.
  * @public
  * @param {(String|Array)} data String-like or Array data to populate bar chart.
@@ -250,17 +308,31 @@ d3BarChart.prototype.populateBarChart = function(data)
     this.getG().append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + this.getHeight() + ")")
-        .call(d3.axisBottom(this.getX()));
+        .call(d3.axisBottom(this.getX()))
+        .selectAll("text")
+        .attr("transform", "rotate(90)")
+        // .attr("x", 22)
+        .attr("x", 60)
+        .attr("y", -6);
+
+    /** Add label for x-axis */
+    this.barChart.append("text")
+    	  .attr("transform", "translate(" + (this.getWidth()/2) + " ," + (this.getHeight()+150) + ")")
+    	  .style("text-anchor", "middle")
+    	  .text(this.getProperties(data));
 
     this.getG().append("g")
         .attr("class", "axis axis--y")
         .call(d3.axisLeft(this.getY()).ticks(10).tickFormat(function(d){ return d + "%"; }))
       .append("text")
         .attr("transform", "rotate(-90)")
-        .attr("y", 6)
+        .attr("y", -20)
         .attr("dy", "0.71em")
         .attr("text-anchor", "end")
         .text("Frequency");
+
+    /** Create a dashed line to separate different bar charts */
+    this.createDashedLines(data);
 
   	// // text label for the x axis
   	// this.barChart().append("text")

@@ -1,0 +1,259 @@
+{
+	"descriptions": "Coarsening bipartite networks basead on neighborhood.",
+	"in": {
+		"long": "input",
+		"required": false,
+		"dest": "input",
+		"type": "str",
+		"nargs": "?",
+		"action": "store",
+		"default": null,
+		"help": "bipartite Graph file name"
+	},
+	"dir": {
+		"long": "directory",
+		"required": false,
+		"dest": "directory",
+		"type": "str",
+		"nargs": "?",
+		"action": "store",
+		"default": null,
+		"help": "output directory name"
+	},
+	"out": {
+		"long": "output",
+		"required": false,
+		"dest": "output",
+		"type": "str",
+		"nargs": "?",
+		"action": "store",
+		"default": null,
+		"help": "output file name"
+	},
+	"attr": {
+		"long": "attr",
+		"required": false,
+		"dest": "attr",
+		"type": "str",
+		"nargs": "?",
+		"action": "store",
+		"default": null,
+		"help": "output file name"
+	},
+	"cnf": {
+		"long": "conf",
+		"required": false,
+		"dest": "conf",
+		"type": "str",
+		"nargs": "?",
+		"action": "store",
+		"default": null,
+		"help": "config file name"
+	},
+	"v": {
+		"long": "vertices",
+		"required": false,
+		"dest": "vertices",
+		"type": "int",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "number of vertices for each layer"
+	},
+	"r": {
+		"long": "reduction_factor",
+		"required": false,
+		"dest": "reduction_factor",
+		"type": "float",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "reduction factor for each layer"
+	},
+	"m": {
+		"long": "max_levels",
+		"required": false,
+		"dest": "max_levels",
+		"type": "int",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "max levels for each layer"
+	},
+	"gmv": {
+		"long": "global_min_vertices",
+		"required": false,
+		"dest": "global_min_vertices",
+		"type": "int",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "number of vertices for each layer in the last level"
+	},
+	"k": {
+		"long": "k",
+		"required": false,
+		"dest": "k",
+		"type": "int",
+		"nargs": "?",
+		"action": "store",
+		"default": null,
+		"help": "number of communities"
+	},
+	"t": {
+		"long": "tolerance",
+		"required": false,
+		"dest": "tolerance",
+		"type": "float",
+		"nargs": "?",
+		"action": "store",
+		"default": null,
+		"help": "tolerance"
+	},
+	"itr": {
+		"long": "itr",
+		"required": false,
+		"dest": "itr",
+		"type": "int",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "number of iterations for each layer in the coarsening algorithm"
+	},
+	"ub": {
+		"long": "upper_bound",
+		"required": false,
+		"dest": "upper_bound",
+		"type": "int",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "upper bound for each layer"
+	},
+	"c": {
+		"long": "matching",
+		"required": false,
+		"dest": "matching",
+		"type": "str",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "matching method for each layer"
+	},
+	"a": {
+		"long": "algorithm",
+		"required": false,
+		"dest": "algorithm",
+		"type": "str",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "algorithm"
+	},
+	"s": {
+		"long": "similarity",
+		"required": false,
+		"dest": "similarity",
+		"type": "str",
+		"nargs": "+",
+		"action": "store",
+		"default": null,
+		"help": "similarity measure for each layer"
+	},
+	"scnf": {
+		"long": "save_conf",
+		"required": false,
+		"dest": "save_conf",
+		"action": "store_true",
+		"default": false,
+		"help": "save config file"
+	},
+	"sgml": {
+		"long": "save_gml",
+		"required": false,
+		"dest": "save_gml",
+		"action": "store_true",
+		"default": false,
+		"help": "save gml file"
+	},
+	"sn": {
+		"long": "save_ncol",
+		"required": false,
+		"dest": "save_ncol",
+		"action": "store_true",
+		"default": false,
+		"help": "save ncol"
+	},
+	"ssrc": {
+		"long": "save_source",
+		"required": false,
+		"dest": "save_source",
+		"action": "store_true",
+		"default": false,
+		"help": "save source file"
+	},
+	"swgh": {
+		"long": "save_weight",
+		"required": false,
+		"dest": "save_weight",
+		"action": "store_true",
+		"default": false,
+		"help": "save weight file"
+	},
+	"sprd": {
+		"long": "save_predecessor",
+		"required": false,
+		"dest": "save_predecessor",
+		"action": "store_true",
+		"default": false,
+		"help": "save predecessor file"
+	},
+	"sscc": {
+		"long": "save_successor",
+		"required": false,
+		"dest": "save_successor",
+		"action": "store_true",
+		"default": false,
+		"help": "save sucessor file"
+	},
+	"shrr": {
+		"long": "save_hierarchy",
+		"required": false,
+		"dest": "save_hierarchy",
+		"action": "store_true",
+		"default": false,
+		"help": "save hierarchy file"
+	},
+	"st": {
+		"long": "show_timing",
+		"required": false,
+		"dest": "show_timing",
+		"action": "store_true",
+		"default": false,
+		"help": "show timing"
+	},
+	"tcsv": {
+		"long": "save_timing_csv",
+		"required": false,
+		"dest": "save_timing_csv",
+		"action": "store_true",
+		"default": false,
+		"help": "save timing in csv"
+	},
+	"tjson": {
+		"long": "save_timing_json",
+		"required": false,
+		"dest": "save_timing_json",
+		"action": "store_true",
+		"default": false,
+		"help": "save timing in csv"
+	},
+	"unq": {
+		"long": "unique_key",
+		"required": false,
+		"dest": "unique_key",
+		"action": "store_true",
+		"default": false,
+		"help": "output date and time as unique_key"
+	}
+}

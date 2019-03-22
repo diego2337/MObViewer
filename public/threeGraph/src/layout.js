@@ -19,6 +19,8 @@ var Layout = function(svgId)
   this.numOfLevels = 0;
   /** @desc Define if gradient legend is already present */
   this.gradientLegend = undefined;
+  /** @desc Define if communities legend is already present */
+  this.communitiesLegend = undefined;
   /** @desc Define standard layout - (2) for horizontal bipartite graph, (3) for vertical bipartite graph */
   this.lay = 2;
   /** @desc Define events object */
@@ -29,6 +31,8 @@ var Layout = function(svgId)
   this.parentConnections = 0;
   /** @desc String that defines svg tag id */
   this.svgId = svgId;
+  /** @desc Boolean that tells to render only most coarsened bipartite graph */
+  this.onlyCoarsest = 1;
 }
 
 /**
@@ -41,10 +45,11 @@ var Layout = function(svgId)
  */
 Layout.prototype.removeGraphInfo = function(numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
-  document.getElementById(numberOfVertices).innerHTML = "";
-  document.getElementById(numberOfEdges).innerHTML = "";
-  document.getElementById(nVerticesFirstLayer).innerHTML = "";
-  document.getElementById(nVerticesSecondLayer).innerHTML = "";
+  vueRootInstance.$data.graphInfo.rows = [];
+  // document.getElementById(numberOfVertices).innerHTML = "";
+  // document.getElementById(numberOfEdges).innerHTML = "";
+  // document.getElementById(nVerticesFirstLayer).innerHTML = "";
+  // document.getElementById(nVerticesSecondLayer).innerHTML = "";
 }
 
 /**
@@ -58,12 +63,9 @@ Layout.prototype.removeGraphInfo = function(numberOfVertices, numberOfEdges, nVe
  */
 Layout.prototype.displayGraphInfo = function(jason, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
-  /** Store innerHTML elements in variables for consistency */
-  var numOfVertexes = document.getElementById(numberOfVertices), vertexes;
-  var numOfEdges = document.getElementById(numberOfEdges);
-  var nVerticesFirstLayer = document.getElementById(nVerticesFirstLayer), firstLevel;
-  var nVerticesSecondLayer = document.getElementById(nVerticesSecondLayer), secondLevel;
-  /** Making necessary assignments according to information from graphInfo */
+  var vertexes;
+  var firstLevel;
+  var secondLevel;
   if(jason.graphInfo[0].vlayer !== undefined)
   {
     vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
@@ -76,21 +78,49 @@ Layout.prototype.displayGraphInfo = function(jason, numberOfVertices, numberOfEd
     firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
     secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
   }
-  /* Display number of vertices, edges, vertexes for first and second level separately */
-  if(numOfVertexes.innerHTML == "")
-  {
-    numOfVertexes.innerHTML = vertexes;
-    numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
-    nVerticesFirstLayer.innerHTML = firstLevel;
-    nVerticesSecondLayer.innerHTML = secondLevel;
-  }
-  else
-  {
-    numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
-    numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
-    nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
-    nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
-  }
+  /** Fill tables with appropriate values */
+  var values = [];
+  /** Add values in following order - 'graph level', 'vertices', 'edges', 'first layer', 'second layer' */
+  values.push("n");
+  values.push(parseInt(vertexes));
+  values.push(parseInt(jason.graphInfo[0].edges));
+  values.push(firstLevel);
+  values.push(secondLevel);
+  vueRootInstance.$data.graphInfo.rows.push(values);
+  /** FIXME - deprecated */
+  /** Store innerHTML elements in variables for consistency */
+  // var numOfVertexes = document.getElementById(numberOfVertices), vertexes;
+  // var numOfEdges = document.getElementById(numberOfEdges);
+  // var nVerticesFirstLayer = document.getElementById(nVerticesFirstLayer), firstLevel;
+  // var nVerticesSecondLayer = document.getElementById(nVerticesSecondLayer), secondLevel;
+  // /** Making necessary assignments according to information from graphInfo */
+  // if(jason.graphInfo[0].vlayer !== undefined)
+  // {
+  //   vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  //   firstLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
+  //   secondLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  // }
+  // else
+  // {
+  //   vertexes = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  //   firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
+  //   secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  // }
+  // /* Display number of vertices, edges, vertexes for first and second level separately */
+  // if(numOfVertexes.innerHTML == "")
+  // {
+  //   numOfVertexes.innerHTML = vertexes;
+  //   numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
+  //   nVerticesFirstLayer.innerHTML = firstLevel;
+  //   nVerticesSecondLayer.innerHTML = secondLevel;
+  // }
+  // else
+  // {
+  //   numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
+  //   numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
+  //   nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
+  //   nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
+  // }
 }
 
 /**
@@ -171,7 +201,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
 
   if(this.eventHandler === undefined)
   {
-    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels);
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels, "#wordCloudCard");
     var eventHandler = this.eventHandler
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
@@ -186,7 +216,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
       // !clicked ? clicked = true : clicked = false;
     }, false);
     document.addEventListener('click', function(evt){
-      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene);
+      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene, lay);
     }, false);
   }
   else
@@ -313,8 +343,10 @@ Layout.prototype.disposeHierarchy = function(node, callback)
 Layout.prototype.configAPIParams = function(mainSection, WebGL)
 {
   /* Get the size of the inner window (content area) to create a full size renderer */
-  canvasWidth = (document.getElementById(mainSection).clientWidth);
-  canvasHeight = (document.getElementById(mainSection).clientHeight);
+  canvasWidth = 1200;
+  canvasHeight = 900;
+  // canvasWidth = (document.getElementById(mainSection).clientWidth);
+  // canvasHeight = (document.getElementById(mainSection).clientHeight);
   if(globalRenderer == undefined)
   {
       /* Create a new WebGL renderer */
@@ -495,7 +527,7 @@ Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, se
     }
   }
   $.ajax({
-    url: '/writeSorted',
+    url: '/system/writeSorted',
     type: 'POST',
     data: {idx: index, nodes: newNodesIndexes},
     xhr: loadGraph
@@ -534,7 +566,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     {
       $.ajax({
         async: false,
-        url: '/getLevels',
+        url: '/graph/getLevels',
         type: 'POST',
         data: gName,
         processData: false,
@@ -596,7 +628,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
   });
   /** Render previous uncoarsened graphs */
   // for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
-  for(let i = 1; i < bipartiteGraphs.length; i = i + 1)
+  for(let i = 1, j = bipartiteGraphs.length*2.0; i < bipartiteGraphs.length; i = i + 1)
   {
     var coarsenedBipartiteGraph;
     coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
@@ -615,12 +647,18 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
     // }
     /** Render nodes */
-    coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
+    coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined, j, 2.0, Array(0.8, 0.8, 0.8));
+    // coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined, j, j-2.0);
+    // i+1 == bipartiteGraphs.length ? coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined, j, 2.0, Array(0.0, 0.0, 0.0)) : coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined, j, 2.0, Array(0.8, 0.8, 0.8));
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
     {
       /** Only draw if allowed */
       if(this.parentConnections == 1) this.connectVertexes(bipartiteGraphs[i], bipartiteGraphs[i+1], i, i+1);
+    }
+    if(j-2.0 >= 0.0000)
+    {
+      j = j - 2.0;
     }
   }
 }
@@ -648,6 +686,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   this.numOfLevels = Math.max(...numOfLevels);
   var firstSet = data.firstSet;
   var secondSet = data.secondSet;
+  this.onlyCoarsest = data.onlyCoarsest !== undefined ? data.onlyCoarsest : this.onlyCoarsest;
   var data = data.graph;
   var lay = ecmaStandard(layout, 2);
   this.lay = lay;
@@ -671,10 +710,19 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph = new BipartiteGraph(jason, 8, "");
 
   /* Render bipartiteGraph */
-  bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo);
+  // bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo, (parseInt(Math.max(...numOfLevels))+2)*2.0, ((parseInt(Math.max(...numOfLevels))+2)*2.0)-2.0);
+  bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo, (parseInt(Math.max(...numOfLevels))+2)*2.0, 2.0, Array(0.0, 0.0, 0.0));
 
   /** Build and render bipartite graphs from previous levels of coarsening */
-  this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  if(parseInt(this.onlyCoarsest) == 0)
+  {
+    vueRootInstance.$data.graphInfo.rows = [];
+    this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  }
+  else
+  {
+    this.displayGraphInfo(jason);
+  }
 
   delete jason;
 
@@ -688,5 +736,30 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   this.gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo.minEdgeWeight, bipartiteGraph.graphInfo.maxEdgeWeight, 300, 50, 5);
   this.gradientLegend.createGradientLegend("gradientScale", "Edge weights:");
 
-  animate();
+  /** Create communities legend */
+  if(this.communitiesLegend != undefined)
+  {
+    this.communitiesLegend.clear();
+    delete this.communitiesLegend;
+  }
+
+  var layScope = this;
+  /** To create object, check if "colors.json" exists and send its information to constructor; otherwise just send 'No attribute' and  '[0.0, 0.0, 0.0]' as color */
+  $.ajax({
+    url: '/graph/getColorFile',
+    type: 'POST',
+    /** FIXME - NEVER EVER EVER EVEEEEEEEEEEEEEEEER <b>EVEEEEEEER</b> use async! */
+    async: false,
+    success: function(data) {
+      data = JSON.parse(data);
+      /** Get array of values - from https://stackoverflow.com/questions/7306669/how-to-get-all-properties-values-of-a-javascript-object-without-knowing-the-key/16643074#16643074 */
+      var vals = Object.keys(data).map(function (key) {
+          return data[key];
+      });
+      layScope.communitiesLegend = new ScaleLegend(Object.keys(data), vals, Object.keys(data).length*50);
+      layScope.communitiesLegend.createScaleLegend("communityLegend", "Community values:");
+      animate();
+    },
+    xhr: loadGraph
+  });
 }

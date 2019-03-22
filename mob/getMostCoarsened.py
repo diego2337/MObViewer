@@ -33,8 +33,10 @@ if __name__ == "__main__":
     for graph in lst:
         if(graph.find("nl") != -1):
             if(reductionFactor is ''):
-                reductionFactor = lst[0].split("Coarsened")[1].split("nl")[0]
-                graphName = lst[0].split("Coarsened")[0] + "Coarsened"
+                # reductionFactor = lst[0].split("Coarsened")[1].split("nl")[0]
+                # graphName = lst[0].split("Coarsened")[0] + "Coarsened"
+                reductionFactor = graph.split("Coarsened")[1].split("nl")[0]
+                graphName = graph.split("Coarsened")[0] + "Coarsened"
             levels = graph.split(".")[0].split("nl")[1].split("nr")
             if(int(levels[0]) > nl):
                 nl = int(levels[0])

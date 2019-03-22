@@ -206,14 +206,17 @@ BipartiteGraph.prototype.setRenderedLayers = function(renderLayers)
  * @param {Object} firstIndependentSet Independent set where first set of nodes will be rendered.
  * @param {Object} secondIndependentSet Independent set where second set of nodes will be rendered.
  * @param {Object} vertexInfo VertexInfo type object to store properties from vertexes.
+ * @param {float} maxNormalizingRange Maximum range to be used when normalizing vertexes.
+ * @param {float} minNormalizingRange Minimum range to be used when normalizing vertexes.
+ * @param {Array} color Color to be used when rendering a node.
  */
-BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo)
+BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo, maxNormalizingRange, minNormalizingRange, color)
 {
   /** Create single geometry which will contain all geometries */
   var singleGeometry = new THREE.Geometry();
   /** y represents space between two layers, while theta space between each vertice of each layer */
   var y = -document.getElementById("mainSection").clientHeight/this.distanceBetweenSets;
-  var theta = 5;
+  var theta = 30;
   /** Define x-axis starting position */
   var pos = (-1 * (parseInt(this.firstLayer) / 2.0));
   /** Fill an array with nodes from first set */
@@ -225,7 +228,11 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in first layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 0);
   /** Create an independent set and render its nodes */
+<<<<<<< HEAD
   if(this.renderLayers.renderFirstLayer == true) firstIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+=======
+  if(this.renderLayers.renderFirstLayer == true) firstIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout, maxNormalizingRange, minNormalizingRange, color);
+>>>>>>> develop
   /** Readjust x and y-axis values */
   y = y * (-1);
   pos = -1 * Math.floor(parseInt(this.lastLayer) / 2);
@@ -238,7 +245,11 @@ BipartiteGraph.prototype.renderNodes = function(graph, scene, layout, firstIndep
   /** Store properties from vertexes in second layer */
   if(vertexInfo !== undefined) vertexInfo.storeProperties(setNodes[0], 1);
   /** Create an independent set and render its nodes */
+<<<<<<< HEAD
   if(this.renderLayers.renderLastLayer == true) secondIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout);
+=======
+  if(this.renderLayers.renderLastLayer == true) secondIndependentSet.buildSet(this.renderLayers, this.firstLayer, this.lastLayer, singleGeometry, setNodes, graph.links, graph.graphInfo[0].minNodeWeight, graph.graphInfo[0].maxNodeWeight, pos, y, theta, layout, maxNormalizingRange, minNormalizingRange, color);
+>>>>>>> develop
   /** Creating material for nodes */
   var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
   /** Create one mesh from single geometry and add it to scene */
@@ -317,8 +328,11 @@ BipartiteGraph.prototype.renderEdges = function(graph, scene, layout, firstIndep
  * @param {Object} scene The scene in which the graph will be built.
  * @param {int} layout Graph layout.
  * @param {Object} vertexInfo VertexInfo type object to store properties from vertexes.
+ * @param {float} maxNormalizingRange Maximum range to be used when normalizing vertexes.
+ * @param {float} minNormalizingRange Minimum range to be used when normalizing vertexes.
+ * @param {Array} color Color to be used when rendering a node.
  */
-BipartiteGraph.prototype.renderGraph = function(graph, scene, layout, vertexInfo)
+BipartiteGraph.prototype.renderGraph = function(graph, scene, layout, vertexInfo, maxNormalizingRange, minNormalizingRange, color)
 {
   /** Apply default values to layout and scene, in case no scene is given (will be caught by 'catch') */
   layout = ecmaStandard(layout, 2);
@@ -329,7 +343,7 @@ BipartiteGraph.prototype.renderGraph = function(graph, scene, layout, vertexInfo
     var firstIndependentSet = new IndependentSet();
     var secondIndependentSet = new IndependentSet();
     /** Build and render nodes */
-    this.renderNodes(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo);
+    this.renderNodes(graph, scene, layout, firstIndependentSet, secondIndependentSet, vertexInfo, maxNormalizingRange, minNormalizingRange, color);
 
     /** Build edges */
     // this.renderEdges(graph, scene, layout, firstIndependentSet, secondIndependentSet);
@@ -357,6 +371,8 @@ var IndependentSet = function()
 {
   /** Array to store (x,y,z) coordinates of nodes */
   this.positions = [];
+  /** Array to store sizes of nodes */
+  this.circleSizes = [];
 }
 
 /**
@@ -400,7 +416,11 @@ IndependentSet.prototype.findNeighbors = function(nodes, links, i)
  * @param {int} y y-axis coordinate for nodes.
  * @param {float} theta Theta value which defines spacing between nodes.
  * @param {int} layout Graph layout.
+ * @param {float} maxNormalizingRange Maximum range to be used when normalizing vertexes.
+ * @param {float} minNormalizingRange Minimum range to be used when normalizing vertexes.
+ * @param {Array} colour Color to be used when rendering a node.
  */
+<<<<<<< HEAD
 IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer, geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout)
 {
   try
@@ -426,28 +446,131 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
       /** Give geometry name the same as its id */
       circleGeometry.name = nodes[i].id;
       if(layout == 3)
+=======
+IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer, geometry, nodes, links, minNodeWeight, maxNodeWeight, pos, y, theta, layout, maxNormalizingRange, minNormalizingRange, colour)
+{
+  try
+  {
+    var independentSetScope = this;
+    /** Perform AJAX call to fetch colors server-side */
+    var getColors = $.ajax({
+      url: 'graph/getColors',
+      type: 'POST',
+      async: false,
+      data: { nodes: nodes },
+      xhr: loadGraph
+    });
+    getColors.done(function(data){
+      data = JSON.parse(data);
+      // data = data.colors;
+      /** Store number of faces before adding nodes */
+      var numberOfFaces = geometry.faces.length;
+      /** Build nodes */
+      /** Creating geometry for nodes */
+      var circleGeometry = new THREE.CircleGeometry(1, 32);
+      for(var i = 0; i < nodes.length && nodes[i] !== undefined; i++, pos++)
+>>>>>>> develop
       {
-        /** Translate geometry for its coordinates */
-        circleGeometry.translate(y, x, 0);
-        /** Push coordinates to array */
-        this.positions.push({x: y, y: x, z: 0});
-        /** Merge into geometry */
-        geometry.merge(circleGeometry);
-        /** Return geometry for reusing */
-        circleGeometry.translate(-y, -x, 0);
+        /** Color vertexes */
+        if(data.colors[i] == undefined)
+        {
+          for(var k = 0; k < circleGeometry.faces.length; k++)
+          {
+            circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
+          }
+        }
+        else
+        {
+          /** Calculate proportion for each color space */
+          var sum = 0;
+          for(var sumI = 0; sumI < data.repeats[i].length; sumI = sumI + 1)
+          {
+            sum = sum + parseInt(data.repeats[i][sumI]);
+          }
+          var proportion = parseFloat(32.0 / parseFloat(sum));
+          var proportionLengths = [];
+          for(var sumI = 0; sumI < data.repeats[i].length; sumI = sumI + 1)
+          {
+            proportionLengths.push(parseInt(parseFloat(data.repeats[i][sumI])*proportion));
+          }
+          for(var k = 0, l = 0; k < circleGeometry.faces.length; k++)
+          {
+            if(k > proportionLengths[l])
+            {
+              l = l + 1;
+              proportionLengths[l] = proportionLengths[l] + proportionLengths[l-1];
+            }
+            data.colors[i][l] != null ? circleGeometry.faces[k].color.setRGB(data.colors[i][l][0], data.colors[i][l][1], data.colors[i][l][2]) : circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
+          }
+          // var length = data[i].length;
+          // var colorLength = parseInt(circleGeometry.faces.length/length);
+          // for(var k = 0, l = 0; k < circleGeometry.faces.length; k++)
+          // {
+          //   if(k > colorLength)
+          //   {
+          //     l = l + 1;
+          //     colorLength = colorLength + colorLength;
+          //   }
+          //   data[i][l] != null ? circleGeometry.faces[k].color.setRGB(data[i][l][0], data[i][l][1], data[i][l][2]) : circleGeometry.faces[k].color.setRGB(colour[0], colour[1], colour[2]);
+          // }
+        }
+        var x = pos * theta;
+        if(nodes[i].weight == undefined) nodes[i].weight = parseInt(minNodeWeight);
+        var circleSize = (maxNormalizingRange - minNormalizingRange) * ( (parseInt(nodes[i].weight) - parseInt(minNodeWeight))/((parseInt(maxNodeWeight)-parseInt(minNodeWeight))+1) ) + minNormalizingRange;
+        if(circleSize == 0) circleSize = parseInt(minNodeWeight);
+        /** Using feature scale for node sizes */
+        circleGeometry.scale(circleSize, circleSize, 1);
+        /** Give geometry name the same as its id */
+        circleGeometry.name = nodes[i].id;
+        if(layout == 3)
+        {
+          /** Translate geometry for its coordinates */
+          circleGeometry.translate(y, x, 0);
+          /** Push coordinates to array */
+          independentSetScope.positions.push({x: y, y: x, z: 0});
+          /** Push size to array */
+          independentSetScope.circleSizes.push(circleSize);
+          /** Merge into geometry */
+          geometry.merge(circleGeometry);
+          /** Return geometry for reusing */
+          circleGeometry.translate(-y, -x, 0);
+        }
+        else
+        {
+          /** Translate geometry for its coordinates */
+          circleGeometry.translate(x, y, 0);
+          /** Push coordinates to array */
+          independentSetScope.positions.push({x: x, y: y, z: 0});
+          /** Push size to array */
+          independentSetScope.circleSizes.push(circleSize);
+          /** Merge into geometry */
+          geometry.merge(circleGeometry);
+          /** Return geometry for reusing */
+          circleGeometry.translate(-x, -y, 0);
+          circleGeometry.arrayOfProperties = [];
+        }
+        circleGeometry.name = "";
+        circleGeometry.scale((1/circleSize), (1/circleSize), 1);
       }
-      else
+      /** Populate vertices with additional .json information */
+      for(var i = numberOfFaces, j = 0; i < geometry.faces.length && j < nodes.length; i = i + 32, j++)
       {
-        /** Translate geometry for its coordinates */
-        circleGeometry.translate(x, y, 0);
-        /** Push coordinates to array */
-        this.positions.push({x: x, y: y, z: 0});
-        /** Merge into geometry */
-        geometry.merge(circleGeometry);
-        /** Return geometry for reusing */
-        circleGeometry.translate(-x, -y, 0);
-        circleGeometry.arrayOfProperties = [];
+        geometry.faces[i].properties = JSON.stringify(nodes[j]);
+        /** Find vertex neighbors - FIXME not an IndependentSet responsibility */
+        geometry.faces[i].neighbors = independentSetScope.findNeighbors(nodes, links, j);
+        /** Store vertex position */
+        geometry.faces[i].position = independentSetScope.positions[j];
+        /** Store circle size */
+        geometry.faces[i].size = independentSetScope.circleSizes[j];
+        /** Store vertex position */
+        // geometry.faces[i].position = independentSetScope.positions[j];
+        /** Store which layers are being rendered */
+        geometry.faces[i].layers = JSON.stringify(renderLayers);
+        /** Store number of vertexes for each layer */
+        geometry.faces[i].firstLayer = firstLayer;
+        geometry.faces[i].lastLayer = lastLayer;
       }
+<<<<<<< HEAD
       circleGeometry.name = "";
       circleGeometry.scale((1/circleSize), (1/circleSize), 1);
     }
@@ -467,10 +590,13 @@ IndependentSet.prototype.buildSet = function(renderLayers, firstLayer, lastLayer
       geometry.faces[i].firstLayer = firstLayer;
       geometry.faces[i].lastLayer = lastLayer;
     }
+=======
+>>>>>>> develop
 
-    /** Properly dispose of object */
-    circleGeometry.dispose();
-    circleGeometry = null;
+      /** Properly dispose of object */
+      circleGeometry.dispose();
+      circleGeometry = null;
+    });
   }
   catch(err)
   {
@@ -499,6 +625,8 @@ var Layout = function(svgId)
   this.numOfLevels = 0;
   /** @desc Define if gradient legend is already present */
   this.gradientLegend = undefined;
+  /** @desc Define if communities legend is already present */
+  this.communitiesLegend = undefined;
   /** @desc Define standard layout - (2) for horizontal bipartite graph, (3) for vertical bipartite graph */
   this.lay = 2;
   /** @desc Define events object */
@@ -509,6 +637,11 @@ var Layout = function(svgId)
   this.parentConnections = 0;
   /** @desc String that defines svg tag id */
   this.svgId = svgId;
+<<<<<<< HEAD
+=======
+  /** @desc Boolean that tells to render only most coarsened bipartite graph */
+  this.onlyCoarsest = 1;
+>>>>>>> develop
 }
 
 /**
@@ -521,10 +654,11 @@ var Layout = function(svgId)
  */
 Layout.prototype.removeGraphInfo = function(numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
-  document.getElementById(numberOfVertices).innerHTML = "";
-  document.getElementById(numberOfEdges).innerHTML = "";
-  document.getElementById(nVerticesFirstLayer).innerHTML = "";
-  document.getElementById(nVerticesSecondLayer).innerHTML = "";
+  vueRootInstance.$data.graphInfo.rows = [];
+  // document.getElementById(numberOfVertices).innerHTML = "";
+  // document.getElementById(numberOfEdges).innerHTML = "";
+  // document.getElementById(nVerticesFirstLayer).innerHTML = "";
+  // document.getElementById(nVerticesSecondLayer).innerHTML = "";
 }
 
 /**
@@ -538,12 +672,9 @@ Layout.prototype.removeGraphInfo = function(numberOfVertices, numberOfEdges, nVe
  */
 Layout.prototype.displayGraphInfo = function(jason, numberOfVertices, numberOfEdges, nVerticesFirstLayer, nVerticesSecondLayer)
 {
-  /** Store innerHTML elements in variables for consistency */
-  var numOfVertexes = document.getElementById(numberOfVertices), vertexes;
-  var numOfEdges = document.getElementById(numberOfEdges);
-  var nVerticesFirstLayer = document.getElementById(nVerticesFirstLayer), firstLevel;
-  var nVerticesSecondLayer = document.getElementById(nVerticesSecondLayer), secondLevel;
-  /** Making necessary assignments according to information from graphInfo */
+  var vertexes;
+  var firstLevel;
+  var secondLevel;
   if(jason.graphInfo[0].vlayer !== undefined)
   {
     vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
@@ -556,21 +687,49 @@ Layout.prototype.displayGraphInfo = function(jason, numberOfVertices, numberOfEd
     firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
     secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
   }
-  /* Display number of vertices, edges, vertexes for first and second level separately */
-  if(numOfVertexes.innerHTML == "")
-  {
-    numOfVertexes.innerHTML = vertexes;
-    numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
-    nVerticesFirstLayer.innerHTML = firstLevel;
-    nVerticesSecondLayer.innerHTML = secondLevel;
-  }
-  else
-  {
-    numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
-    numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
-    nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
-    nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
-  }
+  /** Fill tables with appropriate values */
+  var values = [];
+  /** Add values in following order - 'graph level', 'vertices', 'edges', 'first layer', 'second layer' */
+  values.push("n");
+  values.push(parseInt(vertexes));
+  values.push(parseInt(jason.graphInfo[0].edges));
+  values.push(firstLevel);
+  values.push(secondLevel);
+  vueRootInstance.$data.graphInfo.rows.push(values);
+  /** FIXME - deprecated */
+  /** Store innerHTML elements in variables for consistency */
+  // var numOfVertexes = document.getElementById(numberOfVertices), vertexes;
+  // var numOfEdges = document.getElementById(numberOfEdges);
+  // var nVerticesFirstLayer = document.getElementById(nVerticesFirstLayer), firstLevel;
+  // var nVerticesSecondLayer = document.getElementById(nVerticesSecondLayer), secondLevel;
+  // /** Making necessary assignments according to information from graphInfo */
+  // if(jason.graphInfo[0].vlayer !== undefined)
+  // {
+  //   vertexes = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]) + parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  //   firstLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[0]);
+  //   secondLevel = parseInt(jason.graphInfo[0].vlayer.split(" ")[1]);
+  // }
+  // else
+  // {
+  //   vertexes = parseInt(jason.graphInfo[0].vertices.split(" ")[0]) + parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  //   firstLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[0]);
+  //   secondLevel = parseInt(jason.graphInfo[0].vertices.split(" ")[1]);
+  // }
+  // /* Display number of vertices, edges, vertexes for first and second level separately */
+  // if(numOfVertexes.innerHTML == "")
+  // {
+  //   numOfVertexes.innerHTML = vertexes;
+  //   numOfEdges.innerHTML = parseInt(jason.graphInfo[0].edges);
+  //   nVerticesFirstLayer.innerHTML = firstLevel;
+  //   nVerticesSecondLayer.innerHTML = secondLevel;
+  // }
+  // else
+  // {
+  //   numOfVertexes.innerHTML = numOfVertexes.innerHTML + "/" + vertexes;
+  //   numOfEdges.innerHTML = numOfEdges.innerHTML + "/" + parseInt(jason.graphInfo[0].edges);
+  //   nVerticesFirstLayer.innerHTML = nVerticesFirstLayer.innerHTML + "/" + firstLevel;
+  //   nVerticesSecondLayer.innerHTML = nVerticesSecondLayer.innerHTML + "/" + secondLevel;
+  // }
 }
 
 /**
@@ -651,7 +810,11 @@ Layout.prototype.createEventListener = function(camera, WebGL)
 
   if(this.eventHandler === undefined)
   {
+<<<<<<< HEAD
     this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels);
+=======
+    this.eventHandler = new EventHandler(undefined, "#" + WebGL, this.svgId, this.numOfLevels, "#wordCloudCard");
+>>>>>>> develop
     var eventHandler = this.eventHandler
     /* Adding event listeners */
     document.addEventListener('resize', function(evt){
@@ -666,7 +829,7 @@ Layout.prototype.createEventListener = function(camera, WebGL)
       // !clicked ? clicked = true : clicked = false;
     }, false);
     document.addEventListener('click', function(evt){
-      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene);
+      eventHandler.mouseClickEvent(evt, globalRenderer, globalScene, lay);
     }, false);
   }
   else
@@ -793,8 +956,10 @@ Layout.prototype.disposeHierarchy = function(node, callback)
 Layout.prototype.configAPIParams = function(mainSection, WebGL)
 {
   /* Get the size of the inner window (content area) to create a full size renderer */
-  canvasWidth = (document.getElementById(mainSection).clientWidth);
-  canvasHeight = (document.getElementById(mainSection).clientHeight);
+  canvasWidth = 1200;
+  canvasHeight = 900;
+  // canvasWidth = (document.getElementById(mainSection).clientWidth);
+  // canvasHeight = (document.getElementById(mainSection).clientHeight);
   if(globalRenderer == undefined)
   {
       /* Create a new WebGL renderer */
@@ -975,7 +1140,11 @@ Layout.prototype.sortSVNodes = function(index, renderLayers, firstLayerNodes, se
     }
   }
   $.ajax({
+<<<<<<< HEAD
     url: '/writeSorted',
+=======
+    url: '/system/writeSorted',
+>>>>>>> develop
     type: 'POST',
     data: {idx: index, nodes: newNodesIndexes},
     xhr: loadGraph
@@ -1014,7 +1183,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     {
       $.ajax({
         async: false,
-        url: '/getLevels',
+        url: '/graph/getLevels',
         type: 'POST',
         data: gName,
         processData: false,
@@ -1076,13 +1245,18 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
   });
   /** Render previous uncoarsened graphs */
   // for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
+<<<<<<< HEAD
   for(let i = 1; i < bipartiteGraphs.length; i = i + 1)
+=======
+  for(let i = 1, j = bipartiteGraphs.length*2.0; i < bipartiteGraphs.length; i = i + 1)
+>>>>>>> develop
   {
     var coarsenedBipartiteGraph;
     coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
     coarsenedBipartiteGraph.setRenderedLayers(this.hasEqualLayers({ firstLayer: bipartiteGraph.firstLayer, lastLayer: bipartiteGraph.lastLayer }, { firstLayer: coarsenedBipartiteGraph.firstLayer, lastLayer: coarsenedBipartiteGraph.lastLayer }));
     /** Sort nodes according to super-vertexes */
     if(i == 0)
+<<<<<<< HEAD
     {
       bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
     }
@@ -1090,17 +1264,36 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
     {
       bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
     }
+=======
+    {
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), jason, bipartiteGraphs[i]);
+    }
+    else
+    {
+      bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
+    }
+>>>>>>> develop
     // if(i != 0)
     // {
     //   bipartiteGraphs[i].nodes = this.sortSVNodes(i, coarsenedBipartiteGraph.getRenderedLayers(), parseInt(coarsenedBipartiteGraph.firstLayer), parseInt(coarsenedBipartiteGraph.lastLayer), bipartiteGraphs[i-1], bipartiteGraphs[i]);
     // }
     /** Render nodes */
+<<<<<<< HEAD
     coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined);
+=======
+    coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined, j, 2.0, Array(0.8, 0.8, 0.8));
+    // coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined, j, j-2.0);
+    // i+1 == bipartiteGraphs.length ? coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined, j, 2.0, Array(0.0, 0.0, 0.0)) : coarsenedBipartiteGraph.renderNodes(bipartiteGraphs[i], globalScene, lay, new IndependentSet(), new IndependentSet(), undefined, j, 2.0, Array(0.8, 0.8, 0.8));
+>>>>>>> develop
     /** Connect super vertexes */
     if(i < bipartiteGraphs.length-1)
     {
       /** Only draw if allowed */
       if(this.parentConnections == 1) this.connectVertexes(bipartiteGraphs[i], bipartiteGraphs[i+1], i, i+1);
+    }
+    if(j-2.0 >= 0.0000)
+    {
+      j = j - 2.0;
     }
   }
 }
@@ -1128,6 +1321,7 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   this.numOfLevels = Math.max(...numOfLevels);
   var firstSet = data.firstSet;
   var secondSet = data.secondSet;
+  this.onlyCoarsest = data.onlyCoarsest !== undefined ? data.onlyCoarsest : this.onlyCoarsest;
   var data = data.graph;
   var lay = ecmaStandard(layout, 2);
   this.lay = lay;
@@ -1151,10 +1345,23 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   bipartiteGraph = new BipartiteGraph(jason, 8, "");
 
   /* Render bipartiteGraph */
-  bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo);
+  // bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo, (parseInt(Math.max(...numOfLevels))+2)*2.0, ((parseInt(Math.max(...numOfLevels))+2)*2.0)-2.0);
+  bipartiteGraph.renderGraph(jason, globalScene, lay, this.vertexInfo, (parseInt(Math.max(...numOfLevels))+2)*2.0, 2.0, Array(0.0, 0.0, 0.0));
 
   /** Build and render bipartite graphs from previous levels of coarsening */
+<<<<<<< HEAD
   this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+=======
+  if(parseInt(this.onlyCoarsest) == 0)
+  {
+    vueRootInstance.$data.graphInfo.rows = [];
+    this.buildAndRenderCoarsened(bipartiteGraph, lay, jason, graphName, numOfLevels, nVertexes, nEdges, nVertexesFirstLayer, nVertexesSecondLayer);
+  }
+  else
+  {
+    this.displayGraphInfo(jason);
+  }
+>>>>>>> develop
 
   delete jason;
 
@@ -1168,7 +1375,32 @@ Layout.prototype.build = function(data, layout, numberOfVertices, numberOfEdges,
   this.gradientLegend = new GradientLegend(bipartiteGraph.linearScale, bipartiteGraph.graphInfo.minEdgeWeight, bipartiteGraph.graphInfo.maxEdgeWeight, 300, 50, 5);
   this.gradientLegend.createGradientLegend("gradientScale", "Edge weights:");
 
-  animate();
+  /** Create communities legend */
+  if(this.communitiesLegend != undefined)
+  {
+    this.communitiesLegend.clear();
+    delete this.communitiesLegend;
+  }
+
+  var layScope = this;
+  /** To create object, check if "colors.json" exists and send its information to constructor; otherwise just send 'No attribute' and  '[0.0, 0.0, 0.0]' as color */
+  $.ajax({
+    url: '/graph/getColorFile',
+    type: 'POST',
+    /** FIXME - NEVER EVER EVER EVEEEEEEEEEEEEEEEER <b>EVEEEEEEER</b> use async! */
+    async: false,
+    success: function(data) {
+      data = JSON.parse(data);
+      /** Get array of values - from https://stackoverflow.com/questions/7306669/how-to-get-all-properties-values-of-a-javascript-object-without-knowing-the-key/16643074#16643074 */
+      var vals = Object.keys(data).map(function (key) {
+          return data[key];
+      });
+      layScope.communitiesLegend = new ScaleLegend(Object.keys(data), vals, Object.keys(data).length*50);
+      layScope.communitiesLegend.createScaleLegend("communityLegend", "Community values:");
+      animate();
+    },
+    xhr: loadGraph
+  });
 }
 
 /**
@@ -1736,6 +1968,7 @@ VertexInfo.prototype.getProps = function()
 
 /**
  * Base class for d3's bar chart, to visualize vertex stats. Based on https://bl.ocks.org/mbostock/3885304#index.html
+<<<<<<< HEAD
  * @author Diego Cintra
  * Date: 31 july 2018
  */
@@ -2075,6 +2308,638 @@ d3BarChart.prototype.clearBarChart = function()
 
 /**
  * Base class for d3's tooltip, to visualize vertex info inside a node. Based on https://evortigosa.github.io/pollution/
+=======
+>>>>>>> develop
+ * @author Diego Cintra
+ * Date: 31 july 2018
+ */
+
+ /**
+  * @constructor
+  * @param {String} HTMLelement HTML element to build d3BarChart div in.
+  */
+var d3BarChart = function(HTMLelement)
+{
+  try
+  {
+    /** Store parent element to create bar chart */
+    this.parentElement = HTMLelement;
+    this.barChart = this.margin = this.width = this.height = this.x = this.y = this.g = undefined;
+    this.setCreate(false);
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in barChart constructor. " + err;
+  }
+}
+
+/**
+ * @desc Getter for margin.
+ * @returns {Object} Margin properties.
+ */
+d3BarChart.prototype.getMargin = function()
+{
+  return this.margin;
+}
+
+/**
+ * @desc Setter for margin.
+ * @param {Object} margin Margin properties.
+ */
+d3BarChart.prototype.setMargin = function(margin)
+{
+  this.margin = margin;
+}
+
+/**
+ * @desc Getter for width.
+ * @returns {Object} width.
+ */
+d3BarChart.prototype.getWidth = function()
+{
+  return this.width;
+}
+
+/**
+ * @desc Setter for width.
+ * @param {Object} width width.
+ */
+d3BarChart.prototype.setWidth = function(width)
+{
+  this.width = width;
+}
+
+/**
+ * @desc Getter for height.
+ * @returns {Object} height.
+ */
+d3BarChart.prototype.getHeight = function()
+{
+  return this.height;
+}
+
+/**
+ * @desc Setter for height.
+ * @param {Object} height height.
+ */
+d3BarChart.prototype.setHeight = function(height)
+{
+  this.height = height;
+}
+
+/**
+ * @desc Getter for x.
+ * @returns {Object} x.
+ */
+d3BarChart.prototype.getX = function()
+{
+  return this.x;
+}
+
+/**
+ * @desc Setter for x.
+ * @param {Object} x x.
+ */
+d3BarChart.prototype.setX = function(x)
+{
+  this.x = x;
+}
+
+/**
+<<<<<<< HEAD
+ * @desc Base class for DoubleClick, handling user's double click on layout.
+ * @author Diego Cintra
+ * Date: 27 July 2018
+ */
+
+/**
+ * @constructor
+ * @param {Object} clicked State variable to check if layout has been clicked or not.
+ */
+var DoubleClick = function(clicked)
+{
+  this.clicked = ecmaStandard(clicked, {wasClicked: false});
+}
+
+/**
+ * @desc Getter for clicked.
+ * @returns {Object} clicked object.
+ */
+DoubleClick.prototype.getClicked = function()
+{
+  return this.clicked;
+}
+
+/**
+ * @desc Setter for clicked.
+ * @param {Object} clicked Object indicating double-click state in layout.
+ */
+DoubleClick.prototype.setClicked = function(clicked)
+{
+  this.clicked = clicked;
+}
+
+/**
+ * @desc Update layout, removing edges and coloring vertexes to default color.
+ * @param {Object} scene Scene for raycaster.
+ * @param {Object} eventHandler EventHandler type object containing neighbors and edges arrays.
+ */
+DoubleClick.prototype.updateLayout = function(scene, eventHandler)
+{
+  /** Change vertexes colors to original color */
+  for(var i = 0; i < eventHandler.neighbors.length; i++)
+  {
+    var mesh = scene.getObjectByName(eventHandler.neighbors[i].mesh);
+    for(var j = 0; j < 32; j++)
+    {
+      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j] !== undefined)
+      {
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+      }
+      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
+      {
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+      }
+      mesh.geometry.colorsNeedUpdate = true;
+    }
+  }
+  /** Clearing array of neighbors */
+  eventHandler.neighbors = [];
+  /** Remove 'parentConnections' edges */
+  // for(var i = 0; i < edges; i++)
+  for(var i = 0; i < eventHandler.nEdges; i++)
+  {
+    scene.remove(scene.getObjectByName("parentConnections" + i.toString()));
+  }
+  /** Remove 'neighborEdges' edges */
+  scene.remove(scene.getObjectByName("neighborEdges"));
+  /**
+   * @param {Array} neighbors Array of neighbor vertexes.
+   * @param {Array} edges Array of edges displayed in layout.
+  */
+}
+
+/**
+ * @desc Base class for pre ECMAScript2015 standardization.
+ * @author Diego S. Cintra
+=======
+ * @desc Getter for y.
+ * @returns {Object} y.
+>>>>>>> develop
+ */
+d3BarChart.prototype.getY = function()
+{
+  return this.y;
+}
+
+/**
+<<<<<<< HEAD
+ * Base class for a Event handler, implementing Event interface.
+ * @author Diego S. Cintra
+ */
+
+/**
+ * @constructor
+ * @param {Object} raycaster Defined raycaster, defaults to creating a new one.
+ * @param {String} HTMLelement HTML element to build d3Tooltip div in.
+ * @param {String} SVGId Id to store <svg> id value.
+ * @param {int} numOfLevels Number of coarsened graphs.
+ */
+var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
+{
+    this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
+    this.raycaster.linePrecision = 0.1;
+    this.highlightedElements = [];
+    this.neighbors = [];
+    this.doubleClick = new DoubleClick();
+    // this.clicked = {wasClicked: false};
+    this.updateData = {wasUpdated: false};
+    this.d3Tooltip = new d3Tooltip(HTMLelement);
+    this.d3Tooltip.created3Tooltip();
+    this.nLevels = numOfLevels;
+    this.userInfo = undefined;
+    /** Counts number of edges to be created while showing parents */
+    this.nEdges = 0;
+    /** Object to handle statistics processing and visualization */
+    this.statsHandler = new statsHandler(SVGId);
+    this.SVGId = SVGId;
+=======
+ * @desc Setter for y.
+ * @param {Object} y y.
+ */
+d3BarChart.prototype.setY = function(y)
+{
+  this.y = y;
+>>>>>>> develop
+}
+
+/**
+ * @desc Getter for g (group).
+ * @returns {Object} g group structure.
+ */
+d3BarChart.prototype.getG = function()
+{
+  return this.g;
+}
+
+/**
+ * @desc Setter for g (group).
+ * @param {Object} g g group structure.
+ */
+d3BarChart.prototype.setG = function(g)
+{
+  this.g = g;
+}
+
+/**
+ * @desc Getter for created.
+ * @returns {Boolean} True if bar chart was created; false otherwise.
+ */
+d3BarChart.prototype.getCreate = function()
+{
+  return this.created;
+}
+
+/**
+ * @desc Setter for created.
+ * @param {Boolean} True if bar chart was created; false otherwise.
+ */
+d3BarChart.prototype.setCreate = function(created)
+{
+  this.created = created;
+}
+
+/**
+ * @desc Define sizes.
+ * @param {Number} width Width size.
+ * @param {Number} height Height size.
+ */
+d3BarChart.prototype.defineSizes = function(width, height)
+{
+  this.setWidth(width);
+  this.setHeight(height);
+}
+
+/**
+ * @desc Define axes.
+ * @param {int} x X axis.
+ * @param {int} y Y axis.
+ */
+d3BarChart.prototype.defineAxes = function(x, y)
+{
+  this.setX(x);
+  this.setY(y);
+}
+
+/**
+ * @desc Define bar chart position.
+ * @param {string} position String-like parameter to be used in "transform" attribute, e.g. "translate(...)", "rotate(...)".
+ */
+d3BarChart.prototype.definePosition = function(position)
+{
+  try
+  {
+    if(this.getG() == undefined)
+    {
+      this.setG(this.barChart.append("g"));
+    }
+    this.getG()
+      .attr("transform", position);
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function definePosition. " + err;
+  }
+}
+
+/**
+ * @desc Creates a d3 bar chart on HTML page, to check for vertex info.
+ * @public
+ * @param {String} HTMLelement HTML element to build d3BarChart div in; if specified, replaces "this.parentElement" value.
+ */
+d3BarChart.prototype.created3BarChart = function(HTMLelement)
+{
+  /** FIXME - receive width and height from parameters */
+  var height = 300;
+  var width = 600;
+  this.parentElement = ecmaStandard(HTMLelement, this.parentElement);
+  /** Create bar chart */
+  this.barChart = d3.select("#" + this.parentElement)
+    .append("svg")
+    .attr("id", "vStats")
+    .attr("width", width)
+    .attr("height", height)
+    .style("z-index", "100");
+  /** Define dimensions if none was defined */
+  if(this.getMargin() == undefined)
+  {
+    this.setMargin({top: 20, right: 20, bottom: 150, left: 50});
+    /** Define sizes */
+    this.defineSizes(+width - this.getMargin().left - this.getMargin().right, +height - this.getMargin().top - this.getMargin().bottom);
+    /** Define axes */
+    this.defineAxes(d3.scaleBand().rangeRound([0, this.getWidth()]).padding(0.1), d3.scaleLinear().rangeRound([this.getHeight(), 0]));
+    /** Define default position */
+    this.definePosition("translate(" + this.getMargin().left + "," + this.getMargin().top + ")");
+  }
+  /** Create barChart initially hidden */
+  this.hideBarChart();
+}
+
+/**
+ * @desc Populates bar chart and set its opacity to 1.
+ * @public
+ * @param {String} data String-like data to populate bar chart.
+ */
+d3BarChart.prototype.populateAndShowBarChart = function(data)
+{
+  this.populateBarChart(data);
+  if(data.length != 0) this.showBarChart();
+}
+
+/**
+ * FIXME - Not d3BarChart responsibility
+ * @desc Return bar chart data properties, to be used as labels for x axis.
+ * @param {Array} data String-like or Array data to populate bar chart.
+ * @returns {Array} Sorted array of properties.
+ */
+d3BarChart.prototype.getProperties = function(data)
+{
+  var dict = {};
+  for(element in data)
+  {
+    if(!(data[element].property in dict))
+    {
+      dict[data[element].property] = 1;
+    }
+  }
+  return Object.keys(dict).sort();
+}
+
+/**
+ * @desc Create dashed lines according to number of categories and amount of values for each category.
+ * @public
+ * @param {(String|Array)} data String-like or Array data to populate bar chart.
+ */
+d3BarChart.prototype.createDashedLines = function(data)
+{
+  // /** Count number of categories and values for each category */
+  // var cats = {};
+  // for(var i = 0; i < data.length; i++)
+  // {
+  //   if(!(data[i].property in cats))
+  //   {
+  //     if(i != 0)
+  //     {
+  //       cats[data[i-1].property].endIndex = i;
+  //     }
+  //     cats[data[i].property] = { startIndex: i, endIndex: -1 };
+  //   }
+  // }
+  // /** Draw lines according to number of properties */
+  // var properties = Object.keys(cats);
+  // for(var i = 0; i < properties.length-1; i++)
+  // {
+  //   /** Draw line according to start and end indexes */
+  //   this.getG().append('line')
+  //       // .attr('x1', (cats[properties[i]].endIndex*this.getX().bandwidth())+(cats[properties[i]].startIndex*this.getX().bandwidth())+32)
+  //       .attr('x1', (cats[properties[i]].endIndex*this.getX().bandwidth()))
+  //       .attr('y1', 0)
+  //       // .attr('x2', (cats[properties[i]].endIndex*this.getX().bandwidth())+(cats[properties[i]].startIndex*this.getX().bandwidth())+32)
+  //       .attr('x2', (cats[properties[i]].endIndex*this.getX().bandwidth()))
+  //       .attr('y2', this.getHeight())
+  //       .style("stroke-dasharray", ("3, 3"))
+  //       .style("stroke-width", "2")
+  //       .style("stroke", "rgb(0, 0, 0)");
+  // }
+}
+
+/**
+ * @desc Populates bar chart with information provided by data, setting domains and ticks for axes.
+ * @public
+ * @param {(String|Array)} data String-like or Array data to populate bar chart.
+ */
+d3BarChart.prototype.populateBarChart = function(data)
+{
+  try
+  {
+    this.getX().domain(data.map(function(d) { return d.categories; }));
+    this.getY().domain([0, d3.max(data, function(d) { return d.percentage; })]);
+
+    this.getG().append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + this.getHeight() + ")")
+        .call(d3.axisBottom(this.getX()))
+        .selectAll("text")
+        .attr("transform", "rotate(90)")
+        // .attr("x", 22)
+        .attr("x", 60)
+        .attr("y", -6);
+
+    /** Add label for x-axis */
+    this.barChart.append("text")
+    	  .attr("transform", "translate(" + (this.getWidth()/2) + " ," + (this.getHeight()+150) + ")")
+    	  .style("text-anchor", "middle")
+    	  .text(this.getProperties(data));
+
+    this.getG().append("g")
+        .attr("class", "axis axis--y")
+        .call(d3.axisLeft(this.getY()).ticks(10).tickFormat(function(d){ return d + "%"; }))
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -20)
+        .attr("dy", "0.71em")
+        .attr("text-anchor", "end")
+        .text("Frequency");
+
+    /** Create a dashed line to separate different bar charts */
+    this.createDashedLines(data);
+
+  	// // text label for the x axis
+  	// this.barChart().append("text")
+  	//   .attr("transform",
+  	//         "translate(" + (this.getWidth()/2) + " ," +
+  	//                        (this.getHeight() + this.getMargin().top + 40) + ")")
+  	//   .style("text-anchor", "middle")
+  	//   .text("Date");
+    //
+  	// // text label for the y axis
+  	// this.barChart().append("text")
+  	//   .attr("transform", "rotate(-90)")
+  	//   .attr("y", 0 - this.getMargin().left)
+  	//   .attr("x", 0 - (this.getHeight() / 2))
+  	//   .attr("dy", "1em")
+  	//   .style("text-anchor", "middle")
+  	//   .text("Value");
+
+    /** Create bar chart */
+    this.createBarChart(data);
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function populateBarChart. " + err;
+  }
+}
+
+/**
+ * @desc Creates a bar chart, with given data.
+ * @public
+ * @param {(String|Array)} data String-like or Array data to populate bar chart.
+ */
+d3BarChart.prototype.createBarChart = function(data)
+{
+  var d3Scope = this;
+  this.getG().selectAll(".bar")
+    .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return d3Scope.getX()(d.categories); })
+      .attr("y", function(d) { return d3Scope.getY()(d.percentage); })
+      .attr("width", this.getX().bandwidth())
+      .attr("height", function(d) { return d3Scope.getHeight() - d3Scope.getY()(d.percentage); });
+  this.setCreate(true);
+}
+
+/**
+ * @desc Shows bar chart by setting opacity to 1.
+ * @public
+ */
+d3BarChart.prototype.showBarChart = function()
+{
+  this.barChart.style("opacity", 1);
+}
+
+/**
+ * @desc Hides bar chart by setting opacity to 0.
+ * @public
+ */
+d3BarChart.prototype.hideBarChart = function()
+{
+  this.barChart.style("opacity", 0);
+}
+
+/**
+ * @desc Clear bar chart content.
+ * @public
+ */
+d3BarChart.prototype.clearBarChart = function()
+{
+  // this.barChart.html();
+  d3.select("#vStats").remove();
+  this.barChart = this.margin = this.width = this.height = this.x = this.y = this.g = undefined;
+  this.setCreate(false);
+}
+
+/**
+ * Base class for positioning d3 elements in an HTML page.
+ * @author Diego Cintra
+ * Date: 08 November 2018
+ */
+
+/**
+ * @class d3Position
+ */
+class d3Position
+{
+  /**
+   * @constructor
+   * @param {String} HTMLelement HTML element to build d3WordCloud div in.
+   * @param {Number} width Width of element.
+   * @param {Number} height Height of element.
+   * @param {Number} margin Margin of element.
+   */
+  constructor(HTMLelement, width, height, margin = 2)
+  {
+    this.HTMLelement = HTMLelement;
+    this.width = width;
+    this.height = height;
+    this.margin = margin;
+  }
+
+  /**
+   * @desc Getter for margin.
+   * @returns {Number} Margin properties.
+   */
+   getMargin()
+   {
+     return this.margin;
+   }
+
+   /**
+    * @desc Setter for margin.
+    * @param {Number} margin Margin properties.
+    */
+    setMargin(margin)
+    {
+      this.margin = margin;
+    }
+
+    /**
+     * @desc Getter for width.
+     * @returns {Number} width.
+     */
+    getWidth()
+    {
+      return this.width;
+    }
+
+    /**
+     * @desc Setter for width.
+     * @param {Number} width width.
+     */
+     setWidth(width)
+     {
+       this.width = width;
+     }
+
+     /**
+      * @desc Getter for height.
+      * @returns {Number} height.
+      */
+     getHeight()
+     {
+       return this.height;
+     }
+
+     /**
+      * @desc Setter for height.
+      * @param {Number} height height.
+      */
+     setHeight(height)
+     {
+       this.height = height;
+     }
+
+     /**
+      * @desc Getter for HTMLelement.
+      * @returns {String} HTMLelement.
+      */
+     getHTMLelement()
+     {
+       return this.HTMLelement;
+     }
+
+     /**
+      * @desc Setter for HTMLelement.
+      * @param {String} HTMLelement HTMLelement.
+      */
+     setHTMLelement(HTMLelement)
+     {
+       this.HTMLelement = HTMLelement;
+     }
+
+     /**
+      * @desc Clear element from HTML page.
+      * @param {String} svgElement <svg> tag to be removed from HTML page.
+      */
+     clearElement(svgElement)
+     {
+       d3.select(svgElement).remove();
+       this.width = this.height = this.margin = undefined;
+     }
+}
+
+/**
+ * Base class for d3's tooltip, to visualize vertex info inside a node. Based on https://evortigosa.github.io/pollution/
  * @author Diego Cintra
  * Date: 22 may 2018
  */
@@ -2216,6 +3081,210 @@ d3Tooltip.prototype.setPosition = function(x, y)
 }
 
 /**
+ * Base class for d3's word cloud, to visualize vertex values as word clouds. Using word cloud code from https://github.com/jasondavies/d3-cloud, and based on https://bl.ocks.org/jyucsiro/767539a876836e920e38bc80d2031ba7
+ * @author Diego Cintra
+ * Date: 08 November 2018
+ */
+
+class d3WordCloud extends d3Position
+{
+  /**
+   * @constructor
+   * @param {String} HTMLelement HTML element to build d3WordCloud div in.
+   * @param {Number} width Width of element.
+   * @param {Number} height Height of element.
+   * @param {Number} margin Margin of element.
+   * @param {Array} words Array of word objects, containing attributes such as "font", "width", "height" and "value".
+   */
+   constructor(HTMLelement, width, height, margin, words = undefined)
+   {
+     super(HTMLelement, width, height, margin);
+     if(words != undefined) this.setWords(words);
+   }
+
+   /**
+    * @desc Getter for words.
+    * @returns {Array} Array of words.
+    */
+   getWords()
+   {
+     return this.words;
+   }
+
+   /**
+    * @desc Setter for words.
+    * @param {Array} words Array of words.
+    */
+   setWords(words)
+   {
+     this.words = words;
+   }
+
+   /**
+    * @desc Getter for xScale.
+    * @param {Object} word Word to be scaled.
+    * @returns {Object} Scaling function.
+    */
+   getXScale(word)
+   {
+     return this.xScale(word);
+   }
+
+   /**
+    * @desc Setter for xScale.
+    * @param {Object} words Set of words to be scaled to a specific domain.
+    */
+   setXScale(words)
+   {
+     this.xScale = d3.scaleLinear()
+          .domain([d3.min(words, function(d){
+             return parseFloat(d.value);
+           }), d3.max(words, function(d){
+             return parseFloat(d.value);
+           })])
+          .range([10,45]);
+   }
+
+   /**
+    * @desc Clear word cloud from HTML page.
+    */
+   clearWordCloud()
+   {
+     super.clearElement("#wordCloudStats");
+    //  d3.select("#wordCloudStats").remove();
+    //  this.HTMLelement = super.getWidth() = super.getHeight() = super.getMargin() = this.words = undefined;
+   }
+
+   /**
+    * FIXME - Not working outside of anonymous function
+    * @desc Draw word cloud in container.
+    * @param {Array} words Array of words resulting from 'd3.layout.cloud' (callback defined parameter)
+    */
+   drawWordCloud(words)
+   {
+     var width = 500, height = 400;
+     var fill = d3.scaleOrdinal(d3.schemeCategory20);
+     var d3WordCloudScope = this;
+     d3.select("#wordCloudCard").append("svg")
+        .attr("id", "wordCloudStats")
+        .attr("width", 500)
+        .attr("height", 400)
+      .append("g")
+        .attr("transform", "translate(" + [500 >> 1,  400 >> 1] + ")")
+      .selectAll("text")
+      .data(words)
+      .enter().append("text")
+        .style("font-size", function(d) { return d3WordCloudScope.getXScale(d.value) + "px"; })
+        .style("font-family", "Palatino")
+        .style("fill", function(d, i) { return fill(i); })
+        .attr("text-anchor", "middle")
+        .attr("transform", function(d) {
+          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        })
+        .text(function(d) { return d.key; });
+
+     d3.layout.cloud().stop();
+   }
+
+   /**
+    * @desc Create a word cloud and display it on HTML page.
+    * @param {Array} words Array of word objects, containing attributes such as "font", "width", "height" and "value".
+    * @param {String} HTMLelement HTML element to build d3BarChart div in; if specified, replaces "this.parentElement" value.
+    * @param {Number} width Width of element; if specified, replaces "super.getWidth()" value.
+    * @param {Number} height Width of element; if specified, replaces "super.getWidth()" value.
+    */
+   created3WordCloud(words, HTMLelement, width, height)
+   {
+     try
+     {
+      // super.setHTMLelement(ecmaStandard(HTMLelement, super.getHTMLelement()));
+      // super.setWidth(ecmaStandard(width, super.getWidth()));
+      // super.setHeight(ecmaStandard(width, super.getHeight()));
+      this.setWords(ecmaStandard(words, this.getWords()));
+      var wordEntries = d3.entries(this.getWords());
+      /** Scale words from its domain to range [10,100] */
+      this.setXScale(wordEntries);
+      var d3WordCloudScope = this;
+      /** Define word cloud  */
+      d3.layout.cloud().size([500, 400])
+          .timeInterval(20)
+          .words(wordEntries)
+          .fontSize(function(d) { return d3WordCloudScope.getXScale(+d.value); })
+          .text(function(d) { return d.key; })
+          .rotate(function() { return ~~(Math.random() * 2); })
+          // .rotate(function() { return ~~(Math.random() * 2) * 90; })
+          .font("Palatino")
+          .on("end", function(words){
+            var fill = d3.scaleOrdinal(d3.schemeCategory20);
+            d3.select("#wordCloudCard").append("svg")
+               .attr("id", "wordCloudStats")
+               .attr("width", 500)
+               .attr("height", 400)
+             .append("g")
+               .attr("transform", "translate(" + [250,  200] + ")")
+             .selectAll("text")
+             .data(words)
+             .enter().append("text")
+               .style("font-size", function(d) { return d3WordCloudScope.getXScale(d.value) + "px"; })
+               .style("font-family", "Palatino")
+               .style("fill", function(d, i) { return fill(i); })
+               .attr("text-anchor", "middle")
+               .attr("transform", function(d) {
+                 return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+               })
+               .text(function(d) { return d.key; });
+
+            d3.layout.cloud().stop();
+          })
+          .start();
+     }
+     catch(err)
+     {
+       throw "Unexpected error ocurred at line " + err.lineNumber + ", in function created3WordCloud. " + err;
+     }
+   }
+}
+
+/**
+ * Base class for d3's word cloud, serving as bridge between client and server side operations, mostly to fetch words server side.
+ * @author Diego Cintra
+ * Date: 08 November 2018
+ */
+
+class d3WordCloudWrapper
+{
+  /**
+   * @constructor
+   */
+  constructor()
+  {
+    /** Default constructor, nothing to be done here */
+  }
+
+  /**
+   * @desc Make an AJAX call to fetch words server-side.
+   * @param {Object} clickedNode Clicked node.
+   * @param {Object} d3WordCloud d3WordCloud object to call callback response.
+   * @returns {Array} Array of words, respecting https://github.com/jasondavies/d3-cloud syntax.
+   */
+  fetchWords(clickedNode, d3WordCloud)
+  {
+    // let words;
+    $.ajax({
+      url: '/graph/fetchWords',
+      type: 'POST',
+      async: true,
+      data: { node: clickedNode },
+      success: function(data){
+        // words = JSON.parse(data).frequencies;
+        d3WordCloud.created3WordCloud(JSON.parse(data).frequencies, 500, 400);
+      }
+    });
+    // return words;
+  }
+}
+
+/**
  * @desc Base class for DoubleClick, handling user's double click on layout.
  * @author Diego Cintra
  * Date: 27 July 2018
@@ -2249,31 +3318,63 @@ DoubleClick.prototype.setClicked = function(clicked)
 }
 
 /**
+ * @desc Check duplicates in array of neighbors.
+ * @param {Array} neighbors Array of neighbors.
+ * @returns {Array} Array with no duplicates.
+ */
+DoubleClick.prototype.checkDuplicates = function(neighbors)
+{
+  var arr = [];
+  for(var i = 0; i < neighbors.length; i++)
+  {
+    for(var j = i+1; j < neighbors.length; j++)
+    {
+      if( (neighbors[i].vertexInfo == neighbors[j].vertexInfo/32) || (neighbors[i].vertexInfo == neighbors[j].vertexInfo*32) )
+      {
+        neighbors[j] = -1;
+      }
+    }
+  }
+  for(var i = 0; i < neighbors.length; i++)
+  {
+    if(neighbors[i] != -1)
+    {
+      arr.push(neighbors[i]);
+    }
+  }
+  return arr;
+}
+
+/**
  * @desc Update layout, removing edges and coloring vertexes to default color.
  * @param {Object} scene Scene for raycaster.
  * @param {Object} eventHandler EventHandler type object containing neighbors and edges arrays.
  */
 DoubleClick.prototype.updateLayout = function(scene, eventHandler)
 {
+  eventHandler.neighbors = this.checkDuplicates(eventHandler.neighbors);
   /** Change vertexes colors to original color */
   for(var i = 0; i < eventHandler.neighbors.length; i++)
   {
     var mesh = scene.getObjectByName(eventHandler.neighbors[i].mesh);
     for(var j = 0; j < 32; j++)
     {
-      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j] !== undefined)
+      if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j] !== undefined && mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)].properties !== undefined)
       {
-        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(0.8, 0.8, 0.8);
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo*32)+j].color.b-0.3);
       }
-      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined)
+      else if(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j] !== undefined && mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)].properties !== undefined)
       {
-        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+        // mesh.name == "MainMesh" ? mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0) : mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(0.8, 0.8, 0.8);
+        mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.setRGB(mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.r-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.g-0.3, mesh.geometry.faces[(eventHandler.neighbors[i].vertexInfo)+j].color.b-0.3);
       }
       mesh.geometry.colorsNeedUpdate = true;
     }
   }
   /** Clearing array of neighbors */
   eventHandler.neighbors = [];
+  eventHandler.realNeighbors = [];
   /** Remove 'parentConnections' edges */
   // for(var i = 0; i < edges; i++)
   for(var i = 0; i < eventHandler.nEdges; i++)
@@ -2282,6 +3383,26 @@ DoubleClick.prototype.updateLayout = function(scene, eventHandler)
   }
   /** Remove 'neighborEdges' edges */
   scene.remove(scene.getObjectByName("neighborEdges"));
+  /** Remove 'selected' vertices */
+  scene.remove(scene.getObjectByName("selected"));
+  var indexes = [];
+  /** Remove 'neighboriindex', 'predecessori' or 'successori' vertices */
+  for(var i = 0; i < scene.children.length; i++)
+  {
+    // if(scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'neighbor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'predecessor' || scene.children[i].name.substring(0, scene.children[i].name.length-1) == 'successor')
+    if(scene.children[i].name.includes('neighbor') || scene.children[i].name.includes('predecessor') || scene.children[i].name.includes('successor'))
+    {
+      indexes.push(i);
+      // scene.remove(scene.children[i]);
+    }
+  }
+  indexes.sort(function(a, b){
+    return parseInt(b)-parseInt(a);
+  });
+  for(var i = 0; i < indexes.length; i++)
+  {
+    scene.remove(scene.children[indexes[i]]);
+  }
   /**
    * @param {Array} neighbors Array of neighbor vertexes.
    * @param {Array} edges Array of edges displayed in layout.
@@ -2308,13 +3429,15 @@ var ecmaStandard = function(variable, defaultValue)
  * @param {String} HTMLelement HTML element to build d3Tooltip div in.
  * @param {String} SVGId Id to store <svg> id value.
  * @param {int} numOfLevels Number of coarsened graphs.
+ * @param {String} d3WordCloudId HTML element to build d3WordCloud in.
  */
-var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
+var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels, d3WordCloudId)
 {
     this.raycaster = ecmaStandard(raycaster, new THREE.Raycaster());
     this.raycaster.linePrecision = 0.1;
     this.highlightedElements = [];
     this.neighbors = [];
+    this.realNeighbors = [];
     this.doubleClick = new DoubleClick();
     // this.clicked = {wasClicked: false};
     this.updateData = {wasUpdated: false};
@@ -2325,7 +3448,7 @@ var EventHandler = function(raycaster, HTMLelement, SVGId, numOfLevels)
     /** Counts number of edges to be created while showing parents */
     this.nEdges = 0;
     /** Object to handle statistics processing and visualization */
-    this.statsHandler = new statsHandler(SVGId);
+    this.statsHandler = new statsHandler(SVGId, d3WordCloudId);
     this.SVGId = SVGId;
 }
 
@@ -2463,7 +3586,11 @@ EventHandler.prototype.renderNeighborEdges = function(scene, mesh, neighbors)
   var eventHandlerScope = this;
   /** Store edge color according to weight */
   $.ajax({
+<<<<<<< HEAD
     url: '/getEdgesWeights',
+=======
+    url: '/graph/getEdgesWeights',
+>>>>>>> develop
     type: 'POST',
     // data: { source: mesh.geometry.faces[sourceNode*32].id, target: mesh.geometry.faces[neighbors.neighbors[i]*32].id },
     data: { neighbors: neighbors.neighbors },
@@ -2503,6 +3630,7 @@ EventHandler.prototype.renderNeighborEdges = function(scene, mesh, neighbors)
 }
 
 /**
+<<<<<<< HEAD
  * Color vertex.
  * @param {Array} faces Array of faces objects.
  * @param {int} startFace Index for starting face.
@@ -2514,10 +3642,39 @@ EventHandler.prototype.colorVertex = function(faces, startFace, endFace, color)
   for(var i = startFace; i < endFace; i++)
   {
     faces[i].color.setRGB(color[0], color[1], color[2]);
+=======
+ * Set translation, rotation and scaling factors for a given geometry.
+ * @param {Object} geometry Three.js Geometry structure to apply operations.
+ * @param {Array} tFactor Translation factor, given by (x,y,z) coordinates.
+ * @param {Array} rFactor Rotation factor, given by (rx, ry, rz) values.
+ * @param {Array} sFactor Scale factor, given by (sx, sy, sz) values.
+ * @param {Array} order Set order of operations to be executed; (1) for translate, (2) for rotate and (3) for scale.
+ */
+EventHandler.prototype.setTRS = function(geometry, tFactor, rFactor, sFactor, order)
+{
+  if(order == undefined) order = [1, 2, 3];
+  for(o in order)
+  {
+    switch(order[o])
+    {
+      case 1:
+        if(tFactor != undefined) geometry.translate(tFactor[0], tFactor[1], tFactor[2]);
+      break;
+      case 2:
+        if(rFactor != undefined) geometry.rotate(rFactor[0], rFactor[1], rFactor[2]);
+      break;
+      case 3:
+        if(sFactor != undefined) geometry.scale(sFactor[0], sFactor[1], sFactor[2]);
+      break;
+      default:
+      break;
+    }
+>>>>>>> develop
   }
 }
 
 /**
+<<<<<<< HEAD
  * Change neighbor vertexes colors.
  * @param {Array} faces Array of faces objects.
  * @param {Array} neighbors Neighbors to be colored.
@@ -2612,6 +3769,48 @@ EventHandler.prototype.wasRendered = function(sourcePos, targetPos, layout)
   {
     // return Math.abs(targetPos.x) > Math.abs(sourcePos.x) ? 1 : 0;
     return ( (targetPos.x < 0 && sourcePos.x < 0) || (targetPos.x > 0 && sourcePos.x > 0) ) ? 1 : 0;
+=======
+ * Color vertex.
+ * @param {Array} faces Array of faces objects.
+ * @param {int} startFace Index for starting face.
+ * @param {int} endFace Index for end of face.
+ * @param {Array} color Array of color.
+ */
+EventHandler.prototype.colorVertex = function(faces, startFace, endFace, color)
+{
+  for(var i = startFace; i < endFace; i++)
+  {
+    // faces[i].color.setRGB(color[0], color[1], color[2]);
+    color === undefined ? faces[i].color.setRGB(faces[i].color.r+0.3, faces[i].color.g+0.3, faces[i].color.b+0.3) : faces[i].color.setRGB(color[0], color[1], color[2]);
+  }
+}
+
+/**
+ * Change neighbor vertexes colors.
+ * @param {Object} scene Scene for raycaster.
+ * @param {Array} faces Array of faces objects.
+ * @param {Array} neighbors Neighbors to be colored.
+ */
+EventHandler.prototype.colorNeighbors = function(scene, faces, neighbors)
+{
+  /** First element of 'neighbors' array is double-clicked vertex */
+  for(var i = 2; i < neighbors.length; i++)
+  {
+    var endPoint = ((faces[neighbors[0].vertexInfo].neighbors[i]) * 32) + 32;
+    this.colorVertex(faces, faces[neighbors[0].vertexInfo].neighbors[i]*32, endPoint, undefined);
+    /** Create blue circle for highlighting */
+    var circleGeometry = new THREE.CircleGeometry(1, 32);
+    this.colorVertex(circleGeometry.faces, 0, 32, Array(0.0, 0.0, 1.0));
+    this.setTRS(circleGeometry, [parseFloat(faces[neighbors[i].vertexInfo*32].position.x), parseFloat(faces[neighbors[i].vertexInfo*32].position.y), parseFloat(faces[neighbors[i].vertexInfo*32].position.z)], undefined, [parseFloat(faces[neighbors[i].vertexInfo*32].size)+1, parseFloat(faces[neighbors[i].vertexInfo*32].size)+1, 1], [3, 1, 2]);
+    /** Creating material for nodes */
+    var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+    /** Create one mesh from single geometry and add it to scene */
+    var mesh = new THREE.Mesh(circleGeometry, material);
+    mesh.name = "neighbor" + scene.children.length.toString();
+    /** Alter render order so that node mesh will always be drawn on top of edges */
+    mesh.renderOrder = 0;
+    scene.add(mesh);
+>>>>>>> develop
   }
 }
 
@@ -2781,8 +3980,231 @@ EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, curr
  */
 EventHandler.prototype.showParents = function(intersection, scene, layout)
 {
+<<<<<<< HEAD
   if(intersection !== undefined)
   {
+=======
+  var element = scene.getObjectByName("MainMesh", true);
+  /** Find highlighted vertex and highlight its neighbors */
+  for(var i = 0; i < this.highlightedElements.length; i++)
+  {
+    /** Add itself for highlighting */
+    this.neighbors.push({vertexInfo: this.highlightedElements[i]/32, mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+    this.realNeighbors.push({vertexInfo: this.highlightedElements[i]/32, mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+    for(var j = 1; j < element.geometry.faces[this.highlightedElements[i]].neighbors.length; j++)
+    {
+      this.neighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+      this.realNeighbors.push({vertexInfo: element.geometry.faces[this.highlightedElements[i]].neighbors[j], mesh: element.name, edgeColor: {r:0, g:0, b:0}});
+    }
+    this.renderNeighborEdges(scene, element, element.geometry.faces[this.highlightedElements[i]]);
+    this.colorNeighbors(scene, element.geometry.faces, this.neighbors);
+    element.geometry.colorsNeedUpdate = true;
+    element.geometry.verticesNeedUpdate = true;
+    /** Remove itself so it won't unhighlight as soon as mouse moves out */
+    this.highlightedElements.splice(i, 1);
+  }
+}
+
+/**
+ * Check to see if a vertex has been rendered. Checking is made by comparing either y or x axis.
+ * @param {Object} sourcePos Coordinates (x,y,z) from clicked vertex.
+ * @param {Object} targetPos Coordinates (x,y,z) from parent vertex.
+ * @param {int} layout Graph layout.
+ * @return {int} (1) if both vertexes were rendered; (0) if only clicked vertex was rendered.
+ */
+EventHandler.prototype.wasRendered = function(sourcePos, targetPos, layout)
+{
+  /** Graph is displayed vertically; must compare x-axes */
+  if(layout == 2)
+  {
+    // return Math.abs(targetPos.y) > Math.abs(sourcePos.y) ? 1 : 0;
+    return ( (targetPos.y < 0 && sourcePos.y < 0) || (targetPos.y > 0 && sourcePos.y > 0) ) ? 1 : 0;
+  }
+  else if(layout == 3)
+  {
+    // return Math.abs(targetPos.x) > Math.abs(sourcePos.x) ? 1 : 0;
+    return ( (targetPos.x < 0 && sourcePos.x < 0) || (targetPos.x > 0 && sourcePos.x > 0) ) ? 1 : 0;
+  }
+}
+
+/**
+ * Show merged vertexes from a given node.
+ * @param {int} nEdges Number of edges created, constantly updated through recursion.
+ * @param {Object} scene Scene for raycaster.
+ * @param {int} startFace Face index from a given node.
+ * @param {Object} currentMesh Mesh where current node is.
+ * @param {Object} previousMesh Mesh where parent nodes are.
+ * @param {int} previousMeshNumber Mesh number where parent nodes are.
+ * @param {int} layout Graph layout.
+ * @param {int} layer Checks whether vertex double-clicked belongs to first layer or last layer.
+ */
+EventHandler.prototype.showNodeParents = function(nEdges, scene, startFace, currentMesh, previousMesh, previousMeshNumber, layout, layer)
+{
+  /** Recursion termination condition */
+  if(previousMesh != undefined && previousMesh.name != currentMesh.name)
+  {
+    var properties = JSON.parse(currentMesh.geometry.faces[startFace].properties);
+    var edgeGeometry = new THREE.Geometry();
+    var sourcePos = currentMesh.geometry.faces[startFace].position;
+    var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+    // var predecessors;
+    // /** Color predecessors */
+    // for(pred in properties)
+    // {
+    //   if(pred == "predecessor")
+    //   {
+    //     predecessors = properties[pred].split(",");
+    //   }
+    // }
+    var l = 0;
+    if(!isNaN(currentMesh.name[currentMesh.name.length-1]))
+    {
+      l = parseInt(currentMesh.name[currentMesh.name.length-1]);
+    }
+    var layScope = this;
+    $.ajax({
+      url: '/graph/getSorted',
+      type: 'POST',
+      /** FIXME - NEVER EVER EVER use async! */
+      async: false,
+      // data: { name: previousMesh.name, pred: predecessors },
+      data: { currentMesh: currentMesh.name, previousMesh: previousMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
+      success: function(data){
+        data = JSON.parse(data);
+        for(var i = 0; i < data.array.length; i++)
+        {
+          data.array[i] = parseInt(data.array[i])*32;
+          /** Check which layer double-clicked vertex belongs to */
+          // var vertexId = JSON.parse(currentMesh.geometry.faces[startFace].properties).id;
+          // /** If from first, do nothing; else if from last, update index */
+          // if(vertexId >= currentMesh.geometry.faces[startFace].firstLayer)
+          // {
+          //   console.log("entered if");
+          //   data.array[i] = data.array[i] - (parseInt(JSON.parse(currentMesh.geometry.faces[startFace].properties).firstLayer)*32);
+          // }
+          // /** FIXME - Access to index '0' is hardcoded */
+          // var layers = JSON.parse(previousMesh.geometry.faces[(parseInt(data.array[i]))].layers);
+          // /** First layer isn't rendered; update predecessor ids so that it searches for proper parents */
+          // if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+          // {
+          //   /** FIXME - Access to index '0' is hardcoded */
+          //   data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[0].firstLayer)*32);
+          //   // data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[(parseInt(data.array[i]))].firstLayer)*32);
+          // }
+          if(previousMesh.geometry.faces[(parseInt(data.array[i]))] === undefined)
+          {
+              data.array[i] = data.array[i] - (parseInt(previousMesh.geometry.faces[0].firstLayer)*32);
+          }
+          /** Color predecessors */
+          var targetPos = previousMesh.geometry.faces[(parseInt(data.array[i]))].position;
+          /** Check if predecessor vertexes were rendered */
+          // if(layScope.wasRendered(sourcePos, targetPos, layout))
+          // {
+          layScope.neighbors.push({vertexInfo: parseInt(data.array[i]), mesh: previousMesh.name});
+          var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+          for(var j = 0; j < 32; j++)
+          {
+            // previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
+            previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.r+0.3, previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.g+0.3, previousMesh.geometry.faces[(parseInt(data.array[i])) + j].color.b+0.3);
+          }
+          /** Draw green circle behind predecessors as borders to predecessor vertices */
+          var circleGeometry = new THREE.CircleGeometry(1, 32);
+          layScope.colorVertex(circleGeometry.faces, 0, 32, Array(0.0, 1.0, 0.0));
+          layScope.setTRS(circleGeometry, [parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].position.x), parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].position.y), parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].position.z)], undefined, [parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].size)+1, parseFloat(previousMesh.geometry.faces[(parseInt(data.array[i]))].size)+1, 1], [3, 1, 2]);
+          /** Creating material for nodes */
+          var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+          /** Create one mesh from single geometry and add it to scene */
+          var mesh = new THREE.Mesh(circleGeometry, material);
+          mesh.name = "predecessor" + scene.children.length.toString();
+          /** Alter render order so that node mesh will always be drawn on top of edges */
+          mesh.renderOrder = 0;
+          scene.add(mesh);
+          circleGeometry.dispose();
+          circleGeometry = null;
+          material.dispose();
+          material = null;
+          /** Add edges to 'parentConnections' geometry */
+          edgeGeometry.vertices.push(v1);
+          edgeGeometry.vertices.push(v2);
+          // }
+          // if(previousMesh.geometry.faces[(parseInt(data.array[i]))] !== undefined)
+          // {
+          // }
+        }
+        previousMesh.geometry.colorsNeedUpdate = true;
+        for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+        {
+          // edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+          edgeGeometry.colors[i] = new THREE.Color("rgb(0, 255, 0)");
+          edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+        }
+        edgeGeometry.computeLineDistances();
+        edgeGeometry.colorsNeedUpdate = true;
+
+        /** Create one LineSegments and add it to scene */
+        // var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+        var edgeMaterial = new THREE.LineDashedMaterial({vertexColors:  THREE.VertexColors, dashSize: 10, gapSize: 3});
+        var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+        // lineSegments.name = isNaN(currentMesh.name[currentMesh.name.length-1]) ? "parentConnections" : "parentConnections" + currentMesh.name[currentMesh.name.length-1];
+        lineSegments.name = "parentConnections" + layScope.nEdges;
+        // console.log("lineSegments.name: " + lineSegments.name);
+        layScope.nEdges = layScope.nEdges + 1;
+        scene.add(lineSegments);
+
+        edgeGeometry.dispose();
+        edgeGeometry = null;
+        edgeMaterial.dispose();
+        edgeMaterial = null;
+
+        /** Check if there are previous meshes */
+        var previousMeshNumber = previousMesh.name[previousMesh.name.length-1];
+        if(parseInt(previousMeshNumber) == (layScope.nLevels[layer]+1))
+        {
+          previousMeshNumber = -1;
+        }
+        else
+        {
+          previousMeshNumber = parseInt(previousMeshNumber);
+          previousMeshNumber = previousMeshNumber + 1;
+        }
+
+        /** Recursively highlight parents */
+        for(var i = 0; i < data.array.length; i++)
+        {
+          if(previousMesh.geometry.faces[(parseInt(data.array[i]))] !== undefined)
+          {
+              layScope.showNodeParents(layScope.nEdges, scene, parseInt(data.array[i]), previousMesh, previousMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + previousMeshNumber), previousMeshNumber, layout, layer);
+          }
+          // layScope.showNodeParents(scene, parseInt(data.array[i]), previousMesh, previousMeshNumber == 0 ? scene.getObjectByName("MainMesh") : previousMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + previousMeshNumber), layout);
+        }
+      },
+      xhr: loadGraph
+    });
+  }
+  /** If true, it means there are still meshes to search for parents; they are not exactly one level before or after */
+  else if(previousMesh == undefined && parseInt(previousMeshNumber) > 0 && parseInt(previousMeshNumber) <= (this.nLevels[layer]+1))
+  {
+    previousMeshNumber = parseInt(previousMeshNumber);
+    previousMeshNumber = previousMeshNumber + 1;
+    this.showNodeParents(this.nEdges, scene, startFace, currentMesh, previousMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + previousMeshNumber), previousMeshNumber, layout, layer);
+  }
+  // else
+  // {
+  //   this.clicked.wasClicked = true;
+  // }
+}
+
+/**
+ * Show merged vertexes which formed super vertex clicked.
+ * @param {Object} intersection Intersected object in specified scene.
+ * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
+ */
+EventHandler.prototype.showParents = function(intersection, scene, layout)
+{
+  if(intersection !== undefined)
+  {
+>>>>>>> develop
     this.clicked.wasClicked = true;
     var previousMeshNumber = parseInt(intersection.object.name[intersection.object.name.length-1]) + 1;
     var originalMeshName = intersection.object.name.substring(0, intersection.object.name.length-1);
@@ -2790,6 +4212,62 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
     // var currentMesh = scene.getObjectByName(intersection.object.name);
     var previousMesh = scene.getObjectByName(originalMeshName + previousMeshNumber.toString());
     if(previousMesh != undefined)
+<<<<<<< HEAD
+    {
+      /** Get array of predecessors */
+      var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
+      /** Recursively highlight parent nodes */
+      this.showNodeParents(this.nEdges, scene, startFace, intersection.object, previousMesh, layout);
+    }
+    /** Recursively highlight parents */
+    // if(previousMeshNumber != 'h1')
+    //
+    // else
+    //   this.clicked.wasClicked = true;
+
+  }
+  else
+  {
+    this.clicked.wasClicked = false;
+    for(var i = 0; i < this.nEdges; i++)
+    {
+      // console.log("parentConnections" + i.toString());
+      scene.remove(scene.getObjectByName("parentConnections" + i.toString()));
+    }
+    this.nEdges = 0;
+    // for(var i = 0; i < this.nLevels; i++)
+    // {
+    //   if(i == 0)
+    //   {
+    //     console.log("entrei em parentConnections");
+    //     scene.remove(scene.getObjectByName("parentConnections"));
+    //   }
+    //   else
+    //   {
+    //     console.log("parentConnections"+i.toString());
+    //     scene.remove(scene.getObjectByName("parentConnections"+i.toString()));
+    //   }
+    //   // i == 0 ? scene.remove(scene.getObjectByName("parentConnections")) : scene.remove(scene.getObjectByName("parentConnections"+i.toString()));
+    // }
+    for(var i = 0; i < this.neighbors.length; i++)
+    {
+      var mesh = scene.getObjectByName(this.neighbors[i].mesh);
+      for(var j = 0; j < 32; j++)
+      {
+        if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
+        {
+            mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        else if(mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j] !== undefined)
+        {
+          mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+        }
+        mesh.geometry.colorsNeedUpdate = true;
+      }
+    }
+    /** Clearing array of neighbors */
+    this.neighbors = [];
+=======
     {
       /** Get array of predecessors */
       var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
@@ -2848,6 +4326,303 @@ EventHandler.prototype.showParents = function(intersection, scene, layout)
 }
 
 /**
+ * Show merged vertexes from a given node.
+ * @param {int} nEdges Number of edges created, constantly updated through recursion.
+ * @param {Object} scene Scene for raycaster.
+ * @param {int} startFace Face index from a given node.
+ * @param {Object} currentMesh Mesh where current node is.
+ * @param {Object} nextMesh Mesh where successor nodes are.
+ * @param {int} nextMeshNumber Mesh number where successor nodes are.
+ * @param {int} layout Graph layout.
+ * @param {int} layer Checks whether vertex double-clicked belongs to first layer or last layer.
+ * @return {int} Index of last successor in layout.
+ */
+EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, currentMesh, nextMesh, nextMeshNumber, layout, layer)
+{
+  var lastSuc = undefined;
+  /** Recursion termination condition */
+  if(nextMesh != undefined && nextMesh.name != currentMesh.name)
+  {
+    // var properties = JSON.parse(currentMesh.geometry.faces[startFace].properties);
+    var edgeGeometry = new THREE.Geometry();
+    var sourcePos = currentMesh.geometry.faces[startFace].position;
+    var v1 = new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z);
+    // var successors = undefined;
+    // /** Color successors */
+    // for(suc in properties)
+    // {
+    //   if(suc == "successor")
+    //   {
+    //     successors = properties[suc].split(",");
+    //   }
+    // }
+    var l = 0;
+    if(!isNaN(currentMesh.name[currentMesh.name.length-1]))
+    {
+      l = parseInt(currentMesh.name[currentMesh.name.length-1]);
+    }
+    var layScope = this;
+    $.ajax({
+      url: '/graph/getSortedSuccessors',
+      type: 'POST',
+      /** FIXME - NEVER EVER EVER use async! */
+      async: false,
+      data: { currentMesh: currentMesh.name, nextMesh: nextMesh.name, levels: l, idx: JSON.parse(currentMesh.geometry.faces[startFace].properties).id },
+      success: function(data){
+        data = JSON.parse(data);
+        for(var i = 0; nextMesh.geometry.faces[(parseInt(data.array[i]))] != undefined && i < data.array.length; i++)
+        {
+          data.array[i] = (parseInt(data.array[i]))*32;
+          // if(JSON.parse(nextMesh.geometry.faces[(parseInt(data.array[i]))].layers).renderFirstLayer == false)
+          if(nextMesh.geometry.faces[(parseInt(data.array[i]))] == undefined)
+          {
+            data.array[i] = data.array[i] - (parseInt(nextMesh.geometry.faces[0].firstLayer)*32);
+          }
+          /** Color successors */
+          var targetPos = nextMesh.geometry.faces[(parseInt(data.array[i]))].position;
+          layScope.neighbors.push({vertexInfo: parseInt(data.array[i]), mesh: nextMesh.name});
+          var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+          for(var j = 0; j < 32; j++)
+          {
+            // nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(0.0, 1.0, 0.0);
+            nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.setRGB(nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.r+0.3, nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.g+0.3, nextMesh.geometry.faces[(parseInt(data.array[i])) + j].color.b+0.3);
+          }
+          /** Add edges to 'parentConnections' geometry */
+          edgeGeometry.vertices.push(v1);
+          edgeGeometry.vertices.push(v2);
+          /** Draw green circle behind successor as borders to successor */
+          var circleGeometry = new THREE.CircleGeometry(1, 32);
+          layScope.colorVertex(circleGeometry.faces, 0, 32, Array(0.0, 1.0, 0.0));
+          layScope.setTRS(circleGeometry, [parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].position.x), parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].position.y), parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].position.z)], undefined, [parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].size)+1, parseFloat(nextMesh.geometry.faces[(parseInt(data.array[i]))].size)+1, 1], [3, 1, 2]);
+          /** Creating material for nodes */
+          var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+          /** Create one mesh from single geometry and add it to scene */
+          var mesh = new THREE.Mesh(circleGeometry, material);
+          mesh.name = "successor" + scene.children.length.toString();
+          /** Alter render order so that node mesh will always be drawn on top of edges */
+          mesh.renderOrder = 0;
+          scene.add(mesh);
+          circleGeometry.dispose();
+          circleGeometry = null;
+          material.dispose();
+          material = null;
+        }
+        nextMesh.geometry.colorsNeedUpdate = true;
+        for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+        {
+          // edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+          edgeGeometry.colors[i] = new THREE.Color("rgb(0, 255, 0)");
+          edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+        }
+        edgeGeometry.computeLineDistances();
+        edgeGeometry.colorsNeedUpdate = true;
+
+        /** Create one LineSegments and add it to scene */
+        // var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+        var edgeMaterial = new THREE.LineDashedMaterial({vertexColors:  THREE.VertexColors, dashSize: 10, gapSize: 3});
+        var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+        // lineSegments.name = isNaN(currentMesh.name[currentMesh.name.length-1]) ? "parentConnections" : "parentConnections" + currentMesh.name[currentMesh.name.length-1];
+        lineSegments.name = "parentConnections" + layScope.nEdges;
+        // console.log("lineSegments.name: " + lineSegments.name);
+        layScope.nEdges = layScope.nEdges + 1;
+        scene.add(lineSegments);
+
+        edgeGeometry.dispose();
+        edgeGeometry = null;
+        edgeMaterial.dispose();
+        edgeMaterial = null;
+
+        /** Check if there are next meshes */
+        var nextMeshNumber = nextMesh.name[nextMesh.name.length-1];
+        if(isNaN(nextMeshNumber))
+        {
+          nextMeshNumber = -1;
+        }
+        else
+        {
+          nextMeshNumber = parseInt(nextMeshNumber);
+          nextMeshNumber = nextMeshNumber - 1;
+        }
+        /** Recursively highlight children */
+        for(var i = 0; i < data.array.length; i++)
+        {
+          lastSuc = layScope.showNodeChildren(this.nEdges, scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
+          // this.showNodeParents(scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : nextMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + nextMeshNumber), layout);
+        }
+      },
+      xhr: loadGraph
+    });
+    // for(var i = 0; successors != undefined && i < successors.length; i++)
+    // {
+    //   successors[i] = parseInt(successors[i])*32;
+    //   if(nextMesh.geometry.faces[(parseInt(successors[i]))] !== undefined)
+    //   {
+    //     var layers = JSON.parse(nextMesh.geometry.faces[(parseInt(successors[i]))].layers);
+    //     /** First layer isn't rendered; update successor ids so that it searches for proper parents */
+    //     // if(layers.renderFirstLayer == false && layers.renderLastLayer == true)
+    //     // {
+    //     //   successors[i] = successors[i] + (parseInt(nextMesh.geometry.faces[(parseInt(successors[i]))].firstLayer)*32);
+    //     // }
+    //     /** Color predecessors */
+    //     var targetPos = nextMesh.geometry.faces[(parseInt(successors[i]))].position;
+    //     /** Check if predecessor vertexes were rendered */
+    //     // if(this.wasRendered(sourcePos, targetPos, layout))
+    //     // {
+    //       this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
+    //       var v2 = new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z);
+    //       for(var j = 0; j < 32; j++)
+    //       {
+    //         nextMesh.geometry.faces[(parseInt(successors[i])) + j].color.setRGB(1.0, 0.0, 0.0);
+    //       }
+    //       /** Add edges to 'parentConnections' geometry */
+    //       edgeGeometry.vertices.push(v1);
+    //       edgeGeometry.vertices.push(v2);
+    //     // }
+    //   }
+    // }
+    // nextMesh.geometry.colorsNeedUpdate = true;
+    // for(var i = 0; i < edgeGeometry.vertices.length; i = i + 2)
+    // {
+    //   edgeGeometry.colors[i] = new THREE.Color("rgb(255, 0, 0)");
+    //   edgeGeometry.colors[i+1] = edgeGeometry.colors[i];
+    // }
+    // edgeGeometry.colorsNeedUpdate = true;
+    //
+    // /** Create one LineSegments and add it to scene */
+    // var edgeMaterial = new THREE.LineBasicMaterial({vertexColors:  THREE.VertexColors});
+    // var lineSegments = new THREE.LineSegments(edgeGeometry, edgeMaterial, THREE.LinePieces);
+    // // lineSegments.name = isNaN(currentMesh.name[currentMesh.name.length-1]) ? "parentConnections" : "parentConnections" + currentMesh.name[currentMesh.name.length-1];
+    // lineSegments.name = "parentConnections" + this.nEdges;
+    // // console.log("lineSegments.name: " + lineSegments.name);
+    // this.nEdges = this.nEdges + 1;
+    // scene.add(lineSegments);
+    //
+    // edgeGeometry.dispose();
+    // edgeGeometry = null;
+    // edgeMaterial.dispose();
+    // edgeMaterial = null;
+    //
+    // /** Check if there are next meshes */
+    // var nextMeshNumber = nextMesh.name[nextMesh.name.length-1];
+    // // if(parseInt(nextMeshNumber) == 1)
+    // if(isNaN(nextMeshNumber))
+    // {
+    //   nextMeshNumber = -1;
+    // }
+    // else
+    // {
+    //   nextMeshNumber = parseInt(nextMeshNumber);
+    //   nextMeshNumber = nextMeshNumber - 1;
+    // }
+    //
+    // /** Recursively highlight children */
+    // for(var i = 0; successors != undefined && i < successors.length; i++)
+    // {
+    //   return this.showNodeChildren(this.nEdges, scene, parseInt(successors[i]), nextMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
+    //   // this.showNodeParents(scene, parseInt(data.array[i]), nextMesh, nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : nextMeshNumber == -1 ? undefined : scene.getObjectByName("MainMesh" + nextMeshNumber), layout);
+    // }
+  }
+  /** If true, it means there are still meshes to search for children; they are not exactly one level before or after */
+  else if(nextMesh == undefined && parseInt(nextMeshNumber) >= 0)
+  {
+    nextMeshNumber = parseInt(nextMeshNumber);
+    nextMeshNumber = nextMeshNumber - 1;
+    lastSuc = this.showNodeChildren(this.nEdges, scene, startFace, currentMesh, nextMeshNumber == -1 ? undefined : nextMeshNumber == 0 ? scene.getObjectByName("MainMesh") : scene.getObjectByName("MainMesh" + nextMeshNumber), nextMeshNumber, layout, layer);
+  }
+  if(lastSuc == undefined)
+  {
+    return startFace;
+  }
+  else
+  {
+    return lastSuc;
+  }
+}
+
+/**
+ * Show vertex information with Vue.js.
+ * @public
+ * @param {JSON} vertices Properties from vertex face.
+ * @param {Array} rows Rows to insert data.
+ * @param {String} table Table ID where vertex info will be displayed.
+ */
+EventHandler.prototype.showVertexInfo = function(vertices, header, rows, table)
+{
+  var vertexVueHeaders = [], vertexVueRows = [], valuesOfVertex;
+  /** Load already existing elements clicked in array of rows */
+  // for(var j = 0; j < rows.length; j++)
+  // {
+  //   vertexVueRows.push(rows[j]);
+  // }
+  /** If object does not contain an array of vertexes, then its a vertex with no coarsening */
+  if(vertices.vertexes !== undefined)
+  {
+    vertices = vertices.vertexes;
+  }
+  else
+  {
+    var simpleArr = [];
+    simpleArr.push(vertices);
+    vertices = simpleArr;
+  }
+  /** Check if intersected vertex is either from first or second layer */
+  for(var j = 0; j < vertices.length; j++)
+  {
+    var tempArr = [];
+    for(key in vertices[j])
+    {
+      if(key != "sha-id" && key != "id") tempArr.push(key);
+    }
+    if(vertexVueHeaders.length < tempArr.length)
+    {
+      vertexVueHeaders = tempArr;
+      /** Sort headers */
+      vertexVueHeaders.sort(function(a, b){
+        return ('' + a).localeCompare(b);
+      });
+      /** Construct a new vue table header */
+      // header.push(vertexVueHeaders);
+      if(header.length == 0)
+      {
+        vertexVueHeaders.forEach(function(element){
+          header.push(element);
+        });
+      }
+    }
+  }
+  for(var j = 0; j < vertices.length; j++)
+  {
+    var ordered = {};
+    for(key in vertexVueHeaders)
+    {
+      if(!(vertexVueHeaders[key] in vertices[j]))
+      {
+        ordered[vertexVueHeaders[key]] = "No value";
+      }
+      else
+      {
+        ordered[vertexVueHeaders[key]] = vertices[j][vertexVueHeaders[key]];
+      }
+    }
+    // vertexVueRows.push(ordered);
+    rows.push(ordered);
+>>>>>>> develop
+  }
+  /** Construct a new vue table data */
+  // rows.push(vertexVueRows);
+  // for(var i = 0; i < vertexVueRows.length; i++)
+  // {
+  //   rows.push(vertexVueRows[i]);
+  // }
+  // vertexVueRows.forEach(function(element){
+  //   rows.push(element);
+  // });
+  /** Show tables containing vertex info */
+  $(table).css('visibility', 'visible');
+}
+
+/**
+<<<<<<< HEAD
  * Show merged vertexes from a given node.
  * @param {int} nEdges Number of edges created, constantly updated through recursion.
  * @param {Object} scene Scene for raycaster.
@@ -3039,6 +4814,20 @@ EventHandler.prototype.showNodeChildren = function(nEdges, scene, startFace, cur
   else
   {
     return startFace;
+=======
+ * Show neighbor vertexes from selected element information.
+ * @param {Object} scene Scene for raycaster.
+ */
+EventHandler.prototype.showNeighborInfo = function(scene)
+{
+  var mesh = scene.getObjectByName("MainMesh");
+  for(let i = 0; i < this.realNeighbors.length; i++)
+  {
+    /** Show vertex info for every neighbor found */
+    parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueRootInstance.$data.tableCards[0].headers, vueRootInstance.$data.tableCards[0].rows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueRootInstance.$data.tableCards[1].headers, vueRootInstance.$data.tableCards[1].rows, "#divVertexInfoTableSecondLayer");
+    // parseInt(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties).id) < parseInt(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].firstLayer) ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeader, vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo*32].properties), vueTableHeaderSecondLayer, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
+    // mesh.geometry.faces[this.realNeighbors[i].vertexInfo].faceIndex <= mesh.geometry.faces[this.realNeighbors[i].vertexInfo].firstLayer*32 ? this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRows, "#divVertexInfoTable") : this.showVertexInfo(JSON.parse(mesh.geometry.faces[this.realNeighbors[i].vertexInfo].properties), vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
+>>>>>>> develop
   }
 }
 
@@ -3070,6 +4859,7 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
     // intersection.faceIndex <= intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32 ? index = 'renderFirstLayer' : index = 'renderLastLayer';
     parseInt(intersectionId) < parseInt(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer) ? index = 'renderFirstLayer' : index = 'renderLastLayer';
     // while(previousMesh != undefined && JSON.parse(previousMesh.geometry.faces[0].layers)[index] == false && previousMeshNumber != this.nLevels[0]+1)
+<<<<<<< HEAD
     while(JSON.parse(previousMesh.geometry.faces[0].layers)[index] == false)
     {
       previousMeshNumber = previousMeshNumber + 1;
@@ -3093,8 +4883,99 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
       else
       {
         nextMesh = scene.getObjectByName(originalMeshName + nextMeshNumber.toString());
+=======
+    while(previousMesh != undefined && JSON.parse(previousMesh.geometry.faces[0].layers)[index] == false)
+    {
+      previousMeshNumber = previousMeshNumber + 1;
+      if(previousMeshNumber == this.nLevels[0]+1)
+      {
+        previousMesh = scene.getObjectByName(originalMeshName);
+      }
+      else
+      {
+        previousMesh = scene.getObjectByName(originalMeshName + previousMeshNumber.toString());
       }
     }
+    // while(nextMesh != undefined && JSON.parse(nextMesh.geometry.faces[0].layers)[index] == false && nextMeshNumber != "")
+    while(nextMesh != undefined && JSON.parse(nextMesh.geometry.faces[0].layers)[index] == false)
+    {
+      nextMeshNumber = nextMeshNumber - 1;
+      if(nextMeshNumber == 0)
+      {
+        nextMesh = scene.getObjectByName(originalMeshName);
+      }
+      else
+      {
+        nextMesh = scene.getObjectByName(originalMeshName + nextMeshNumber.toString());
+      }
+    }
+    /** Get array of predecessors */
+    var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
+    /** Color selected vertex */
+    for(var j = 0; j < 32; j++)
+    {
+      // intersection.object.geometry.faces[startFace+j].color.setRGB(1.0, 0.0, 0.0);
+      intersection.object.geometry.faces[startFace+j].color.setRGB(intersection.object.geometry.faces[startFace+j].color.r+0.3, intersection.object.geometry.faces[startFace+j].color.g+0.3, intersection.object.geometry.faces[startFace+j].color.b+0.3);
+    }
+    /** Draw a red circle behind selected vertice to use as border */
+    var circleGeometry = new THREE.CircleGeometry(1, 32);
+    this.colorVertex(circleGeometry.faces, 0, 32, Array(1.0, 0.0, 0.0));
+    this.setTRS(circleGeometry, [intersection.object.geometry.faces[startFace].position.x, intersection.object.geometry.faces[startFace].position.y, intersection.object.geometry.faces[startFace].position.z], undefined, [intersection.object.geometry.faces[startFace].size+1, intersection.object.geometry.faces[startFace].size+1, 1], [3, 1, 2]);
+    /** Creating material for nodes */
+    var material = new THREE.MeshLambertMaterial( {  wireframe: false, vertexColors:  THREE.FaceColors } );
+    /** Create one mesh from single geometry and add it to scene */
+    var mesh = new THREE.Mesh(circleGeometry, material);
+    mesh.name = "selected";
+    /** Alter render order so that node mesh will always be drawn on top of edges */
+    mesh.renderOrder = 0;
+    intersection.object.parent.add(mesh);
+    this.neighbors.push({vertexInfo: parseInt(JSON.parse(intersection.object.geometry.faces[startFace].properties).id)*32, mesh: intersection.object.name});
+    // var startFace = parseInt(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id) * 32;
+    var lastSuccessor = -1;
+    if(previousMesh != undefined)
+    {
+      /** Recursively highlight parent nodes */
+      this.showNodeParents(this.nEdges, scene, startFace, intersection.object, previousMesh, previousMeshNumber, layout, layer);
+    }
+    if(nextMesh != undefined)
+    {
+      /** Recursively highlight child nodes */
+      lastSuccessor = this.showNodeChildren(this.nEdges, scene, startFace, intersection.object, nextMesh, nextMeshNumber, layout, layer);
+    }
+    /** Highlight 'neighbors' */
+    if(lastSuccessor == -1)
+    {
+      this.showNeighbors(scene);
+    }
+    else if(lastSuccessor != undefined)
+    {
+      while(nextMesh.name != "MainMesh")
+      {
+        nextMeshNumber = nextMeshNumber - 1;
+        if(nextMeshNumber == 0)
+        {
+          nextMesh = scene.getObjectByName(originalMeshName);
+        }
+        else
+        {
+          nextMesh = scene.getObjectByName(originalMeshName + nextMeshNumber.toString());
+        }
+      }
+      this.renderNeighborEdges(scene, nextMesh, nextMesh.geometry.faces[lastSuccessor]);
+      var neighbors = [];
+      // this.neighbors.push({vertexInfo: parseInt(successors[i]), mesh: nextMesh.name});
+      neighbors[0] = { vertexInfo: parseInt(lastSuccessor), mesh: nextMesh.name };
+      for(var i = 0, j = 1; i < nextMesh.geometry.faces[lastSuccessor].neighbors.length; i++, j++)
+      {
+        // neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i])*32, mesh: nextMesh.name };
+        neighbors[j] = { vertexInfo: parseInt(nextMesh.geometry.faces[lastSuccessor].neighbors[i]), mesh: nextMesh.name };
+        this.neighbors.push(neighbors[j]);
+        this.realNeighbors.push(neighbors[j]);
+>>>>>>> develop
+      }
+      this.colorNeighbors(scene, nextMesh.geometry.faces, neighbors);
+    }
+<<<<<<< HEAD
     /** Get array of predecessors */
     var startFace = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1;
     // var startFace = parseInt(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id) * 32;
@@ -3127,6 +5008,9 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
     //   }
     //   this.colorNeighbors(nextMesh.geometry.faces, neighbors);
     // }
+=======
+    this.showNeighborInfo(scene);
+>>>>>>> develop
   }
 }
 
@@ -3141,8 +5025,20 @@ EventHandler.prototype.showHierarchy = function(intersection, scene, layout, lay
 EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, layout)
 {
   /** Check double-click state */
+<<<<<<< HEAD
   if(!this.doubleClick.getClicked().wasClicked)
   {
+=======
+  if(this.doubleClick.getClicked().wasClicked)
+  {
+    /** Change click variable and update layout */
+    this.doubleClick.setClicked({wasClicked: false});
+    // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
+    this.doubleClick.updateLayout(scene, this);
+  }
+  if(!this.doubleClick.getClicked().wasClicked)
+  {
+>>>>>>> develop
     this.doubleClick.setClicked({wasClicked: true});
     /* Execute ray tracing */
     var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
@@ -3153,6 +5049,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
       /** Check which layer vertex is in */
       JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).id >= JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties).lastLayer ? layer = 1 : layer = 0;
       /** Delete vertex info from vueTableHeader and vueTableRows - FIXME not EventHandler responsibility */
+<<<<<<< HEAD
       if(vueTableHeader._data.headers != "" || vueTableHeaderSecondLayer._data.headers != "")
       {
         vueTableHeader._data.headers = "";
@@ -3165,6 +5062,25 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
         vueTableRows._data.rows = "";
         vueTableRowsSecondLayer._data.rows = "";
       }
+=======
+      for(var i = 0; i < vueRootInstance.$data.tableCards.length; i++)
+      {
+        if(vueRootInstance.$data.tableCards[i].headers != "") vueRootInstance.$data.tableCards[i].headers = [];
+        if(vueRootInstance.$data.tableCards[i].rows != "") vueRootInstance.$data.tableCards[i].rows = [];
+      }
+      // if(vueTableHeader._data.headers != "" || vueTableHeaderSecondLayer._data.headers != "")
+      // {
+      //   vueTableHeader._data.headers = "";
+      //   vueTableHeaderSecondLayer._data.headers = "";
+      //   $("#divVertexInfoTable").css('visibility', 'hidden');
+      //   $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
+      // }
+      // if(vueTableRows._data.rows != "" || vueTableRowsSecondLayer._data.rows != "")
+      // {
+      //   vueTableRows._data.rows = "";
+      //   vueTableRowsSecondLayer._data.rows = "";
+      // }
+>>>>>>> develop
       /** Show both parent and child edges */
       this.showHierarchy(intersection, scene, layout, layer);
       // if(intersection.object.name == "MainMesh")
@@ -3183,6 +5099,7 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
     //   this.showParents(intersection, scene, layout);
     // }
   }
+<<<<<<< HEAD
   else
   {
     /** Change click variable and update layout */
@@ -3190,6 +5107,15 @@ EventHandler.prototype.mouseDoubleClickEvent = function(evt, renderer, scene, la
     // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
     this.doubleClick.updateLayout(scene, this);
   }
+=======
+  // else
+  // {
+  //   /** Change click variable and update layout */
+  //   this.doubleClick.setClicked({wasClicked: false});
+  //   // this.doubleClick.updateLayout(scene, this, this.neighbors, this.nEdges);
+  //   this.doubleClick.updateLayout(scene, this);
+  // }
+>>>>>>> develop
 }
 
 /**
@@ -3261,8 +5187,9 @@ EventHandler.prototype.getTooltipInfo = function(vertices)
  * @param {Object} evt Event dispatcher.
  * @param {Object} renderer WebGL renderer, containing DOM element's offsets.
  * @param {Object} scene Scene for raycaster.
+ * @param {int} layout Graph layout.
  */
-EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
+EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene, layout)
 {
   var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
   var intersection = intersects[0];
@@ -3270,6 +5197,7 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
   {
     if(intersection.face) /** Intersection with vertice */
     {
+<<<<<<< HEAD
       /** First layer */
       if(intersection.faceIndex <= intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32)
       {
@@ -3420,11 +5348,29 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
       }
       /** Show stats in bar charts (if any is available) */
       this.statsHandler.generateAndVisualizeStats(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
+=======
+      /** Execute double-click */
+      this.mouseDoubleClickEvent(evt, renderer, scene, layout);
+      var vertices = JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties);
+      /** First layer */
+      // if(intersection.faceIndex <= intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].firstLayer*32)
+      // {
+      //   this.showVertexInfo(vertices, vueTableRows, "#divVertexInfoTable");
+      // }
+      /** Last layer */
+      // else
+      // {
+      //   this.showVertexInfo(vertices, vueTableRowsSecondLayer, "#divVertexInfoTableSecondLayer");
+      // }
+      /** Show stats in bar charts (if any is available) */
+      this.statsHandler.generateAndVisualizeStats(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
+      /** Show word cloud (if any is available) */
+      this.statsHandler.generateAndVisualizeWordCloud(JSON.parse(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties));
+>>>>>>> develop
       /** Updated data; update variable */
       this.updateData.wasUpdated = true;
       /** Populate and show tooltip information */
       this.d3Tooltip.populateAndShowTooltip(this.getTooltipInfo(vertices));
-      // this.d3Tooltip.populateAndShowTooltip("<span>Ok!</span>");
     }
     else
     {
@@ -3444,7 +5390,6 @@ EventHandler.prototype.mouseClickEvent = function(evt, renderer, scene)
 EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
 {
     /* Execute ray tracing */
-    // var intersects = this.raycaster.intersectObjects(scene.children, true);
     var intersects = this.configAndExecuteRaytracing(evt, renderer, scene);
     var intersection = intersects[0];
     /* Unhighlight any already highlighted element - FIXME this is problematic; highlightedElements might have index of an element that is being highlighted because of a double click. Must find a way to check from which specific mesh that index is */
@@ -3452,76 +5397,68 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
     {
       for(var j = 0; j < parseInt(this.nLevels)+1; j++)
       {
-        var endPoint = this.highlightedElements[i] + 32;
         var element;
         j == 0 ? element = scene.getObjectByName("MainMesh", true) : element = scene.getObjectByName("MainMesh" + j.toString(), true);
         // var element = scene.getObjectByName("MainMesh", true);
-        var el = (this.highlightedElements[i]/32) + 8;
+        // var el = (this.highlightedElements[i]/32) + 8;
+        var el = this.highlightedElements[i];
         var fd = this.neighbors.find(function(elmt){
+<<<<<<< HEAD
           return (elmt.vertexInfo == el && elmt.mesh == element.name);
+=======
+          return (element !== undefined && elmt.vertexInfo == el && elmt.mesh == element.name);
+>>>>>>> develop
           // return (i >= length) ? undefined : elmt.vertexInfo == (this.highlightedElements[i]);
         });
-        for(var k = this.highlightedElements[i]; k < endPoint && fd === undefined; k++)
+        if(element !== undefined && fd === undefined)
         {
-          if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(0.0, 0.0, 0.0);
+          if((element.name == this.highlightedElements[i].meshName))
+          {
+            this.highlightedElements[i] = this.highlightedElements[i].idx;
+            var endPoint = this.highlightedElements[i] + 32;
+            for(var k = this.highlightedElements[i]; k < endPoint; k++)
+            {
+              if(element.geometry.faces[k] !== undefined) element.geometry.faces[k].color.setRGB(element.geometry.faces[k].color.r-0.3, element.geometry.faces[k].color.g-0.3, element.geometry.faces[k].color.b-0.3);
+            }
+            element.geometry.colorsNeedUpdate = true;
+          }
         }
-        element.geometry.colorsNeedUpdate = true;
       }
-      if(fd === undefined) this.highlightedElements.splice(i, 1);
+      if(element !== undefined && fd === undefined) this.highlightedElements.splice(i, 1);
     }
     /** Hiding vertex information */
-    // document.getElementById("vertexInfo").innerHTML = "";
-    // $("#vertexInfoId").css("display", "none");
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
-      console.log(intersection);
+      // console.log(intersection);
       if(intersection.face) /** Intersection with vertice */
       {
-        intersection.face.color.setRGB(0.0, 1.0, 0.0);
-        /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
-        var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
-        for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
-        {
-            intersection.object.geometry.faces[i].color.setRGB(1.0, 0.0, 0.0);
-        }
-        intersection.object.geometry.colorsNeedUpdate = true;
+        // intersection.face.color.setRGB(0.0, 1.0, 0.0);
         /** First check if vertex isn't already highlighted because of double-clicking */
         var found = this.neighbors.find(function(elmt){
+<<<<<<< HEAD
           // console.log("elmt.vertexInfo:");
           // console.log(elmt.vertexInfo);
           // console.log("((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)):");
           // console.log(((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)));
+=======
+>>>>>>> develop
           return ((elmt.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)) || elmt.vertexInfo == ((intersection.faceIndex-(intersection.face.a-intersection.face.c)+1)/32)) && elmt.mesh == intersection.object.name);
         });
         if(found == undefined)
         {
-          this.highlightedElements.push(intersection.faceIndex-(intersection.face.a-intersection.face.c)+1);
+          /** face.c position is starting vertex; find the difference between face.a and face.c, and color next 32 vertices to color entire cirle */
+          var endPoint = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1 + 32;
+          for(var i = intersection.faceIndex-(intersection.face.a-intersection.face.c)+1; i < endPoint; i++)
+          {
+            intersection.object.geometry.faces[i].color.setRGB(intersection.object.geometry.faces[i].color.r+0.3, intersection.object.geometry.faces[i].color.g+0.3, intersection.object.geometry.faces[i].color.b+0.3);
+          }
+          intersection.object.geometry.colorsNeedUpdate = true;
+          this.highlightedElements.push({meshName: intersection.object.name, idx: intersection.faceIndex-(intersection.face.a-intersection.face.c)+1});
         }
-        /** Display vertex information */
-        // properties = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";");
-        // for(var i = 0; i < intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";").length; i++)
+        // if(found == undefined)
         // {
-        //     if(properties[i].length > 1)
-        //     {
-        //       /** if case made specifically for movieLens files */
-        //       if(properties[i].indexOf("|") != -1)
-        //       {
-        //         genres = properties[i].split("|");
-        //         for(var j = 0; j < genres.length; j++)
-        //         {
-        //           document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + genres[j] + ",<br>";
-        //         }
-        //       }
-        //       else
-        //       {
-        //         document.getElementById("vertexInfo").innerHTML = document.getElementById("vertexInfo").innerHTML + properties[i] + "<br>";
-        //         // intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties.split(";")[i] + "<br>";
-        //       }
-        //     }
         // }
-        // // document.getElementById("vertexInfo").innerHTML = intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1].properties;
-        // $("#vertexInfoId").css("display", "inline");
       }
       else /** Intersection with edge */
       {
@@ -3553,6 +5490,7 @@ var GradientLegend = function(linearScale, minDomainValue, maxDomainValue, width
   {
     // this.graphInfo = graphInfo;
     this.spanElementId = "spanElementId";
+    this.gradientLegendId = "gradientScaleId";
     this.width = ecmaStandard(width, 300);
     this.height = ecmaStandard(height, 50);
     this.minDomainValue = ecmaStandard(minDomainValue, 1.0);
@@ -3577,7 +5515,7 @@ GradientLegend.prototype.clear = function()
   try
   {
     d3.select("#" + this.spanElementId).remove();
-    d3.select("svg").remove();
+    d3.select("#" + this.gradientLegendId).remove();
   }
   catch(err)
   {
@@ -3599,13 +5537,16 @@ GradientLegend.prototype.createGradientLegend = function(elementId, gradientTitl
     var span = d3.select("#" + elementId)
       .append("span")
       .attr("id", this.spanElementId)
-      .style("padding-right", "20px");
+      .style("padding-right", "20px")
+      .style("margin", "25px");
     span._groups[0][0].innerHTML = gradientTitle;
     /** Create SVG element */
     var key = d3.select("#" + elementId)
       .append("svg")
+      .attr("id", this.gradientLegendId)
       .attr("width", this.width)
-      .attr("height", this.height);
+      .attr("height", this.height)
+      .style("margin", "25px");
     var legend = key.append("defs")
         .append("svg:linearGradient")
         .attr("id", "gradient")
@@ -4755,6 +6696,132 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 } );
 
 /**
+<<<<<<< HEAD
+=======
+ * Base class for legends, to identify community colors. Uses d3.legend component from https://d3-legend.susielu.com/
+ * @author Diego S. Cintra
+ * Date: 01 november 2018
+ */
+
+/**
+ * @constructor
+ * @param {Array} domain Domain of names to be used in legend.
+ * @param {Array} range Range of values for each name.
+ * @param {int} width Width of gradient legend, in pixel units.
+ * @param {int} height Height of gradient legend, in pixel units.
+ */
+var ScaleLegend = function(domain, range, width, height)
+{
+  try
+  {
+    this.legendElementId = "legendElementId";
+    this.width = ecmaStandard(width, 350);
+    this.height = ecmaStandard(height, 50);
+    this.domain = domain;
+    this.range = range;
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in ScaleLegend constructor. " + err;
+  }
+}
+
+/**
+ * @desc Destructor equivalent function to clear page of svg elements, so that they can be deleted with 'delete' keyword.
+ * @public
+ */
+ScaleLegend.prototype.clear = function()
+{
+  try
+  {
+    // d3.select("#" + this.legendElementId).remove();
+    d3.select("#scaleLegendSVGID").remove();
+    d3.select("#" + this.legendElementId).remove();
+  }
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in ScaleLegend.clear. " + err;
+  }
+}
+
+/**
+ * @desc Convert array values to RGB.
+ * @param {Array} values Values to be converted to RGB notation.
+ * @returns {Array} Array of arrays containing following format: ['rgb(0, 0, 0)', 'rgb(255, 255, 255)'...].
+ */
+ScaleLegend.prototype.toRGB = function(values)
+{
+  var arr = [];
+  values.forEach(function(d, i){
+    var rgb = "rgb(";
+    d.forEach(function(e, j){
+      j != 2 ? rgb = rgb + (e*255).toString() + ',' : rgb = rgb + (e*255).toString();
+    });
+    rgb = rgb + ')';
+    arr.push(rgb);
+  });
+  return arr;
+}
+
+/**
+ * @desc Creates a scale legend on HTML page, defining elements contained in it. Appends to HTML page.
+ * @param {string} elementId Id of element in which legend will be appended.
+ * @param {string} legendTitle Title for Legend.
+ */
+ScaleLegend.prototype.createScaleLegend = function(elementId, legendTitle)
+{
+  try
+  {
+    /** Set scale title */
+    var span = d3.select("#" + elementId)
+      .append("span")
+      .attr("id", this.legendElementId)
+      .style("padding-right", "20px")
+      .style("margin", "25px");
+    span._groups[0][0].innerHTML = legendTitle;
+    /** Create SVG element */
+    var svg = d3.select("#" + elementId)
+      .append("svg")
+      .attr("id", "scaleLegendSVGID")
+      .attr("width", this.width)
+      .attr("height", this.height)
+      .style("margin", "25px");
+
+    /** Set domain adjusted to range */
+    var ordinal = d3.scaleOrdinal()
+      .domain(this.domain)
+      .range(this.toRGB(this.range));
+
+    svg.append("g")
+      .attr("class", "legendOrdinal")
+      .attr("transform", "translate(30,20)");
+
+    var paddingValue = 0;
+    this.domain.forEach(function(d, i){
+      if(d.length > paddingValue)
+      {
+        paddingValue = d.length;
+      }
+    });
+
+    var legendOrdinal = d3.legendColor()
+      .shape("path", d3.symbol().type(d3.symbolCircle).size(150)())
+      .shapePadding(paddingValue*4.5)
+      .orient("horizontal")
+      .scale(ordinal);
+
+    svg.select(".legendOrdinal")
+      .call(legendOrdinal);
+
+  }
+  catch(err)
+  {
+     throw "Unexpected error ocurred at line " + err.lineNumber + ", in ScaleLegend.createScaleLegend. " + err;
+  }
+}
+
+/**
+>>>>>>> develop
  * Base class for statsHandler, implementing basic statistical processing and visualization.
  * @author Diego Cintra
  * Date: 31 July 2018
@@ -4763,10 +6830,20 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 /**
  * @constructor
  * @param {String} SVGId Id to store <svg> id value.
+<<<<<<< HEAD
  */
 var statsHandler = function(SVGId)
 {
   this.d3BarChart = new d3BarChart(SVGId);
+=======
+ * @param {String} d3WordCloudId HTML element to build d3WordCloud in.
+ */
+var statsHandler = function(SVGId, d3WordCloudId)
+{
+  this.d3BarChart = new d3BarChart(SVGId);
+  this.d3WordCloudWrapper = new d3WordCloudWrapper();
+  this.d3WordCloud = new d3WordCloud(d3WordCloudId, 300, 600, 1);
+>>>>>>> develop
 }
 
 /**
@@ -4776,7 +6853,11 @@ var statsHandler = function(SVGId)
 statsHandler.prototype.generateStats = function(vertexProps)
 {
   $.ajax({
+<<<<<<< HEAD
     url: '/generateStats',
+=======
+    url: '/graph/generateStats',
+>>>>>>> develop
     type: 'POST',
     /** FIXME - <bold>NEVER use async!</bold> */
     async: false,
@@ -4794,6 +6875,7 @@ statsHandler.prototype.visualizeStats = function(id)
   this.d3BarChart.created3BarChart();
   var statsHandlerScope = this;
   $.ajax({
+<<<<<<< HEAD
     url: '/getStats',
     type: 'POST',
     data: { vertexId: id },
@@ -4802,6 +6884,17 @@ statsHandler.prototype.visualizeStats = function(id)
       if(html != undefined || html != "")
       {
           statsHandlerScope.d3BarChart.populateAndShowBarChart(html);
+=======
+    url: '/graph/getStats',
+    type: 'POST',
+    data: { vertexId: id },
+    success: function(html){
+      if(html != undefined && html != "" && (html.length !== undefined && html.length > 0))
+      {
+          html = JSON.parse(html).arr;
+          statsHandlerScope.d3BarChart.populateAndShowBarChart(html);
+          $("#vertexStatsCard").css('visibility', 'visible');
+>>>>>>> develop
       }
     },
     xhr: loadGraph
@@ -4823,3 +6916,22 @@ statsHandler.prototype.generateAndVisualizeStats = function(vertexProps)
   /** Visualize statistics */
   this.visualizeStats(vertexProps.id);
 }
+<<<<<<< HEAD
+=======
+
+/**
+ * @desc Generate and visualize word cloud, if any is available.
+ * @param {JSON} vertexProps Vertex properties, to generate statistics.
+ */
+statsHandler.prototype.generateAndVisualizeWordCloud = function(vertexProps)
+{
+  if(this.d3WordCloud != undefined)
+  {
+    this.d3WordCloud.clearWordCloud();
+  }
+  /** Fetch array of words and frequencies */
+  this.d3WordCloudWrapper.fetchWords(vertexProps, this.d3WordCloud);
+  $("#wordCloudCard").css('visibility', 'visible');
+  // this.d3WordCloud.created3WordCloud(this.d3WordCloudWrapper.fetchWords(vertexProps));
+}
+>>>>>>> develop

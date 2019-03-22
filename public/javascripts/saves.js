@@ -12,7 +12,7 @@ $('#saveImgButton').on('click', function (){
 /** Generate .json file from graph */
 $('#saveFileButton').on('click', function(){
   $.ajax({
-    url: '/switch',
+    url: '/graph/switch',
     type: 'POST',
     success: function(html){
       var dataStr = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(html, undefined, "\t"));

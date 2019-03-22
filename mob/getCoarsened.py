@@ -35,7 +35,7 @@ if __name__ == "__main__":
         if(graph.find("nl") != -1):
             if(reductionFactor is ''):
                 reductionFactor = lst[0].split("Coarsened")[1].split("nl")[0]
-                graphName = lst[0].split("Coarsened")[0] + "Coarsened"
+                graphName = lst[0].split("Coarsened")[0]
             levels = graph.split(".")[0].split("nl")[1].split("nr")
             if(int(levels[0]) > nl):
                 nl = int(levels[0])
@@ -57,8 +57,8 @@ if __name__ == "__main__":
 
     # Step 4 - Print out specific coarsened graph name
     if(nl == 0 or nr == 0):
-        print "No graph as coarsened as level input. Printing original graph."
+        # print "No graph as coarsened as level input. Printing original graph."
         print graphName + ".json"
     else:
-        print graphName + reductionFactor + "nl" + str(nl) + "nr" + str(nr) + ".json"
+        print graphName +  "Coarsened" + reductionFactor + "nl" + str(nl) + "nr" + str(nr) + ".json"
         # print graph
