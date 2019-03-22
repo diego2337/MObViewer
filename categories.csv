@@ -1,6 +1,0 @@
-country,arbitrary,
-sha-id,arbitrary,
-signup-date,arbitrary,
-id,ordinal,
-sex,categorical,2
-age,ordinal,[10-60]
