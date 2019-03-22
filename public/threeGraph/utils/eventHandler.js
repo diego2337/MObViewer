@@ -1231,7 +1231,7 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
     /* Highlight element (if intersected) */
     if(intersection != undefined)
     {
-      console.log(intersection);
+      // console.log(intersection);
       if(intersection.face) /** Intersection with vertice */
       {
         // intersection.face.color.setRGB(0.0, 1.0, 0.0);
