@@ -301,7 +301,11 @@ function treatFloatZero(value)
 function createCategoriesFile(textarea)
 {
   $.ajax({
+<<<<<<< HEAD
+    url: '/categories',
+=======
     url: '/system/categories',
+>>>>>>> develop
     type: 'POST',
     data: {jsonInput: textarea.value},
     success: function(html){
@@ -311,6 +315,8 @@ function createCategoriesFile(textarea)
   });
 }
 
+<<<<<<< HEAD
+=======
 /**
  * Create 'label.txt' file.
  * @param {String} textarea "<textarea>" tag.
@@ -355,6 +361,7 @@ function createWordCloudFile(textarea)
   });
 }
 
+>>>>>>> develop
 /** Apply multilevel coarsening with user defined reduction factor and number of levels */
 $("#coarseGraph").on('click', function(){
   /** Iterate through a for loop to create nLevels of coarsened graphs */
@@ -455,6 +462,48 @@ var maxLevelsNr = 0;
 var leftReductionFactor = 0;
 var rightReductionFactor = 0;
 /** Coarse graph based on json input given by user */
+<<<<<<< HEAD
+$("#coarseJson").on('click', function(){
+  $.ajax({
+    url:'/coarse',
+    type: 'POST',
+    data: {jsonInput: JSON.parse($("#jsonTextArea")[0].value)},
+    success: function(html){
+      let maxCoarsening = Math.max(JSON.parse($("#jsonTextArea")[0].value).max_levels[0], JSON.parse($("#jsonTextArea")[0].value).max_levels[1]);
+      let nOfExecutions = maxCoarsening;
+      let nl = nr = 0;
+      if(maxCoarsening != 0)
+      {
+        /** Finished coarsening, perform multiple ajax calls to convert from .gml to .json */
+        for(let i = 0; i < maxCoarsening; i++)
+        {
+          if(nl < JSON.parse($("#jsonTextArea")[0].value).max_levels[0])
+          {
+            nl = nl + 1;
+          }
+          if(nr < JSON.parse($("#jsonTextArea")[0].value).max_levels[1])
+          {
+            nr = nr + 1;
+          }
+          $.ajax({
+            url:'/convert',
+            type: 'POST',
+            // data: {firstSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[0], secondSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[1], coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+            data: {firstSetLevel: nl, secondSetLevel: nr, coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0, currentLevel: (i+1).toString()},
+            success: function(html){
+              /** Finished all conversions; set properties properly */
+              if(nOfExecutions == 1)
+              {
+                  $.ajax({
+                    url:'/setProperties',
+                    type: 'POST',
+                    data: {nLevels: maxCoarsening, firstSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[0], secondSetLevel: JSON.parse($("#jsonTextArea")[0].value).max_levels[1], coarsening: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0]), coarseningSecondSet: treatFloatZero(JSON.parse($("#jsonTextArea")[0].value).reduction_factor[1]), firstSet: JSON.parse($("#jsonTextArea")[0].value).reduction_factor[0] != 0 ? 1 : 0},
+                    success: function(html){
+                      $("#userInfo").prop("disabled", false);
+                      /** Update vertex data */
+                      vueTableUserRows._data.rows = layout.vertexInfo.getProps();
+                      graphUpdate(html, layout.lay);
+=======
 // $("#coarseJson").on('click', function(){
 //   $.ajax({
 //     url:'/system/coarse',
@@ -624,6 +673,7 @@ $("#jsonInfo").on('click', function(){
                           graphUpdate(html, layout.lay);
                         }
                       });
+>>>>>>> develop
                     }
                     /** Tell layout to update variable "parentConnections" */
                     // layout.parentConnections == 0 ? layout.parentConnections = 1 : layout.parentConnections = 0;
@@ -663,6 +713,26 @@ $("#defineCategories").on('click', function(){
               createCategoriesFile(createCat);
             }
         }
+<<<<<<< HEAD
+      }
+      else
+      {
+        $.ajax({
+          url:'/getGraph',
+          type: 'POST',
+          data: {graphName: JSON.parse($("#jsonTextArea")[0].value).filename.split(".")[0]},
+          success: function(html){
+            $("#userInfo").prop("disabled", false);
+            /** Update vertex data */
+            vueTableUserRows._data.rows = layout.vertexInfo.getProps();
+            graphUpdate(html, layout.lay);
+          }
+        });
+      }
+      /** Tell layout to update variable "parentConnections" */
+      // layout.parentConnections == 0 ? layout.parentConnections = 1 : layout.parentConnections = 0;
+      // graphUpdate(html, layout.lay);
+=======
     });
 });
 
@@ -782,6 +852,7 @@ $("#useLabel").on('click', function(){
         },
         xhr: loadGraph
       });
+>>>>>>> develop
     },
     xhr: loadGraph
   });
@@ -797,6 +868,50 @@ $("#loadGraphButton").on('click', function (){
     $('.progress-bar').width('0%');
 });
 
+<<<<<<< HEAD
+/** Show text area to define categories on click */
+$("#defineCategories").on('click', function(){
+  var meta = 'categories';
+  showDialog({
+        title: 'Define data categories',
+        metaTitle: meta,
+        text: 'Create a csv file associating data attributes with their respective types, e.g: attribute1,{categorical|ordinal},{nOfElem|[range-range]} attribute2,{categorical|ordinal},{nOfElem|[range-range]}...',
+        textArea: true,
+        negative: {
+            title: 'Go back'
+        },
+        positive: {
+            title: 'Create',
+            onClick: function(e) {
+              // console.log(document.getElementsByTagName("textarea"));
+              var text = document.getElementsByTagName("textarea");
+              var createCat = undefined;
+              for(t in text)
+              {
+                if(text[t].id == "")
+                {
+                  createCat = text[t];
+                }
+              }
+              createCategoriesFile(createCat);
+            }
+        }
+    });
+});
+
+/** Clear data table on click */
+$("#clearTable1").on('click', function(){
+  $("#divVertexInfoTable").css('visibility', 'hidden');
+  vueTableHeader._data.headers = "";
+  vueTableRows._data.rows = "";
+});
+
+$("#clearTable2").on('click', function(){
+  $("#divVertexInfoTableSecondLayer").css('visibility', 'hidden');
+  vueTableHeaderSecondLayer._data.headers = "";
+  vueTableRowsSecondLayer._data.rows = "";
+});
+=======
 /** Define label */
 // $("#defineLabel").on('click', function(){
 //   var defineLabel = $.ajax({
@@ -832,6 +947,7 @@ $("#loadGraphButton").on('click', function (){
   //   });
   // });
 // });
+>>>>>>> develop
 
 /** */
 $("#coarseJson").on('click', function(){

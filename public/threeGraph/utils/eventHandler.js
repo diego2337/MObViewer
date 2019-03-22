@@ -304,6 +304,33 @@ EventHandler.prototype.showNeighbors = function(scene)
     /** Remove itself so it won't unhighlight as soon as mouse moves out */
     this.highlightedElements.splice(i, 1);
   }
+  // if(!this.clicked.wasClicked)
+  // {
+  //
+  // }
+  // else if(this.clicked.wasClicked)
+  // {
+  //   scene.remove(scene.getObjectByName("neighborEdges"));
+  //   for(var i = 0; i < this.neighbors.length; i++)
+  //   {
+  //     var mesh = scene.getObjectByName(this.neighbors[i].mesh);
+  //     for(var j = 0; j < 32; j++)
+  //     {
+  //       if(mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j] !== undefined)
+  //       {
+  //         mesh.geometry.faces[(this.neighbors[i].vertexInfo*32)+j].color.setRGB(0.0, 0.0, 0.0);
+  //       }
+  //       else if(mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j] !== undefined)
+  //       {
+  //         mesh.geometry.faces[(this.neighbors[i].vertexInfo)+j].color.setRGB(0.0, 0.0, 0.0);
+  //       }
+  //       mesh.geometry.colorsNeedUpdate = true;
+  //     }
+  //   }
+  //   element.geometry.colorsNeedUpdate = true;
+  //   /** Clearing array of neighbors */
+  //   this.neighbors = [];
+  // }
 }
 
 /**

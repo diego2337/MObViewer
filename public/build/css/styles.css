@@ -43,6 +43,11 @@
   background: #3F51B5;
 }*/
 
+<<<<<<< HEAD
+.scrollable-y {
+  max-height: 100%;
+  overflow-y: auto;
+=======
 #vertexStatsCard {
   transition: all .2s ease-in-out;
 }
@@ -85,6 +90,7 @@
 .scrollable-y {
   height: 320px;
   overflow-y: scroll;
+>>>>>>> develop
 }
 
 .bar {
@@ -101,6 +107,10 @@
 
 .fixed-div-lowerRight {
 	position: fixed;
+<<<<<<< HEAD
+	bottom: 10px;
+	right: 10px;
+=======
   width: 600px;
 	bottom: 10px;
 	right: 40px;
@@ -114,12 +124,18 @@
   /*top: 550px;
   bottom: 10px;
   left: 10px;*/
+>>>>>>> develop
 }
 
 .fixed-div-upperLeft {
 	position: fixed;
+<<<<<<< HEAD
+	top: 150px;
+  bottom: 10px;
+=======
 	top: 130px;
   bottom: 550px;
+>>>>>>> develop
 	left: 10px;
 }
 
@@ -142,8 +158,13 @@
 
 .fixed-div {
 	position: fixed;
+<<<<<<< HEAD
+	top: 150px;
+  bottom: 10px;
+=======
 	top: 130px;
   bottom: 550px;
+>>>>>>> develop
 	right: 40px;
 }
 
@@ -342,6 +363,8 @@ h2 {
   }
 }
 
+<<<<<<< HEAD
+=======
 /**
  * MDL collapse functionality css, from http://nickretallack.com/experiments/mdl/collapse/index.html
  */
@@ -391,6 +414,7 @@ a {
 .mdl-collapse.mdl-collapse--opened .mdl-collapse__content {
   margin-top: 0 !important;
 }
+>>>>>>> develop
 .dialog-container,
 .loading-container {
     position: absolute;
