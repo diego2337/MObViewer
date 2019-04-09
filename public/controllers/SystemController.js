@@ -182,7 +182,10 @@ exports.upload = function(req, res) {
   /* Specify that we want to allow the user to upload multiple files in a single request */
   form.multiples = true;
   /* Store all uploads in the /uploads directory */
-  form.uploadDir = indexController.path.join(__dirname, '/uploads');
+  // form.uploadDir = indexController.path.join(__dirname, '/uploads');
+  // Use require.main.filename - from https://stackoverflow.com/questions/10265798/determine-project-root-from-a-running-node-js-application
+  form.uploadDir = indexController.path.dirname(require.main.filename);
+  form.uploadDir = form.uploadDir + '/uploads';
   /** Every time a file has been uploaded successfully, rename it to it's orignal name */
   form.on('file', function(field, file) {
     indexController.fs.rename(file.path, indexController.path.join(form.uploadDir, file.name), function(){return;});
@@ -200,7 +203,7 @@ exports.upload = function(req, res) {
                             if (!err)
                             {
                               /** Python script executed successfully; read .json file */
-                              graphController.readJsonFile(form.uploadDir + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name.split(".")[0] + '.json', fs, req, res);
+                              graphController.readJsonFile(form.uploadDir + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name.split(".")[0] + '.json', indexController.fs, req, res);
                             }
                             else
                             {
@@ -208,26 +211,27 @@ exports.upload = function(req, res) {
                             }
                           });
         }
-          else if(file.name.split(".")[1] === "json")
-          {
-            /** Copy .json file to upload folder with same name */
-            indexController.nodeCmd.get('cp uploads' + indexController.folderChar + file.name + ' uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name, function(data, err, stderr){
-              /** Python script executed successfully; read .json file */
-                if(!err)
-                {
-                  graphController.readJsonFile(form.uploadDir + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name.split(".")[0] + '.json', fs, req, res);
-                }
-                else
-                {
-                  console.log("python script cmd error: " + err);
-                }
-            });
-          }
-      }
-        else
+        else if(file.name.split(".")[1] === "json")
         {
-          console.log("python script cmd error: " + err);
+          console.log('cp uploads' + indexController.folderChar + file.name + ' uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name);
+          /** Copy .json file to upload folder with same name */
+          indexController.nodeCmd.get('cp uploads' + indexController.folderChar + file.name + ' uploads' + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name, function(data, err, stderr){
+            /** Python script executed successfully; read .json file */
+              if(!err)
+              {
+                graphController.readJsonFile(form.uploadDir + indexController.folderChar + file.name.split(".")[0] + indexController.folderChar + file.name.split(".")[0] + '.json', indexController.fs, req, res);
+              }
+              else
+              {
+                console.log("python script cmd error: " + err);
+              }
+          });
         }
+      }
+      else
+      {
+        console.log("python script cmd error: " + err);
+      }
     });
   });
 

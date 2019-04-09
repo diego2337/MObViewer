@@ -44,7 +44,7 @@ $('#upload-input').on('change', function(){
       contentType: false,
       success: function(data){
           // console.log('Upload successful!\n');
-          window.alert("Upload successful! You can now use 'define json input...' to apply the multilevel paradigm.\n");
+          window.alert("Upload successful! You can now use the 'Define Json Input' button to apply the multilevel paradigm.\n");
           /** Allow button to select user info to be clicked */
           $("#userInfo").prop("disabled", false);
           /** Allow button to select parameters for coarsening to be clicked */
