@@ -908,6 +908,34 @@ EventHandler.prototype.showNeighborInfo = function(scene)
 }
 
 /**
+ * Get vertex (or super-vertex) information.
+ * @param {Object} vertex Vertex (or super-vertex) information.
+ * @returns {Object} An object-like structure containing vertex (or super-vertex) attributes, stored separately in 'headers' and 'rows'.
+ */
+EventHandler.prototype.getVertexInfo = function(vertex)
+{
+  /** Create object containing two arrays, to store attributes' names in 'headers', and attribute values in 'rows' */
+  var headersAndRows = { headers: [], rows: [] };
+  if(vertex.properties)
+  {
+    vertex = JSON.parse(vertex.properties).vertexes;
+  }
+  // vertex = JSON.parse(vertex);
+  /** Iterate through all vertices, retrieving all their attributes */
+  for(vertice in vertex)
+  {
+    /** Get all headers */
+    h = Object.keys(vertex[vertice]);
+    for(var i = 0; i < h.length; i++)
+    {
+      if(headersAndRows.headers.length != h.length) headersAndRows.headers.push(h[i]);
+      headersAndRows.rows.push(vertex[vertice][h[i]]);
+    }
+  }
+  return headersAndRows;
+}
+
+/**
  * Show both parents and children of a given node, highlighting vertexes and creating edges.
  * @param {Object} intersection Intersected object in specified scene.
  * @param {Object} scene Scene for raycaster.
@@ -1115,11 +1143,19 @@ EventHandler.prototype.configAndExecuteRaytracing = function(evt, renderer, scen
 {
   /* Get canvas element and adjust x and y to element offset */
   var canvas = renderer.domElement.getBoundingClientRect();
+  if (evt.pageX == null && evt.clientX != null)
+  {
+    eventDoc = (evt.target && evt.target.ownerDocument) || document;
+    doc = eventDoc.documentElement;
+    body = eventDoc.body;
+    evt.pageX = evt.clientX + (doc && doc.scrollLeft || body && body.scrollLeft || 0) - (doc && doc.clientLeft || body && body.clientLeft || 0);
+    evt.pageY = evt.clientY + (doc && doc.scrollTop  || body && body.scrollTop  || 0) - (doc && doc.clientTop  || body && body.clientTop  || 0 );
+  }
   var x = evt.clientX - canvas.left;
   var y = evt.clientY - canvas.top;
   // console.log("x: " + x + " y: " + y);
   /** Define tooltip position given x and y */
-  this.d3Tooltip.setPosition(x, y);
+  this.d3Tooltip.setPosition(evt.pageX, evt.pageY);
 
   /* Adjusting mouse coordinates to NDC [-1, 1] */
   var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
@@ -1254,6 +1290,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
       }
       if(element !== undefined && fd === undefined) this.highlightedElements.splice(i, 1);
     }
+    /** Remove tooltip from highlighting */
+    this.d3Tooltip.clearTooltip();
+    this.d3Tooltip.hideTooltip();
     /** Hiding vertex information */
     /* Highlight element (if intersected) */
     if(intersection != undefined)
@@ -1276,6 +1315,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
           }
           intersection.object.geometry.colorsNeedUpdate = true;
           this.highlightedElements.push({meshName: intersection.object.name, idx: intersection.faceIndex-(intersection.face.a-intersection.face.c)+1});
+          /** Show vertex information */
+          this.d3Tooltip.populateAndShowTooltip(this.getVertexInfo(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1]));
         }
         // if(found == undefined)
         // {

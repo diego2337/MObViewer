@@ -2434,6 +2434,8 @@ d3Tooltip.prototype.created3Tooltip = function(HTMLelement)
   this.tooltip = d3.select(this.parentElement)
     .append("div")
     .attr("class", "tooltip")
+    .attr("id", "hoveredDiv")
+    .style("overflow-y", "scroll")
     .style("z-index", "100");
   /** Create tooltip initially hidden */
   this.hideTooltip();
@@ -2457,20 +2459,28 @@ d3Tooltip.prototype.populateAndShowTooltip = function(data)
  */
 d3Tooltip.prototype.generateHTMLTable = function(data)
 {
-  var table = "<table class=\"mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp\"><thead><tr>";
-  for(var i = 0; i < data.length; i++)
+  try
   {
-    for(key in data[i].rows)
+    var table = "<table id=\"hoveredTable\" class=\"mdl-cell mdl-data-table mdl-js-data-table mdl-shadow--2dp\"><thead><tr>";
+    for(var i = 0; i < data.headers.length; i++)
     {
-      table = table + "<th class=\"mdl-data-table__cell--non-numeric\">" + key + "</th>";
+      for(key in data.headers)
+      {
+        table = table + "<th class=\"mdl-data-table__cell--non-numeric\">" + data.headers[key] + "</th>";
+      }
+      table = table + "</tr></thead><tbody>";
+      for(key in data.rows)
+      {
+        table = table + "<tr><td class=\"mdl-data-table__cell--non-numeric\">" + data.rows[key] + "</td></tr>"
+      }
+      table = table + "</tbody></table>";
     }
-    table = table + "</tr></thead>";
-    // for(key in data[i].rows)
-    // {
-    //
-    // }
+    return table;
   }
-  return table;
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function generateHTMLTable. " + err;
+  }
 }
 
 /**
@@ -2482,8 +2492,8 @@ d3Tooltip.prototype.populateTooltip = function(data)
 {
   try
   {
-    this.tooltip.html(JSON.stringify(data, undefined, 5));
-    // this.tooltip.html(this.generateHTMLTable(data));
+    // this.tooltip.html(JSON.stringify(data, undefined, 5));
+    this.tooltip.html(this.generateHTMLTable(data));
     // for(var i = 0; i < data.rows.length; i++)
     // {
     //   for(key in data.rows[i])
@@ -2534,7 +2544,7 @@ d3Tooltip.prototype.clearTooltip = function()
  */
 d3Tooltip.prototype.setPosition = function(x, y)
 {
-  this.tooltip.style("left", (x - this.xOffset) + "px").style("top", (y - this.yOffset) + "px");
+  this.tooltip.style("left", (x) + "px").style("top", (y) + "px");
 }
 
 /**
@@ -3785,6 +3795,34 @@ EventHandler.prototype.showNeighborInfo = function(scene)
 }
 
 /**
+ * Get vertex (or super-vertex) information.
+ * @param {Object} vertex Vertex (or super-vertex) information.
+ * @returns {Object} An object-like structure containing vertex (or super-vertex) attributes, stored separately in 'headers' and 'rows'.
+ */
+EventHandler.prototype.getVertexInfo = function(vertex)
+{
+  /** Create object containing two arrays, to store attributes' names in 'headers', and attribute values in 'rows' */
+  var headersAndRows = { headers: [], rows: [] };
+  if(vertex.properties)
+  {
+    vertex = JSON.parse(vertex.properties).vertexes;
+  }
+  // vertex = JSON.parse(vertex);
+  /** Iterate through all vertices, retrieving all their attributes */
+  for(vertice in vertex)
+  {
+    /** Get all headers */
+    h = Object.keys(vertex[vertice]);
+    for(var i = 0; i < h.length; i++)
+    {
+      if(headersAndRows.headers.length != h.length) headersAndRows.headers.push(h[i]);
+      headersAndRows.rows.push(vertex[vertice][h[i]]);
+    }
+  }
+  return headersAndRows;
+}
+
+/**
  * Show both parents and children of a given node, highlighting vertexes and creating edges.
  * @param {Object} intersection Intersected object in specified scene.
  * @param {Object} scene Scene for raycaster.
@@ -3992,11 +4030,19 @@ EventHandler.prototype.configAndExecuteRaytracing = function(evt, renderer, scen
 {
   /* Get canvas element and adjust x and y to element offset */
   var canvas = renderer.domElement.getBoundingClientRect();
+  if (evt.pageX == null && evt.clientX != null)
+  {
+    eventDoc = (evt.target && evt.target.ownerDocument) || document;
+    doc = eventDoc.documentElement;
+    body = eventDoc.body;
+    evt.pageX = evt.clientX + (doc && doc.scrollLeft || body && body.scrollLeft || 0) - (doc && doc.clientLeft || body && body.clientLeft || 0);
+    evt.pageY = evt.clientY + (doc && doc.scrollTop  || body && body.scrollTop  || 0) - (doc && doc.clientTop  || body && body.clientTop  || 0 );
+  }
   var x = evt.clientX - canvas.left;
   var y = evt.clientY - canvas.top;
   // console.log("x: " + x + " y: " + y);
   /** Define tooltip position given x and y */
-  this.d3Tooltip.setPosition(x, y);
+  this.d3Tooltip.setPosition(evt.pageX, evt.pageY);
 
   /* Adjusting mouse coordinates to NDC [-1, 1] */
   var mouseX = (x / renderer.domElement.clientWidth) * 2 - 1;
@@ -4131,6 +4177,9 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
       }
       if(element !== undefined && fd === undefined) this.highlightedElements.splice(i, 1);
     }
+    /** Remove tooltip from highlighting */
+    this.d3Tooltip.clearTooltip();
+    this.d3Tooltip.hideTooltip();
     /** Hiding vertex information */
     /* Highlight element (if intersected) */
     if(intersection != undefined)
@@ -4153,6 +4202,8 @@ EventHandler.prototype.mouseMoveEvent = function(evt, renderer, scene)
           }
           intersection.object.geometry.colorsNeedUpdate = true;
           this.highlightedElements.push({meshName: intersection.object.name, idx: intersection.faceIndex-(intersection.face.a-intersection.face.c)+1});
+          /** Show vertex information */
+          this.d3Tooltip.populateAndShowTooltip(this.getVertexInfo(intersection.object.geometry.faces[intersection.faceIndex-(intersection.face.a-intersection.face.c)+1]));
         }
         // if(found == undefined)
         // {

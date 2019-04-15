@@ -37,6 +37,8 @@ d3Tooltip.prototype.created3Tooltip = function(HTMLelement)
   this.tooltip = d3.select(this.parentElement)
     .append("div")
     .attr("class", "tooltip")
+    .attr("id", "hoveredDiv")
+    .style("overflow-y", "scroll")
     .style("z-index", "100");
   /** Create tooltip initially hidden */
   this.hideTooltip();
@@ -60,20 +62,28 @@ d3Tooltip.prototype.populateAndShowTooltip = function(data)
  */
 d3Tooltip.prototype.generateHTMLTable = function(data)
 {
-  var table = "<table class=\"mdl-cell mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp\"><thead><tr>";
-  for(var i = 0; i < data.length; i++)
+  try
   {
-    for(key in data[i].rows)
+    var table = "<table id=\"hoveredTable\" class=\"mdl-cell mdl-data-table mdl-js-data-table mdl-shadow--2dp\"><thead><tr>";
+    for(var i = 0; i < data.headers.length; i++)
     {
-      table = table + "<th class=\"mdl-data-table__cell--non-numeric\">" + key + "</th>";
+      for(key in data.headers)
+      {
+        table = table + "<th class=\"mdl-data-table__cell--non-numeric\">" + data.headers[key] + "</th>";
+      }
+      table = table + "</tr></thead><tbody>";
+      for(key in data.rows)
+      {
+        table = table + "<tr><td class=\"mdl-data-table__cell--non-numeric\">" + data.rows[key] + "</td></tr>"
+      }
+      table = table + "</tbody></table>";
     }
-    table = table + "</tr></thead>";
-    // for(key in data[i].rows)
-    // {
-    //
-    // }
+    return table;
   }
-  return table;
+  catch(err)
+  {
+    throw "Unexpected error ocurred at line " + err.lineNumber + ", in function generateHTMLTable. " + err;
+  }
 }
 
 /**
@@ -85,8 +95,8 @@ d3Tooltip.prototype.populateTooltip = function(data)
 {
   try
   {
-    this.tooltip.html(JSON.stringify(data, undefined, 5));
-    // this.tooltip.html(this.generateHTMLTable(data));
+    // this.tooltip.html(JSON.stringify(data, undefined, 5));
+    this.tooltip.html(this.generateHTMLTable(data));
     // for(var i = 0; i < data.rows.length; i++)
     // {
     //   for(key in data.rows[i])
@@ -137,5 +147,5 @@ d3Tooltip.prototype.clearTooltip = function()
  */
 d3Tooltip.prototype.setPosition = function(x, y)
 {
-  this.tooltip.style("left", (x - this.xOffset) + "px").style("top", (y - this.yOffset) + "px");
+  this.tooltip.style("left", (x) + "px").style("top", (y) + "px");
 }
