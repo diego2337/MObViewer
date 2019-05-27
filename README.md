@@ -132,7 +132,7 @@ With user interaction, additional visualization techniques can be employed to su
 
 Button `Define Word Cloud Attribute` takes as input a vertice's attribute. The word cloud will compute this attribute for **neighbors** of a selected vertice, calculating their frequencies and mapping them to font sizes. The figure below shows an example
 
-![Image of word cloud](https://github.com/diego2337/MObViewer/img/wordCloudVisualization.png)
+![Image of word cloud](/img/wordCloudVisualization.png)
 
 ### Frequency Histogram
 
@@ -149,4 +149,4 @@ Button `Define Label` takes as input a vertice's attribute, defining a color sch
 
 The figure below shows an overall view of MObViewer. (A) shows the header panel and its buttons. (B) shows the word cloud and frequency histogram visualizations. (C) shows vertice info for the selected super-vertice and its neighbors. (D) shows graph info of the hierarchy of coarsened vertices and interaction functions ("reset to center", "zoom in", "zoom out"). (E) shows the color scheme and edge weights. (F) shows the resulting visualization.
 
-![Image of MObViewer](https://github.com/diego2337/MObViewer/img/mobOverviewNEW.png)
+![Image of MObViewer](/img/mobOverviewNEW.png)
