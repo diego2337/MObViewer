@@ -2,7 +2,7 @@
 
 MObViewer is a visualization tool that introduces a novel metaphor to visualize bipartite graphs, obtained from the execution of the multilevel paradigm framework [MOb](http://www.alanvalejo.com.br/software?name=mob). The multilevel paradigm yields an hierarchy of coarsened graphs as output. MObViewer uses this hierarchy as input, where vertices are depicted as circles of varying sizes (circle size maps the number of elements in a super-vertex). The two innermost rows of circles depict the two vertice layers of the coarsest graph, while moving outwards the outer rows represent the layers in the hierarchy of intermediate graphs. The outermost rows, rendered in gray, depict the layers of the input graph. In a bipartite graph G = (V<sub>1</sub>, V<sub>2</sub>), layers V<sub>1</sub> and V<sub>2</sub>are displayed, respectively, at the bottom and at the top areas. Once a vertex is selected its adjacent edges are rendered, otherwise edges are not rendered. Additionally, MObViewer uses different visualization techniques to support visual exploration of bipartite graphs in real world datasets. The image below shows the novel visualization.
 
-![Image of novel metaphor](https://github.com/diego2337/MObViewer/blob/master/img/visualMetaphorInteractionNEW.pdf)
+![Image of novel metaphor](/img/visualMetaphorInteractionNEW.pdf)
 
 # Getting Started
 
