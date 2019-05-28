@@ -130,7 +130,7 @@ With user interaction, additional visualization techniques can be employed to su
 
 ### Word Cloud
 
-Button `Define Word Cloud Attribute` takes as input a vertice's attribute. The word cloud will compute this attribute for **neighbors** of a selected vertice, calculating their frequencies and mapping them to font sizes. The figure below shows an example
+Button `Define Word Cloud Attribute` takes as input a vertice's attribute. The word cloud will compute this attribute for **neighbors** of a selected vertice, calculating their frequencies and mapping them to font sizes. The figure below shows an example.
 
 ![Image of word cloud](/img/wordCloudVisualization.png)
 
