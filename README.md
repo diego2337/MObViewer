@@ -27,7 +27,7 @@ Run `dependencies.sh` to install all the required packages. Alternatively, if yo
 * [networkx](https://networkx.github.io/)
 * [sharedmem](https://github.com/rainwoodman/sharedmem)
 
-After downloading files, simply run `npm install` to install additional dependencies handled by Grunt. Then fire `grunt` command to start the server at port `3030`. The URL to use MObViewer is usually https://localhost:3030.
+After downloading the files, simply run `npm install` to install additional dependencies handled by Grunt. Then run `grunt` to start the server at port `3030`. The URL to use MObViewer is usually https://localhost:3030.
 
 ## For Windows users
 
