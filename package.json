@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://diego_2337@bitbucket.org/diego_2337/threegraph.git"
+    "url": "git+https://github.com/diego2337/MObViewer"
   },
   "keywords": [
     "Information",
@@ -21,7 +21,7 @@
   ],
   "author": "Diego Cintra",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/diego_2337/threegraph#readme",
+  "homepage": "https://github.com/diego2337/MObViewer",
   "dependencies": {
     "body-parser": "^1.18.2",
     "connect": "^3.6.6",

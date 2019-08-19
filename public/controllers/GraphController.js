@@ -1048,7 +1048,7 @@ exports.defineLabel = function(req, res){
 };
 
 /**
- * Server-side callback function from 'express' framework to create graph colors. Get user-defined 'label' attribute and create a 'colors.csv' file, containing all colors for all possible values of 'label'.
+ * Server-side callback function from 'express' framework to create graph colors. Get user-defined 'label' attribute and create a 'colors.json' file, containing all colors for all possible values of 'label'.
  * @public @callback
  * @param {Object} req header incoming from HTTP;
  * @param {Object} res header to be sent via HTTP for HTML page.
@@ -1057,13 +1057,17 @@ exports.createGraphColors = function(req, res){
   var label = indexController.fs.readFileSync('label.txt', 'utf8');
   var graphFile = indexController.fs.readFileSync('uploads' + indexController.folderChar + indexController.fileName.split(".")[0] + indexController.folderChar + indexController.fileName.split(".")[0] + ".json", 'utf8');
   graphFile = JSON.parse(graphFile);
+  /** Use color scheme from http://colorbrewer2.org - FIXME limited to 12 classes */
+  // ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99','#b15928']
+  var colorScheme = [[0.650980392,0.807843137,0.890196078],[0.121568627,0.470588235,0.705882353],[0.698039216,0.874509804,0.541176471],[0.2,0.62745098,0.17254902],[0.984313725,0.603921569,0.6],[0.890196078,0.101960784,0.109803922],[0.992156863,0.749019608,0.435294118],[1.0,0.498039216,0.0],[0.792156863,0.698039216,0.839215686],[0.415686275,0.239215686,0.603921569],[1,1,0.6],[0.694117647,0.349019608,0.156862745]]
   /** Iterate through all nodes and store existing values on a dictionary */
   var labelValues = {};
   for(var i = 0; i < graphFile.nodes.length; i++)
   {
     if(label in graphFile.nodes[i])
     {
-      labelValues[graphFile.nodes[i][label]] = Array(Math.random(), Math.random(), Math.random());
+      // labelValues[graphFile.nodes[i][label]] = Array(Math.random(), Math.random(), Math.random());
+      labelValues[graphFile.nodes[i][label]] = colorScheme[Object.keys(labelValues).indexOf(graphFile.nodes[i][label]) % 12];
     }
   }
   indexController.fs.writeFileSync('colors.json', JSON.stringify(labelValues), 'utf8');
