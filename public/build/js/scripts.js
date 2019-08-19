@@ -121,7 +121,7 @@ var vueRootInstance = new Vue({
       { identification: 'defineCategories', title: 'Define data categories', description: 'Create a csv file associating data attributes with their respective types, e.g: attribute1,{categorical|ordinal},{nOfElem|range-range} attribute2,{categorical|ordinal},{nOfElem|range-range}...' },
       { identification: 'defineWordCloud', title: 'Define word cloud attribute', description: 'Create a .txt file associated with an attribute, to be used as element to be checked for word cloud, e.g \'artist\' will look for \'artist\' key in JSON graph to define as word cloud attribute.' },
       { identification: 'toggleLayout', title: 'Toggle layout', description: 'Toggle between showing all levels of the hierarchy or just the most coarsened graph. Default to show only most coarsened level.' },
-      { identification: 'userInfo', title: 'Define vertex info', description: 'Define vertex info to be shown on tooltip (to be implemented).' },
+      // { identification: 'userInfo', title: 'Define vertex info', description: 'Define vertex info to be shown on tooltip (to be implemented).' },
       // { identification: 'uploadGraph', title: 'Load graph...', description: 'Upload graph server-side.' },
       { identification: 'saveImgButton', title: 'Save .png...', description: 'Save current graph as .jpg image.'},
       { identification: 'saveFileButton', title: 'Save .json...', description: 'Save most coarsened graph as a .json file.'},
