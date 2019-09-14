@@ -21,8 +21,8 @@ var Layout = function(svgId)
   this.gradientLegend = undefined;
   /** @desc Define if communities legend is already present */
   this.communitiesLegend = undefined;
-  /** @desc Define standard layout - (2) for horizontal bipartite graph, (3) for vertical bipartite graph */
-  this.lay = 2;
+  /** @desc Define standard layout - (0) for horizontal bipartite graph having nodes as bar charts, (1) for vertical bipartite graph having nodes as bar charts, (2) for horizontal bipartite graph having nodes as circles, (3) for vertical bipartite graph having nodes as circles */
+  this.lay = 0;
   /** @desc Define events object */
   this.eventHandler = undefined;
   /** @desc Define vertexInfo object, to hold vertexes properties */
@@ -596,7 +596,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
   }
   /** Create variable to hold graph size, to be used for ordering */
   for(let i = 0; i < bipartiteGraphs.length; i++)
-  {
+  {lay
     if(bipartiteGraphs[i].graphInfo[0].vlayer !== undefined)
     {
       bipartiteGraphs[i].graphInfo[0].graphSize = parseInt(bipartiteGraphs[i].graphInfo[0].vlayer.split(" ")[0]) + parseInt(bipartiteGraphs[i].graphInfo[0].vlayer.split(" ")[1]);
@@ -628,7 +628,7 @@ Layout.prototype.buildAndRenderCoarsened = function(bipartiteGraph, lay, jason, 
   });
   /** Render previous uncoarsened graphs */
   // for(let i = bipartiteGraphs.length-1; i >= 0; i = i - 1)
-  for(let i = 1, j = bipartiteGraphs.length*2.0; i < bipartiteGraphs.length; i = i + 1)
+  for(let i = 1, j = bipartiteGraphs.length; i < bipartiteGraphs.length; i = i + 1)
   {
     var coarsenedBipartiteGraph;
     coarsenedBipartiteGraph = new BipartiteGraph(bipartiteGraphs[i], bipartiteGraph.distanceBetweenSets - (i+1), (i).toString());
